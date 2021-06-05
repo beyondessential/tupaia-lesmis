@@ -23,6 +23,7 @@ export const sanitiseFetchDataOptions = options => {
     startDate: startDateInput,
     endDate: endDateInput,
     aggregations,
+    period,
   } = options;
   const { startDate, endDate } = getAdjustedDates(startDateInput, endDateInput);
 
@@ -34,5 +35,6 @@ export const sanitiseFetchDataOptions = options => {
     startDate,
     endDate,
     aggregations,
+    period,
   };
 };

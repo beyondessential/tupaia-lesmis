@@ -14,12 +14,20 @@ export class DataFetchQuery {
     this.database = database;
 
     // immutable options, broken out into fields
-    const { dataElementCodes, organisationUnitCodes, dataGroupCode, startDate, endDate } = options;
+    const {
+      dataElementCodes,
+      organisationUnitCodes,
+      dataGroupCode,
+      startDate,
+      endDate,
+      period,
+    } = options;
     this.dataElementCodes = dataElementCodes;
     this.entityCodes = organisationUnitCodes;
     this.dataGroupCode = dataGroupCode;
     this.startDate = startDate;
     this.endDate = endDate;
+    this.period = period;
 
     // mutable query details to be built
     this.query = '';

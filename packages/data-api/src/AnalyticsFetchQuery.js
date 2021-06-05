@@ -3,7 +3,25 @@
  * Copyright (c) 2017 - 2021 Beyond Essential Systems Pty Ltd
  */
 
+import groupBy from 'lodash.groupby';
+import { periodToType } from '@tupaia/utils';
 import { DataFetchQuery, ANSWER_SPECIFIC_FIELDS } from './DataFetchQuery';
+
+/**
+ *
+ * @param {string} periodString
+ * @returns {[string, string[]][]} [periodField, periods[]], eg. [['day_period', ['20210101', '20210102']], ['week_period', ['2021W02', '2021W03']], ...]
+ */
+const convertPeriodStringIntoWhereClauseParts = periodString => {
+  const individualPeriods = periodString
+    .split(';') // Split into parts
+    .map(periodStringPart => periodStringPart.split(',')) // split periods in parts
+    .flat();
+  return Object.entries(groupBy(individualPeriods, periodToType)).map(([periodType, periods]) => [
+    `${periodType.toLowerCase()}_period`,
+    periods,
+  ]);
+};
 
 const AGGREGATION_SWITCHES = {
   FINAL_EACH_DAY: {
@@ -63,8 +81,14 @@ export class AnalyticsFetchQuery extends DataFetchQuery {
     return this.aggregation.switches?.aggregateEntities ? 'aggregation_entity_code' : 'entity_code';
   }
 
+  getPeriodField() {
+    return this.aggregation.switches?.groupByPeriodField
+      ? this.aggregation.switches?.groupByPeriodField
+      : 'day_period';
+  }
+
   getCommonFields() {
-    return [this.getEntityCodeField(), 'data_element_code'];
+    return [this.getEntityCodeField(), this.getPeriodField(), 'data_element_code'];
   }
 
   getEntityCommonTableExpression() {
@@ -85,8 +109,8 @@ export class AnalyticsFetchQuery extends DataFetchQuery {
   getAliasedColumns() {
     return [
       `${this.getEntityCodeField()} AS "entityCode"`,
+      `${this.getPeriodField()} AS "period"`,
       'data_element_code AS "dataElementCode"',
-      'date',
       'value',
       'type',
     ].join(', ');
@@ -96,12 +120,8 @@ export class AnalyticsFetchQuery extends DataFetchQuery {
     if (!this.isAggregating) {
       return `SELECT ${[...this.getCommonFields(), ...ANSWER_SPECIFIC_FIELDS].join(', ')}`;
     }
-    const { groupByPeriodField, sum, getLatestPerPeriod } = this.aggregation.switches;
+    const { sum, getLatestPerPeriod } = this.aggregation.switches;
     const fields = [...this.getCommonFields()];
-
-    if (groupByPeriodField) {
-      fields.push(groupByPeriodField);
-    }
 
     if (sum) {
       fields.push('SUM(value::NUMERIC)::text as value');
@@ -118,6 +138,12 @@ export class AnalyticsFetchQuery extends DataFetchQuery {
       'INNER JOIN entity_codes_and_relations ON entity_codes_and_relations.code = analytics.entity_code',
       this.createInnerJoin(this.dataElementCodes, 'data_element_code'),
     ];
+    if (this.period) {
+      const periodWhereClauseParts = convertPeriodStringIntoWhereClauseParts(this.period);
+      periodWhereClauseParts.forEach(([periodField, periods]) =>
+        joins.push(this.createInnerJoin(periods, periodField)),
+      );
+    }
     return joins.join('\n');
   }
 
@@ -148,8 +174,6 @@ export class AnalyticsFetchQuery extends DataFetchQuery {
     if (!this.isAggregating) return '';
 
     const groupByFields = [...this.getCommonFields()];
-    const { groupByPeriodField } = this.aggregation.switches;
-    if (groupByPeriodField) groupByFields.push(groupByPeriodField);
     return `GROUP BY ${groupByFields.join(', ')}`;
   };
 
@@ -158,8 +182,6 @@ export class AnalyticsFetchQuery extends DataFetchQuery {
 
     // add where condition for each non-calculated table selected in a1
     const joinFields = [...this.getCommonFields()];
-    const { groupByPeriodField } = this.aggregation.switches;
-    if (groupByPeriodField) joinFields.push(groupByPeriodField);
     const joinConditions = joinFields.map(field => `${field} = a1.${field}`);
 
     // add start/end date clauses to limit results and speed things up

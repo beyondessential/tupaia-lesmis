@@ -21,6 +21,7 @@ const COMMON_OPTIONS = {
 
 const ANALYTIC_OPTIONS = {
   dataElementCodes: [hasContent, constructEveryItem(isAString)],
+  period: [constructIsEmptyOr(isAString)],
 };
 
 const EVENT_OPTIONS = {
