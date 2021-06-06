@@ -4,5 +4,6 @@
  */
 
 export { Aggregator } from './Aggregator';
+export { AggregateAnalyticsCache } from './AggregateAnalyticsCache';
 export * from './analytics';
 export { createAggregator } from './createAggregator';

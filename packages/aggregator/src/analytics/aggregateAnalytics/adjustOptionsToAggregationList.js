@@ -118,7 +118,11 @@ const getAdjustedOrganisationUnitsAndAggregations = async (
  * @param {Object} aggregationOptions
  */
 export const adjustOptionsToAggregationList = async (context, fetchOptions, aggregationOptions) => {
-  const { aggregations: aggregationList = [] } = aggregationOptions;
+  const { aggregations: aggregationList = [], preadjusted } = aggregationOptions;
+  if (preadjusted) {
+    return [fetchOptions, aggregationOptions];
+  }
+
   if (aggregationList.length === 0) {
     // Trim off any pre-existing aggregations from fetch options
     const { aggregations, ...restOfFetchOptions } = fetchOptions;
@@ -136,6 +140,6 @@ export const adjustOptionsToAggregationList = async (context, fetchOptions, aggr
 
   return [
     { ...fetchOptions, organisationUnitCodes, startDate, endDate, period, aggregations },
-    { ...aggregationOptions, aggregations },
+    { ...aggregationOptions, aggregations, preadjusted: true },
   ];
 };

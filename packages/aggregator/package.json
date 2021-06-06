@@ -23,6 +23,8 @@
     "@tupaia/server-boilerplate": "1.0.0",
     "@tupaia/utils": "1.0.0",
     "lodash.groupby": "^4.6.0",
+    "lodash.sortby": "^4.6.0",
+    "redis": "^3.1.2",
     "winston": "^3.3.3"
   }
 }

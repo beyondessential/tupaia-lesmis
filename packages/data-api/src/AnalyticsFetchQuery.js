@@ -13,10 +13,7 @@ import { DataFetchQuery, ANSWER_SPECIFIC_FIELDS } from './DataFetchQuery';
  * @returns {[string, string[]][]} [periodField, periods[]], eg. [['day_period', ['20210101', '20210102']], ['week_period', ['2021W02', '2021W03']], ...]
  */
 const convertPeriodStringIntoWhereClauseParts = periodString => {
-  const individualPeriods = periodString
-    .split(';') // Split into parts
-    .map(periodStringPart => periodStringPart.split(',')) // split periods in parts
-    .flat();
+  const individualPeriods = periodString.split(';');
   return Object.entries(groupBy(individualPeriods, periodToType)).map(([periodType, periods]) => [
     `${periodType.toLowerCase()}_period`,
     periods,

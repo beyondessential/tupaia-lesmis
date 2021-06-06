@@ -3,7 +3,11 @@
  * Copyright (c) 2017 - 2020 Beyond Essential Systems Pty Ltd
  */
 
-import { Aggregator as BaseAggregator } from '@tupaia/aggregator';
+import {
+  Aggregator as BaseAggregator,
+  AggregateAnalyticsCache,
+  createAggregator,
+} from '@tupaia/aggregator';
 import { getDefaultPeriod, convertPeriodStringToDateRange } from '@tupaia/utils';
 import { Event, AggregationObject } from '../types';
 
@@ -13,7 +17,15 @@ type PeriodParams = {
   endDate?: string;
 };
 
-export class Aggregator extends BaseAggregator {
+export class Aggregator {
+  private readonly baseAggregator: BaseAggregator;
+  private readonly cachedAggregator: AggregateAnalyticsCache;
+
+  constructor(context: any) {
+    this.baseAggregator = createAggregator(BaseAggregator, context);
+    this.cachedAggregator = new AggregateAnalyticsCache(this.baseAggregator);
+  }
+
   aggregationToAggregationConfig = (aggregation: string | AggregationObject) =>
     typeof aggregation === 'string'
       ? {
@@ -33,7 +45,7 @@ export class Aggregator extends BaseAggregator {
       ? aggregationList.map(this.aggregationToAggregationConfig)
       : [{ type: 'RAW' }];
 
-    return super.fetchAnalytics(
+    return this.cachedAggregator.fetchAnalytics(
       dataElementCodes,
       {
         organisationUnitCodes: organisationUnitCodes.split(','),
@@ -59,7 +71,7 @@ export class Aggregator extends BaseAggregator {
     const aggregations = aggregationList
       ? aggregationList.map(this.aggregationToAggregationConfig)
       : [{ type: 'RAW' }];
-    return super.fetchEvents(
+    return this.baseAggregator.fetchEvents(
       programCode,
       {
         organisationUnitCodes: organisationUnitCodes.split(','),

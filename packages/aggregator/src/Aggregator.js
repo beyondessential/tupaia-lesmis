@@ -5,7 +5,7 @@
 
 import {
   adjustOptionsToAggregationList,
-  aggregateAnalytics,
+  runAggregation,
   filterAnalytics,
   periodFromAnalytics,
 } from './analytics';
@@ -40,7 +40,7 @@ export class Aggregator {
 
   aggregateAnalytics = (analytics, aggregationList, requestedPeriod) =>
     aggregationList.reduce((partiallyAggregatedAnalytics, { type, config }) => {
-      return aggregateAnalytics(partiallyAggregatedAnalytics, type, {
+      return runAggregation(partiallyAggregatedAnalytics, type, {
         ...config,
         requestedPeriod,
       });
@@ -68,9 +68,14 @@ export class Aggregator {
     }
 
     const { results, metadata } = await this.dataBroker.pull(dataSourceSpec, adjustedFetchOptions);
+    const aggregatedAnalytics = this.processAnalytics(
+      results,
+      adjustedAggregationOptions,
+      fetchOptions.period,
+    );
 
     return {
-      results: this.processAnalytics(results, adjustedAggregationOptions, fetchOptions.period),
+      results: aggregatedAnalytics,
       metadata,
       period: periodFromAnalytics(results, fetchOptions),
     };

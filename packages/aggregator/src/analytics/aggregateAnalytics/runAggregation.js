@@ -20,7 +20,7 @@ import {
   sumPreviousPerPeriod,
 } from './aggregations';
 
-export const aggregateAnalytics = (
+export const runAggregation = (
   analytics,
   aggregationType = AGGREGATION_TYPES.MOST_RECENT,
   aggregationConfig = {},

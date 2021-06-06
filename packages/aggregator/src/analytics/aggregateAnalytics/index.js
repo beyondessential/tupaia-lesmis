@@ -4,4 +4,5 @@
  */
 
 export * from './adjustOptionsToAggregationList';
-export { aggregateAnalytics } from './aggregateAnalytics';
+export { constructAggregateAnalyticsForFetch } from './constructAggregateAnalyticsForFetch';
+export { runAggregation } from './runAggregation';

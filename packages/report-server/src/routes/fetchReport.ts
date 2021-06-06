@@ -4,7 +4,6 @@
  */
 
 import { respond } from '@tupaia/utils';
-import { createAggregator } from '@tupaia/aggregator';
 import { Response } from 'express';
 import { Aggregator } from '../aggregator';
 import { ReportBuilder } from '../reportBuilder';
@@ -21,7 +20,7 @@ class FetchReportRouteHandler {
   fetchReport = async (req: ReportsRequest, res: Response): Promise<void> => {
     const { params, models, accessPolicy, body } = req;
     const filter = getFilterFromReq(req);
-    const aggregator = createAggregator(Aggregator, {
+    const aggregator = new Aggregator({
       session: { getAuthHeader: () => req.headers.authorization },
     });
     const reportBuilder = new ReportBuilder();
