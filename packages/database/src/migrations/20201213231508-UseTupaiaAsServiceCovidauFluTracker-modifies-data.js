@@ -125,6 +125,15 @@ exports.up = async function (db) {
     const questions = await selectQuestionsBySurveyCode(db, surveyCode);
     await insertDataSources(db, questions, surveyCode);
   }
+
+  // Do a manual full refresh as the automatic fast refresh that runs during post migration takes way too long
+  await db.runSql(`
+    SELECT mv$removeIndexFromMv$Table(mv$buildAllConstants(), 'analytics_data_element_entity_date_idx');
+    SELECT mv$removeIndexFromMv$Table(mv$buildAllConstants(), 'analytics_data_group_entity_event_date_idx');
+    SELECT mv$refreshMaterializedView('analytics', 'public');
+    SELECT mv$addIndexToMv$Table(mv$buildAllConstants(), 'public', 'analytics', 'analytics_data_group_entity_event_date_idx', 'data_group_code, entity_code, event_id, date desc');
+    SELECT mv$addIndexToMv$Table(mv$buildAllConstants(), 'public', 'analytics', 'analytics_data_element_entity_date_idx', 'data_element_code, entity_code, date desc');
+  `);
 };
 
 exports.down = async function (db) {
@@ -132,6 +141,15 @@ exports.down = async function (db) {
   for (let i = 0; i < surveys.length; i++) {
     await deleteDataSources(db, surveys[i].code);
   }
+
+  // Do a manual full refresh as the automatic fast refresh that runs during post migration takes way too long
+  await db.runSql(`
+    SELECT mv$removeIndexFromMv$Table(mv$buildAllConstants(), 'analytics_data_element_entity_date_idx');
+    SELECT mv$removeIndexFromMv$Table(mv$buildAllConstants(), 'analytics_data_group_entity_event_date_idx');
+    SELECT mv$refreshMaterializedView('analytics', 'public');
+    SELECT mv$addIndexToMv$Table(mv$buildAllConstants(), 'public', 'analytics', 'analytics_data_group_entity_event_date_idx', 'data_group_code, entity_code, event_id, date desc');
+    SELECT mv$addIndexToMv$Table(mv$buildAllConstants(), 'public', 'analytics', 'analytics_data_element_entity_date_idx', 'data_element_code, entity_code, date desc');
+  `);
 };
 
 exports._meta = {
