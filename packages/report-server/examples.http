@@ -11,3 +11,20 @@
 GET http://{{host}}/{{version}}/fetchReport/PSSS_Weekly_Report?organisationUnitCodes=TO&hierarchy=psss&period=2020 HTTP/1.1
 content-type: {{contentType}}
 Authorization: {{authorization}}
+
+### Fetch PSSS Weekly Report
+GET http://{{host}}/{{version}}/fetchReport/PSSS_Weekly_Report?organisationUnitCodes=TO&hierarchy=psss&period=2020 HTTP/1.1
+content-type: {{contentType}}
+Authorization: {{authorization}}
+
+{
+    "testConfig": {
+        "fetch": {
+            "dataElements": ["BCD1"],
+            "aggregations": [{"type": "RAW", "config": { "dataSourceEntityType": "facility" } }]
+        },
+        "transform": [
+            { "transform": "select", "'test'": "round(1 / 3)"}
+        ]
+    }
+}

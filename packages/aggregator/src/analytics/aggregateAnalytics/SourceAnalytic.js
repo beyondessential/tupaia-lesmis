@@ -9,35 +9,23 @@ const SOURCE_VALUES_DELIMITER = ';';
 const SOURCE_TO_AGGREGATE_DELIMITER = '->';
 const MAP_VALUES_DELIMITER = '&&';
 
-export class AggregateAnalytic {
+export class SourceAnalytic {
   cacheKey;
 
-  constructor(
-    dataElement,
-    sourceAnalyticIds,
-    inputPeriods,
-    outputPeriod,
-    inputEntities,
-    outputEntity,
-    aggregation,
-  ) {
+  constructor(dataElement, period, entity) {
     this.dataElement = dataElement;
-    this.sourceAnalyticIds = sourceAnalyticIds;
-    this.inputPeriods = inputPeriods;
-    this.outputPeriod = outputPeriod;
-    this.inputEntities = inputEntities;
-    this.outputEntity = outputEntity;
-    this.aggregation = aggregation;
+    this.period = period;
+    this.inputPeriod = period;
+    this.outputPeriod = period;
+    this.entity = entity;
+    this.inputEntity = entity;
+    this.outputEntity = entity;
   }
 
   toCacheKey() {
     if (!this.cacheKey) {
       console.log('building cache key');
-      this.cacheKey = `${this.dataElement}${AGGREGATION_PART_DELIMITER}${
-        this.aggregation
-      }${AGGREGATION_PART_DELIMITER}${this.sourceAnalyticIds.join(
-        SOURCE_VALUES_DELIMITER,
-      )}${AGGREGATION_PART_DELIMITER}`;
+      this.cacheKey = `${this.dataElement}${AGGREGATION_PART_DELIMITER}SOURCE${AGGREGATION_PART_DELIMITER}${this.period}${AGGREGATION_PART_DELIMITER}${this.entity}`;
     }
     console.log('built', this.cacheKey);
     return this.cacheKey;
@@ -50,6 +38,16 @@ export class AggregateAnalytic {
     return new AggregateAnalytic(aggregationChain);
   }
 }
+
+const mapToAggregationCacheKeyPart = map => {
+  console.log(map);
+  return Object.entries(map)
+    .map(
+      ([aggregate, sources]) =>
+        `${sources.join(SOURCE_VALUES_DELIMITER)}${SOURCE_TO_AGGREGATE_DELIMITER}${aggregate}`,
+    )
+    .join(MAP_VALUES_DELIMITER);
+};
 
 const cacheKeyPartToAggregation = cacheKeyPart => {
   const [type, periodPart, entityPart] = cacheKeyPart.split(AGGREGATION_PART_DELIMITER);
