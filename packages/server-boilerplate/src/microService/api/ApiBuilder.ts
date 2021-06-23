@@ -10,11 +10,14 @@ import errorHandler from 'api-error-handler';
 
 import { Authenticator } from '@tupaia/auth';
 import { ModelRegistry, TupaiaDatabase } from '@tupaia/database';
+import { EntityApi } from '@tupaia/entity-server';
 
 import { handleWith, handleError } from '../../utils';
 import { buildBasicBearerAuthMiddleware } from '../auth';
 import { TestRoute } from '../../routes';
 import { ExpressRequest, Params, ReqBody, ResBody, Query } from '../../routes/Route';
+import { OutboundConnection } from '../../connections';
+import { RequestContext } from '../types';
 
 export class ApiBuilder {
   private readonly app: Express;
@@ -47,7 +50,14 @@ export class ApiBuilder {
     this.app.use((req: Request, res: Response, next: NextFunction) => {
       req.models = this.models;
 
-      const context = {}; // context is shared between request and response
+      const microServiceAuthHandler = {
+        getAuthHeader: async () => req.headers.authorization || '',
+      };
+      const context: RequestContext = {
+        microServices: {
+          entityApi: new EntityApi(new OutboundConnection(), microServiceAuthHandler),
+        },
+      }; // context is shared between request and response
       req.ctx = context;
       res.ctx = context;
 
@@ -78,6 +88,14 @@ export class ApiBuilder {
     handler: RequestHandler<Params<T>, ResBody<T>, ReqBody<T>, Query<T>>,
   ) {
     this.app.get(this.formatPath(path), handler);
+    return this;
+  }
+
+  post<T extends ExpressRequest<T> = Request>(
+    path: string,
+    handler: RequestHandler<Params<T>, ResBody<T>, ReqBody<T>, Query<T>>,
+  ) {
+    this.app.post(this.formatPath(path), handler);
     return this;
   }
 

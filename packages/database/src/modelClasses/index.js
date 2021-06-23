@@ -108,6 +108,7 @@ export { FacilityModel } from './Facility';
 export { GeographicalAreaModel } from './GeographicalArea';
 export { MeditrakDeviceModel } from './MeditrakDevice';
 export { PermissionGroupModel } from './PermissionGroup';
+export { ReportModel, ReportType } from './Report';
 export { SurveyScreenComponentModel } from './SurveyScreenComponent';
 export { SurveyScreenModel } from './SurveyScreen';
 export { UserEntityPermissionModel } from './UserEntityPermission';
