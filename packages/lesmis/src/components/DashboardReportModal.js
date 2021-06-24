@@ -7,9 +7,6 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { useTheme } from '@material-ui/core/styles';
-import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
-import BarChartIcon from '@material-ui/icons/BarChart';
-import GridOnIcon from '@material-ui/icons/GridOn';
 import KeyboardArrowRightIcon from '@material-ui/icons/KeyboardArrowRight';
 import {
   Box,
@@ -22,10 +19,9 @@ import {
 } from '@material-ui/core';
 import { DateRangePicker } from '@tupaia/ui-components';
 import * as COLORS from '../constants';
-import { FlexSpaceBetween, FlexEnd, FlexStart } from './Layout';
+import { FlexSpaceBetween, FlexStart } from './Layout';
 import { DialogHeader } from './FullScreenDialog';
-import { ToggleButton } from './ToggleButton';
-import { ChartTable, TABS } from './ChartTable';
+import { Chart } from './Chart';
 import { useDashboardReportData } from '../api/queries';
 import { useUrlSearchParams } from '../utils';
 
@@ -85,7 +81,6 @@ export const DashboardReportModal = ({
   const [{ startDate, endDate, reportCode: selectedReportCode }, setParams] = useUrlSearchParams();
   const isOpen = reportCode === selectedReportCode;
   const [open, setOpen] = useState(isOpen);
-  const [selectedTab, setSelectedTab] = useState(TABS.CHART);
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -128,12 +123,6 @@ export const DashboardReportModal = ({
     });
   };
 
-  const handleTabChange = (event, newValue) => {
-    if (newValue !== null) {
-      setSelectedTab(newValue);
-    }
-  };
-
   return (
     <>
       <MuiButton onClick={handleClickOpen} endIcon={<KeyboardArrowRightIcon />} color="primary">
@@ -166,22 +155,12 @@ export const DashboardReportModal = ({
                 />
               </FlexStart>
             </Header>
-            <FlexEnd>
-              <ToggleButtonGroup onChange={handleTabChange} value={selectedTab} exclusive>
-                <ToggleButton value={TABS.TABLE}>
-                  <GridOnIcon />
-                </ToggleButton>
-                <ToggleButton value={TABS.CHART}>
-                  <BarChartIcon />
-                </ToggleButton>
-              </ToggleButtonGroup>
-            </FlexEnd>
-            <ChartTable
+            <Chart
               viewContent={{ ...viewConfig, data: viewContent }}
               isLoading={isLoading}
               isError={isError}
               error={error}
-              selectedTab={selectedTab}
+              isEnlarged
             />
           </Container>
         </Wrapper>
