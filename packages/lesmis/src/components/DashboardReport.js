@@ -67,7 +67,7 @@ export const CHART_TYPES = {
   PIE: 'pie',
 };
 
-export const Report = React.memo(
+export const DashboardReport = React.memo(
   ({
     reportCode,
     name,
@@ -124,9 +124,9 @@ export const Report = React.memo(
           <DashboardReportModal
             buttonText="See More"
             name={name}
+            entityCode={entityCode}
             dashboardCode={dashboardCode}
             dashboardName={dashboardName}
-            entityCode={entityCode}
             reportCode={reportCode}
             periodGranularity={periodGranularity}
             viewConfig={viewConfig}
@@ -137,7 +137,7 @@ export const Report = React.memo(
   },
 );
 
-Report.propTypes = {
+DashboardReport.propTypes = {
   name: PropTypes.string.isRequired,
   reportCode: PropTypes.string.isRequired,
   entityCode: PropTypes.string.isRequired,
@@ -148,7 +148,7 @@ Report.propTypes = {
   viewConfig: PropTypes.object.isRequired,
 };
 
-Report.defaultProps = {
+DashboardReport.defaultProps = {
   year: null,
   periodGranularity: null,
 };

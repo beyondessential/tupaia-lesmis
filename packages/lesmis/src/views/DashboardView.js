@@ -20,6 +20,7 @@ import {
   EntityVitalsItem,
   PartnerLogo,
 } from '../components';
+import { IndicatorDashboard } from '../components/IndicatorDashboard';
 import { useUrlParams, useUrlSearchParams } from '../utils';
 import { useVitalsData, useEntityData } from '../api/queries';
 
@@ -36,6 +37,9 @@ const TabTemplate = ({ TabSelector, Body }) => (
     </TabBar>
     <MuiBox p={5} minHeight={500}>
       {Body}
+      <MuiBox pt={5}>
+        <IndicatorDashboard />
+      </MuiBox>
     </MuiBox>
   </>
 );
