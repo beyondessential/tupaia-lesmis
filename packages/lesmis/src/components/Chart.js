@@ -31,14 +31,8 @@ const ChartWrapper = styled(Wrapper)`
 `;
 
 const Header = styled(FlexSpaceBetween)`
-  padding-top: 2.2rem;
-  padding-bottom: 1.6rem;
+  padding: 1.25rem 1.875rem;
   border-bottom: 1px solid ${props => props.theme.palette.grey['400']};
-  margin-bottom: 1.6rem;
-
-  .MuiTextField-root {
-    margin-right: 0;
-  }
 `;
 
 const Body = styled.div`
@@ -82,7 +76,7 @@ const ChartTable = ({ viewContent, isLoading, isError, error, selectedTab }) => 
   <FetchLoader isLoading={isLoading} isError={isError} error={error}>
     {selectedTab === TABS.CHART ? (
       <ChartWrapper>
-        <ChartComponent viewContent={viewContent} />
+        <ChartComponent viewContent={viewContent} legendPosition="top" />
       </ChartWrapper>
     ) : (
       <Wrapper>
@@ -106,7 +100,13 @@ export const Chart = ({ name, viewContent, isLoading, isError, error, isEnlarged
       <FlexEnd>
         <Toggle onChange={handleTabChange} value={selectedTab} exclusive />
       </FlexEnd>
-      <ChartTable viewContent={viewContent} isLoading={isLoading} isError={isError} error={error} />
+      <ChartTable
+        viewContent={viewContent}
+        isLoading={isLoading}
+        isError={isError}
+        error={error}
+        selectedTab={selectedTab}
+      />
     </>
   ) : (
     <>
