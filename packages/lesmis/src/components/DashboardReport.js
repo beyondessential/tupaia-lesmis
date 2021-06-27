@@ -11,6 +11,7 @@ import { Chart } from './Chart';
 import * as COLORS from '../constants';
 import { useDashboardReportData } from '../api/queries';
 import { yearToApiDates } from '../api/queries/utils';
+import { FlexEnd } from './Layout';
 
 const Container = styled.div`
   width: 55rem;
@@ -20,10 +21,7 @@ const Container = styled.div`
   border-radius: 3px;
 `;
 
-const Footer = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
+const Footer = styled(FlexEnd)`
   padding: 1.25rem 1.875rem;
   background: ${COLORS.GREY_F9};
   border-top: 1px solid ${props => props.theme.palette.grey['400']};
