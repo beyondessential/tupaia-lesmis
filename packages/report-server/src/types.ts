@@ -31,8 +31,10 @@ export interface ReportConfig {
   fetch: {
     dataElements?: string[];
     dataGroups?: string[];
+    aggregations?: (string | Record<string, unknown>)[];
   };
   transform: (string | Record<string, unknown>)[];
+  output?: Record<string, unknown>[];
 }
 
 export interface ReportsRequest<
@@ -53,3 +55,5 @@ export interface Event {
   orgUnit: string;
   dataValues?: Record<string, string | number>;
 }
+
+export type AggregationObject = { type: string; config: Record<string, string> };

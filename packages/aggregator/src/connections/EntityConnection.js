@@ -5,10 +5,10 @@
  */
 import { ApiConnection } from '@tupaia/server-boilerplate';
 
-const { ENTITY_SERVER_API_URL = 'http://localhost:8050/v1' } = process.env;
+const { ENTITY_API_URL = 'http://localhost:8050/v1' } = process.env;
 
 export class EntityConnection extends ApiConnection {
-  baseUrl = ENTITY_SERVER_API_URL;
+  baseUrl = ENTITY_API_URL;
 
   constructor(session) {
     const { getAuthHeader } = session;
@@ -21,14 +21,14 @@ export class EntityConnection extends ApiConnection {
     dataSourceEntityType,
     dataSourceEntityFilter = {}, // TODO: Add support for dataSourceEntityFilter https://github.com/beyondessential/tupaia-backlog/issues/2660
   ) {
-    return this.get(`hierarchy/${hierarchyName}/descendants`, {
+    return this.get(`hierarchy/${hierarchyName}/relatives`, {
       entities: entityCodes.join(','),
       descendant_filter: `type:${dataSourceEntityType}`,
       field: 'code',
     });
   }
 
-  async getDataSourceEntitiesAndRelations(
+  async getDataSourceEntitiesAndRelationships(
     hierarchyName,
     entityCodes,
     aggregationEntityType,
@@ -47,12 +47,12 @@ export class EntityConnection extends ApiConnection {
       query.ancestor_filter = `type:${aggregationEntityType}`;
     }
 
-    const response = await this.get(`hierarchy/${hierarchyName}/relations`, query);
+    const response = await this.get(`hierarchy/${hierarchyName}/relationships`, query);
 
-    const formattedRelations = {};
+    const formattedRelationships = {};
     Object.entries(response).forEach(([descendant, ancestor]) => {
-      formattedRelations[descendant] = { code: ancestor };
+      formattedRelationships[descendant] = { code: ancestor };
     });
-    return [Object.keys(formattedRelations), formattedRelations];
+    return [Object.keys(formattedRelationships), formattedRelationships];
   }
 }

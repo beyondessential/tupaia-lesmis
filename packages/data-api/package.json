@@ -17,7 +17,11 @@
     "test": "jest",
     "test:coverage": "yarn test --coverage",
     "install-mv-refresh": "scripts/installMvRefreshModule.sh",
-    "build-analytics-table": "scripts/buildAnalyticsMaterializedView.sh"
+    "uninstall-mv-refresh": "scripts/uninstallMvRefreshModule.sh",
+    "build-analytics-table": "scripts/buildAnalyticsMaterializedView.sh",
+    "drop-analytics-table": "scripts/dropAnalyticsMaterializedView.sh",
+    "full-rebuild-analytics-table": "scripts/fullRebuildAnalyticsMaterializedView.sh",
+    "refresh-analytics-table": "scripts/refreshAnalyticsTable.sh"
   },
   "dependencies": {
     "@tupaia/database": "1.0.0",

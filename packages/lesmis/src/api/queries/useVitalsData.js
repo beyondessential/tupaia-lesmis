@@ -58,14 +58,6 @@ const useSchoolReport = entity =>
     entity?.type === 'school',
   );
 
-const useVillageReport = entity =>
-  useReport(
-    entity,
-    'LESMIS_village_vitals',
-    { params: { endDate: utcMoment().format(endDateFormat) } },
-    entity?.type === 'village',
-  );
-
 const useDistrictReport = entity =>
   useReport(
     entity,
@@ -107,35 +99,16 @@ const useMultiDistrictReport = (rootEntity, entities) => {
 };
 
 const useSchoolInformation = (entities, rootEntity) => {
-  const parentVillage = getParentOfType(entities, rootEntity?.code, 'village');
   const parentDistrict = getParentOfType(entities, rootEntity?.code, 'sub_district');
   const { data: schoolData, isLoading: schoolLoading } = useSchoolReport(rootEntity);
-  const { data: villageData, isLoading: villageLoading } = useVillageReport(parentVillage);
   const { data: districtData, isLoading: districtLoading } = useDistrictReport(parentDistrict);
 
   return {
     data: {
       ...schoolData?.results[0],
-      parentVillage: { ...villageData?.results[0], ...parentVillage },
       parentDistrict: { ...districtData?.results[0], ...parentDistrict },
     },
-    isLoading: schoolLoading || villageLoading || districtLoading,
-  };
-};
-
-const useVillageInformation = (entities, rootEntity) => {
-  const { data: villageData, isLoading: villageLoading } = useVillageReport(rootEntity);
-  const { data: subSchoolsData, isLoading: subSchoolsLoading } = useMultiSchoolReport(
-    entities,
-    rootEntity,
-  );
-
-  return {
-    data: {
-      ...villageData?.results[0],
-      ...subSchoolsData?.results[0],
-    },
-    isLoading: villageLoading || subSchoolsLoading,
+    isLoading: schoolLoading || districtLoading,
   };
 };
 
@@ -185,10 +158,6 @@ export const useVitalsData = entityCode => {
   const { data: entityData } = useEntityData(entityCode);
 
   const { data: schoolData, isLoading: schoolLoading } = useSchoolInformation(entities, entityData);
-  const { data: villageData, isLoading: villageLoading } = useVillageInformation(
-    entities,
-    entityData,
-  );
   const { data: districtData, isLoading: districtLoading } = useDistrictInformation(
     entities,
     entityData,
@@ -203,10 +172,9 @@ export const useVitalsData = entityCode => {
     ...entityData,
 
     ...schoolData,
-    ...villageData,
     ...districtData,
     ...provinceData,
 
-    isLoading: schoolLoading || villageLoading || districtLoading || provinceLoading,
+    isLoading: schoolLoading || districtLoading || provinceLoading,
   };
 };
