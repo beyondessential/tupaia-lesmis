@@ -4,6 +4,7 @@
  */
 
 import groupBy from 'lodash.groupby';
+import objectHash from 'object-hash';
 
 import moment from 'moment';
 import { getSortByKey, momentToDateString } from '@tupaia/utils';
@@ -25,6 +26,10 @@ const buildEventDataValues = resultsForEvent =>
     }),
     {},
   );
+
+const analyticsCache = {};
+let totalCacheAttempts = 0;
+let totalCacheHits = 0;
 
 export class TupaiaDataApi {
   constructor(database) {
@@ -54,13 +59,32 @@ export class TupaiaDataApi {
   async fetchAnalytics(optionsInput) {
     await validateAnalyticsOptions(optionsInput);
     const options = sanitiseFetchDataOptions(optionsInput);
+
+    const cacheKey = objectHash(options);
+
+    console.log('fetchAnalytics cache key: ', cacheKey);
+
+    totalCacheAttempts++;
+
+    if (analyticsCache[cacheKey]) {
+      console.log('cache hit (' + (Math.round(totalCacheHits/totalCacheAttempts*100)/100) + ')');
+      totalCacheHits++;
+      return analyticsCache[cacheKey];
+    } else {
+      console.log('cache miss');
+    }
+
     const results = await new AnalyticsFetchQuery(this.database, options).fetch();
-    return results.map(({ entityCode, dataElementCode, date, type, value }) => ({
+    const r = results.map(({ entityCode, dataElementCode, date, type, value }) => ({
       organisationUnit: entityCode,
       dataElement: dataElementCode,
       date: momentToDateString(moment(date)),
       value: sanitizeDataValue(value, type),
     }));
+
+    analyticsCache[cacheKey] = r;
+
+    return r;
   }
 
   async fetchDataElements(dataElementCodes, options = {}) {
