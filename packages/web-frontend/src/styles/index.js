@@ -322,23 +322,20 @@ export const VIEW_STYLES = {
         border: '1px solid #1f2038',
         boxShadow: '0px 0px 15px rgba(0,0,0,0.3)',
       },
-  chartContainer: isMobile()
-    ? {
-        height: 200,
-        textAlign: 'center',
-        position: 'relative',
-      }
-    : {
-        display: 'flex',
-        flexDirection: 'row',
-        flexGrow: 1,
-        flexShrink: 1,
-        flexBasis: '100%',
-        alignContent: 'stretch',
-        alignItems: 'stretch',
-      },
+  chartContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: '100%',
+    alignContent: 'stretch',
+    alignItems: 'stretch',
+  },
   chartViewContainer: isMobile()
-    ? {}
+    ? {
+        width: '100%',
+        height: '100%',
+      }
     : {
         display: 'flex',
         flexDirection: 'column',
