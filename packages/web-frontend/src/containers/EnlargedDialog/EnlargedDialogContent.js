@@ -22,6 +22,7 @@ import { LoadingIndicator } from '../Form/common';
 import { getLimits } from '../../utils/periodGranularities';
 import { DialogTitleWrapper } from '../../components/DialogTitleWrapper';
 import { transformDataForViewType } from '../../components/View/utils';
+import { isMobile } from '../../utils';
 
 const StyledAlert = styled(Alert)`
   display: inline-flex;
@@ -317,7 +318,7 @@ const styles = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'flex-start',
-    height: 390,
+    height: isMobile() ? 280 : 390,
   },
   matrixContent: {
     height: '80vh',
