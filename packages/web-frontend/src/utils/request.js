@@ -83,13 +83,19 @@ async function performDeduplicatedRequest(url, options) {
     return existingTask;
   }
 
+  // FIXME: temp removal of cache breaker below
+
   // It's a new request, let's create it.
   const hasQueryAlready = url.includes('?');
   const randomCacheBreaker = `${hasQueryAlready ? '&' : '?'}cacheBreaker=${Math.random()
     .toString(36)
     .substring(7)}`;
 
-  const task = performJSONRequest(url + randomCacheBreaker, options);
+  const addCacheBreaker = url.includes('api/v1/measureData') || url.includes('api/v1/view');
+
+  const newUrl = addCacheBreaker ? url + randomCacheBreaker : url;
+
+  const task = performJSONRequest(newUrl, options);
   inFlightRequests[url] = task;
 
   try {

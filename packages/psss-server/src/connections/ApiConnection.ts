@@ -50,6 +50,9 @@ export class ApiConnection {
         'Content-Type': 'application/json',
       },
     };
+
+    // FIXME: add no cache header -
+
     if (body) {
       fetchConfig.body = JSON.stringify(body);
     }
