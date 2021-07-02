@@ -16,10 +16,9 @@ export class MapOverlayPermissionsChecker extends PermissionsChecker {
   }
 
   async fetchAndCacheOverlays() {
-    if (!this.overlays) {
-      this.overlays = await this.models.mapOverlay.find({ id: this.getMeasureIds() });
-    }
-    return this.overlays;
+    return this.runCachedFunction('fetchAndCacheOverlays', async () => {
+      return this.models.mapOverlay.find({ id: this.getMeasureIds() });
+    });
   }
 
   async fetchPermissionGroups() {

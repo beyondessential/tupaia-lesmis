@@ -7,18 +7,17 @@ import { PermissionsChecker } from './PermissionsChecker';
 
 export class ReportPermissionsChecker extends PermissionsChecker {
   async fetchAndCacheDashboardItem(itemCode) {
-    if (!this.dashboardItem) {
-      this.dashboardItem = this.models.dashboardItem.findOne({ code: itemCode });
-      if (!this.dashboardItem) {
+    return this.runCachedFunction(`fetchAndCacheDashboardItem_${itemCode}`, async () => {
+      const dashboardItem = this.models.dashboardItem.findOne({ code: itemCode });
+      if (!dashboardItem) {
         throw new PermissionsError(`Cannot find dashboard item with code '${itemCode}'`);
       }
-    }
-
-    return this.dashboardItem;
+      return dashboardItem;
+    });
   }
 
   async fetchAndCachePermissionObject() {
-    if (!this.permissionObject) {
+    return this.runCachedFunction('fetchAndCachePermissionObject', async () => {
       const { reportCode } = this.params;
       const { itemCode, dashboardCode } = this.query;
       const dashboardRelation = await this.models.dashboardRelation.findDashboardRelation(
@@ -45,14 +44,12 @@ export class ReportPermissionsChecker extends PermissionsChecker {
         project_codes: projectCodes,
       } = dashboardRelation;
 
-      this.permissionObject = {
+      return {
         permissionGroups,
         entityTypes,
         projectCodes,
       };
-    }
-
-    return this.permissionObject;
+    });
   }
 
   async fetchPermissionGroups() {

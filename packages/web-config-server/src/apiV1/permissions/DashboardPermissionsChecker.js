@@ -8,12 +8,11 @@ import { PermissionsChecker } from './PermissionsChecker';
 
 export class DashboardPermissionsChecker extends PermissionsChecker {
   async fetchAndCacheDashboardGroup() {
-    if (!this.dashboardGroup) {
+    return this.runCachedFunction('fetchAndCacheDashboardGroup', async () => {
       // get dashboardGroup based on id from db, and check it matches user permissions
       const { dashboardGroupId } = this.query;
-      this.dashboardGroup = await this.models.dashboardGroup.findById(dashboardGroupId);
-    }
-    return this.dashboardGroup;
+      return this.models.dashboardGroup.findById(dashboardGroupId);
+    });
   }
 
   async fetchPermissionGroups() {

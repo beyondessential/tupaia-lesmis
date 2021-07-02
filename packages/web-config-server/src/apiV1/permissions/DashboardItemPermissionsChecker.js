@@ -7,7 +7,7 @@ import { ReportPermissionsChecker } from './ReportPermissionsChecker';
 
 export class DashboardItemPermissionsChecker extends ReportPermissionsChecker {
   async fetchAndCachePermissionObject() {
-    if (!this.permissionObject) {
+    return this.runCachedFunction('fetchAndCachePermissionObject', async () => {
       const { itemCode, dashboardCode } = this.query;
       const dashboardRelation = await this.models.dashboardRelation.findDashboardRelation(
         dashboardCode,
@@ -26,13 +26,11 @@ export class DashboardItemPermissionsChecker extends ReportPermissionsChecker {
         project_codes: projectCodes,
       } = dashboardRelation;
 
-      this.permissionObject = {
+      return {
         permissionGroups,
         entityTypes,
         projectCodes,
       };
-    }
-
-    return this.permissionObject;
+    });
   }
 }

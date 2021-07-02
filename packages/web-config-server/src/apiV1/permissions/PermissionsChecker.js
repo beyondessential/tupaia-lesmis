@@ -12,6 +12,14 @@ export class PermissionsChecker {
     this.userHasAccess = userHasAccess;
     this.entity = entity;
     this.project = project;
+    this.cache = {};
+  }
+
+  async runCachedFunction(cacheKey, fn) {
+    if (!this.cache[cacheKey]) {
+      this.cache[cacheKey] = fn(); // may be async, in which case we cache the promise to be awaited
+    }
+    return this.cache[cacheKey];
   }
 
   async checkPermissions() {
