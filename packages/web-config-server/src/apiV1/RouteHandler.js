@@ -62,13 +62,13 @@ export class RouteHandler {
 
   // arrow functions to avoid binding issues by callers e.g. via this.routeHandler.fetchProject
   fetchAndCacheProject = async () => {
-    if (!this.project) {
-      this.project = await this.models.project.findOne({
+    if (!this.projectPromise) {
+      this.projectPromise = this.models.project.findOne({
         code: this.query.projectCode || 'explore',
       });
     }
 
-    return this.project;
+    return this.projectPromise;
   };
 
   fetchHierarchyId = async () => (await this.fetchAndCacheProject()).entity_hierarchy_id;
