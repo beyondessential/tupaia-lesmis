@@ -41,6 +41,7 @@ export class AnalyticsRefresher {
 
     // clear any previous scheduled rebuild, so that we debounce all changes in the same time period
     if (this.scheduledRefreshTimeout) {
+      console.log('debouncing and starting timeout again');
       clearTimeout(this.scheduledRefreshTimeout);
     }
 
@@ -64,7 +65,9 @@ export class AnalyticsRefresher {
     this.scheduledRefreshPromise = null;
 
     // get the subtrees to delete, then run the delete
+    console.log('starting refresh');
     await AnalyticsRefresher.executeRefresh(this.database);
+    console.log('finished refresh');
     existingResolve();
   };
 
