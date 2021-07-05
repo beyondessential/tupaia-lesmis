@@ -161,23 +161,25 @@ export class SurveyResponseUpdatePersistor {
 
   async processUpsertAnswers(transactingModels, surveyResponseId, answers) {
     await Promise.all(
-      answers.map(({ questionId, text, type }) =>
-        transactingModels.answer.updateOrCreate(
+      answers.map(({ questionId, text, type }) => {
+        console.log('persisting answer', surveyResponseId, questionId);
+        return transactingModels.answer.updateOrCreate(
           { survey_response_id: surveyResponseId, question_id: questionId },
           { text, type },
-        ),
-      ),
+        );
+      }),
     );
   }
 
   async processDeleteAnswers(transactingModels, surveyResponseId, answers) {
     await Promise.all(
-      answers.map(({ questionId }) =>
-        transactingModels.answer.delete({
+      answers.map(({ questionId }) => {
+        console.log('deleting answer');
+        return transactingModels.answer.delete({
           survey_response_id: surveyResponseId,
           question_id: questionId,
-        }),
-      ),
+        });
+      }),
     );
   }
 
