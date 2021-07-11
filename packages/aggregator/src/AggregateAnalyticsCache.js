@@ -38,6 +38,8 @@ export class AggregateAnalyticsCache {
       aggregations,
     );
 
+    console.log('constructed analytics');
+
     const cachedResultsByLevel = [];
     const uncachedResultsByLevel = [];
     for (let i = 0; i < aggregateAnalyticsByLevel.length; i++) {
@@ -45,7 +47,7 @@ export class AggregateAnalyticsCache {
       const results = await Promise.all(
         aggregateAnalyticsForLevel.map(async aggregateAnalytic => ({
           aggregateAnalytic,
-          value: await fetchFromCache(cacheKey).then(parseCacheValue),
+          value: await fetchFromCache(aggregateAnalytic.toCacheKey()).then(parseCacheValue),
         })),
       );
       const cachedResults = results.filter(cacheResult => cacheResult.value !== null);
@@ -78,33 +80,52 @@ export class AggregateAnalyticsCache {
 
       const analyticsForLevel = aggregation
         ? runAggregation(
-            toAnalytics(uncachedResultsByLevel[i + 1]),
+            toAnalytics([...uncachedResultsByLevel[i + 1], ...cachedResultsByLevel[i + 1]]),
             aggregation.type,
             aggregation.config,
           )
-        : await this.fetchFromAggregator(uncachedResults, adjustedFetchOptions, {
-            ...adjustedAggregationOptions,
-            aggregations: [aggregations[0]],
-          });
+        : sortby(
+            [
+              ...(await this.fetchFromAggregator(uncachedResults, adjustedFetchOptions, {
+                ...adjustedAggregationOptions,
+                aggregations: [aggregations[0]],
+              })),
+              ...toAnalytics(cachedResults),
+            ],
+            'period',
+          );
+
+      uncachedResults.forEach(uncachedResult => {
+        const { aggregateAnalytic } = uncachedResult;
+        const matchingResult = analyticsForLevel.find(
+          analytic =>
+            analytic.dataElement === aggregateAnalytic.dataElementCode &&
+            analytic.period === aggregateAnalytic.outputPeriod &&
+            analytic.organisationUnit === aggregateAnalytic.outputEntity,
+        );
+
+        if (matchingResult) {
+          this.cacheClient.set(
+            aggregateAnalytic.toCacheKey(),
+            createCacheValue(matchingResult.value),
+            redis.print,
+          );
+          uncachedResult.value = matchingResult.value;
+        } else {
+          this.cacheClient.set(
+            aggregateAnalytic.toCacheKey(),
+            createCacheValue(NO_DATA),
+            redis.print,
+          );
+          uncachedResult.value = NO_DATA;
+        }
+      });
+
+      aggregateAnalyticsByLevel.push([...cachedResults, ...uncachedResults]);
     }
 
-    uncachedResults.forEach(({ dataElementCode, aggregateAnalytic, cacheKey }) => {
-      const matchingResult = results.find(
-        result =>
-          result.dataElement === dataElementCode &&
-          result.period === aggregateAnalytic.getAggregatePeriod() &&
-          result.organisationUnit === aggregateAnalytic.getAggregateEntity(),
-      );
-
-      if (matchingResult) {
-        this.cacheClient.set(cacheKey, createCacheValue(matchingResult.value), redis.print);
-      } else {
-        this.cacheClient.set(cacheKey, createCacheValue(NO_DATA), redis.print);
-      }
-    });
-
     return {
-      results: sortby([...analyticsFromCache, ...results], ['period']),
+      results: toAnalytics([...aggregateAnalyticsByLevel[aggregateAnalyticsByLevel.length - 1]]),
     };
   }
 
@@ -113,6 +134,7 @@ export class AggregateAnalyticsCache {
     const uncachedPeriods = new Set();
     const uncachedEntities = new Set();
 
+    console.log('Building query to fetch');
     uncachedResults.forEach(({ aggregateAnalytic }) => {
       uncachedDataElements.add(aggregateAnalytic.dataElement);
       aggregateAnalytic.inputPeriods.forEach(uncachedPeriods.add, uncachedPeriods);

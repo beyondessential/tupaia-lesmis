@@ -15,19 +15,17 @@ export class SourceAnalytic {
   constructor(dataElement, period, entity) {
     this.dataElement = dataElement;
     this.period = period;
-    this.inputPeriod = period;
+    this.inputPeriods = [period];
     this.outputPeriod = period;
     this.entity = entity;
-    this.inputEntity = entity;
+    this.inputEntities = [entity];
     this.outputEntity = entity;
   }
 
   toCacheKey() {
     if (!this.cacheKey) {
-      console.log('building cache key');
       this.cacheKey = `${this.dataElement}${AGGREGATION_PART_DELIMITER}SOURCE${AGGREGATION_PART_DELIMITER}${this.period}${AGGREGATION_PART_DELIMITER}${this.entity}`;
     }
-    console.log('built', this.cacheKey);
     return this.cacheKey;
   }
 

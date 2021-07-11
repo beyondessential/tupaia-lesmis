@@ -32,14 +32,12 @@ export class AggregateAnalytic {
 
   toCacheKey() {
     if (!this.cacheKey) {
-      console.log('building cache key');
       this.cacheKey = `${this.dataElement}${AGGREGATION_PART_DELIMITER}${
         this.aggregation
       }${AGGREGATION_PART_DELIMITER}${this.sourceAnalyticIds.join(
         SOURCE_VALUES_DELIMITER,
       )}${AGGREGATION_PART_DELIMITER}`;
     }
-    console.log('built', this.cacheKey);
     return this.cacheKey;
   }
 

@@ -20,11 +20,11 @@ Authorization: {{authorization}}
 {
     "testConfig": {
         "fetch": {
-            "dataElements": ["BCD1"],
-            "aggregations": [{"type": "RAW", "config": { "dataSourceEntityType": "facility" } }]
+            "dataElements": ["PSSS_AFR_Cases"],
+            "aggregations": [{"type": "FINAL_EACH_WEEK", "config": { "dataSourceEntityType": "facility" } }]
         },
         "transform": [
-            { "transform": "select", "'test'": "round(1 / 3)"}
+            
         ]
     }
 }
