@@ -49,8 +49,9 @@ export class AnalyticsFetchQuery extends DataFetchQuery {
     super(database, options);
 
     this.aggregations = [];
-    for (let i = 0; i < options.aggregations.length; i++) {
-      const aggregation = options.aggregations[i];
+    const originalAggregations = [...options.aggregations];
+    for (let i = 0; i < originalAggregations.length; i++) {
+      const aggregation = originalAggregations[i];
       if (!AGGREGATION_SWITCHES[aggregation?.type]) {
         break; // We only support chaining aggregations if all aggregations are supported type
       }
@@ -59,6 +60,7 @@ export class AnalyticsFetchQuery extends DataFetchQuery {
       dbAggregation.config = aggregation?.config; // add external config, supplied by client
       dbAggregation.stackId = i + 1;
       this.aggregations.push(dbAggregation);
+      options.aggregations.shift();
     }
     this.isAggregating = this.aggregations.length > 0;
 
@@ -83,6 +85,7 @@ export class AnalyticsFetchQuery extends DataFetchQuery {
     }
     // if mapping from one set of entities to another, include the mapped codes as "aggregation_entity_code"
     const entityMap = aggregation.config.orgUnitMap;
+    console.log(entityMap);
     const columns = ['code', 'aggregation_entity_code'];
     const rows = Object.entries(entityMap).map(([key, value]) => [key, value.code]);
     return `
@@ -153,7 +156,7 @@ export class AnalyticsFetchQuery extends DataFetchQuery {
       return '';
     }
     const previousTableName =
-      aggregation.stackId === 1 ? 'analytics' : `a${aggregation.stackId - 1}`;
+      aggregation.stackId === 1 ? 'base_analytics' : `a${aggregation.stackId - 1}`;
     const relationsTableName = `entity_relations_a${aggregation.stackId}`;
     return `INNER JOIN ${relationsTableName} on ${relationsTableName}.code = ${previousTableName}.entity_code`;
   }
@@ -166,9 +169,13 @@ export class AnalyticsFetchQuery extends DataFetchQuery {
   }
 
   build() {
-    const baseAnalytics = `analytics
+    const commonTableExpressions = `${this.aggregations
+      .map(aggregation => this.getEntityCommonTableExpression(aggregation))
+      .join('\n')}`;
+
+    const baseAnalytics = `(SELECT * from analytics
       ${this.getBaseInnerJoins()}
-      ${this.getBaseWhereClause()}`;
+      ${this.getBaseWhereClause()}) as base_analytics`;
 
     const wrapAnalyticsInAggregation = (analytics, aggregation) =>
       `(${this.getAggregationSelect(aggregation)} 
@@ -178,7 +185,7 @@ export class AnalyticsFetchQuery extends DataFetchQuery {
       ${this.getAggregationGroupByClause(aggregation)}) as a${aggregation.stackId}`;
 
     this.query = `
-      ${this.aggregations.map(this.getEntityCommonTableExpression).join('\n')}
+      ${commonTableExpressions}
       SELECT ${this.getAliasedColumns()}
       FROM ${this.aggregations.reduce(wrapAnalyticsInAggregation, baseAnalytics)}
       ORDER BY date;
