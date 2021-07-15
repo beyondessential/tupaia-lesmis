@@ -31,7 +31,11 @@ exports.up = function (db) {
   );
   
   create FUNCTION most_recent_fn(value_and_date,text,timestamp) RETURNS value_and_date AS $$
-      SELECT case when $3 > $1.date then ($2, $3)::value_and_date else $1 end;
+    SELECT 
+      case
+        when $3 > $1.date then ($2, $3)::value_and_date 
+        else $1
+      end;
   $$ LANGUAGE SQL; 
   
   create FUNCTION most_recent_final_fn(value_and_date) RETURNS text AS $$
@@ -41,7 +45,8 @@ exports.up = function (db) {
   create AGGREGATE most_recent(text, timestamp) (
       sfunc = most_recent_fn,
       stype = value_and_date, 
-      finalfunc = most_recent_final_fn
+      finalfunc = most_recent_final_fn,
+      initcond = '(NULL,-infinity)'
   );
   `);
 };
@@ -56,7 +61,6 @@ exports.down = function (db) {
   drop function if exists most_recent_final_fn;
 
   drop type if exists value_and_date;
-  
   `);
 };
 
