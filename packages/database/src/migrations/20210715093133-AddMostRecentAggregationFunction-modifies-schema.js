@@ -35,7 +35,7 @@ exports.up = function (db) {
       case
         when $3 > $1.date then ($2, $3)::value_and_date 
         else $1
-      end;
+      end
   $$ LANGUAGE SQL; 
   
   create FUNCTION most_recent_final_fn(value_and_date) RETURNS text AS $$
