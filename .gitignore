@@ -15,6 +15,7 @@
 codeship_deploy_key.pub
 codeship_deploy_key
 dump.sql
+dump.rdb
 *.todo
 **/cypress/screenshots
 **/cypress/videos

@@ -75,7 +75,7 @@ export interface ModelRegistry {
 
 export interface Aggregation {
   readonly type: string;
-  readonly config?: Record<string, unknown>;
+  readonly config?: Record<string, unknown> & { orgUnitMap?: Record<string, { code: string }> };
 }
 
 export type AggregationList = Aggregation[];
@@ -86,4 +86,5 @@ export type FetchOptions = Readonly<{
   readonly startDate: string;
   readonly endDate: string;
   readonly period?: string;
+  readonly hierarchy?: string;
 }>;

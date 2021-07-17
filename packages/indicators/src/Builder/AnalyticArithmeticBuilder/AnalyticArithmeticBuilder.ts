@@ -8,7 +8,22 @@ import groupBy from 'lodash.groupby';
 import { analyticsToAnalyticClusters } from '@tupaia/data-broker';
 import { stripFields } from '@tupaia/utils';
 import { getExpressionParserInstance } from '../../getExpressionParserInstance';
-import { AggregationList, Analytic, AnalyticCluster, FetchOptions, Indicator } from '../../types';
+import {
+  Aggregation,
+  AggregationList,
+  Analytic,
+  AnalyticCluster,
+  FetchOptions,
+  Indicator,
+} from '../../types';
+import { IndicatorApi } from '../../IndicatorApi';
+import {
+  IndicatorCache,
+  deriveDimensionsAndAggregations,
+  mergeAnalyticDimensions,
+  deriveFetchOptions,
+  AnalyticDimension,
+} from '../../cache';
 import { Builder } from '../Builder';
 import { createBuilder } from '../createBuilder';
 import {
@@ -16,6 +31,7 @@ import {
   validateConfig,
   evaluateFormulaToNumber,
   replaceDataValuesWithDefaults,
+  groupKeysByValueJson,
 } from '../helpers';
 import {
   AnalyticArithmeticConfig,
@@ -47,9 +63,17 @@ const indicatorToBuilderConfig = (indicatorConfig: AnalyticArithmeticConfig): Bu
 };
 
 export class AnalyticArithmeticBuilder extends Builder {
+  private readonly analyticsCache: IndicatorCache;
+
   private configCache: BuilderConfig | null = null;
 
   private paramBuildersByCodeCache: Record<string, Builder> | null = null;
+
+  constructor(api: IndicatorApi, indicator: Indicator) {
+    super(api, indicator);
+
+    this.analyticsCache = new IndicatorCache();
+  }
 
   private get config() {
     if (!this.configCache) {
@@ -79,9 +103,56 @@ export class AnalyticArithmeticBuilder extends Builder {
   };
 
   protected buildAnalyticValues = async (fetchOptions: FetchOptions) => {
-    const analytics = await this.fetchAnalytics(fetchOptions);
+    const aggregationJsonToElements = groupKeysByValueJson(this.config.aggregation);
+    const analyticDimensionsAndAggregations: Record<
+      string,
+      { dimensions: AnalyticDimension[]; aggregations: Aggregation[] }
+    > = {};
+    await Promise.all(
+      Object.entries(aggregationJsonToElements).map(async ([aggregationJson, elements]) => {
+        const aggregations = JSON.parse(aggregationJson);
+        const dimensionsAndAggregations = await deriveDimensionsAndAggregations(
+          elements,
+          aggregations,
+          fetchOptions,
+        );
+        analyticDimensionsAndAggregations[elements.join(',')] = dimensionsAndAggregations;
+      }),
+    );
+
+    const mergedDimensions = Object.values(analyticDimensionsAndAggregations)
+      .map(({ dimensions }) => dimensions)
+      .reduce(mergeAnalyticDimensions);
+    const aggregationsByDataElements = Object.entries(analyticDimensionsAndAggregations).reduce(
+      (object, [dataElementsKey, { aggregations }]) => ({
+        ...object,
+        [dataElementsKey]: aggregations,
+      }),
+      {} as Record<string, Aggregation[]>,
+    );
+
+    const { hit, miss } = await this.analyticsCache.getAnalytics(
+      this.indicator.code,
+      mergedDimensions,
+      aggregationsByDataElements,
+    );
+
+    if (miss.length === 0) {
+      return hit;
+    }
+
+    const newFetchOptions = { ...fetchOptions, ...deriveFetchOptions(miss) };
+
+    const analytics = await this.fetchAnalytics(newFetchOptions);
     const clusters = this.buildAnalyticClusters(analytics);
-    return this.buildAnalyticValuesFromClusters(clusters);
+    const builtValues = this.buildAnalyticValuesFromClusters(clusters);
+    this.analyticsCache.storeAnalytics(
+      this.indicator.code,
+      miss,
+      aggregationsByDataElements,
+      builtValues,
+    );
+    return [...hit, ...builtValues];
   };
 
   private getVariables = () => Object.keys(this.config.aggregation);
@@ -93,11 +164,11 @@ export class AnalyticArithmeticBuilder extends Builder {
   };
 
   private fetchFormulaAnalytics = async (fetchOptions: FetchOptions) => {
-    const aggregationLisByElement = stripFields(
+    const aggregationListByElement = stripFields(
       this.config.aggregation,
       Object.keys(this.paramBuildersByCode),
     );
-    return fetchAnalytics(this.api.getAggregator(), aggregationLisByElement, fetchOptions);
+    return fetchAnalytics(this.api.getAggregator(), aggregationListByElement, fetchOptions);
   };
 
   private fetchParameterAnalytics = async (fetchOptions: FetchOptions) => {

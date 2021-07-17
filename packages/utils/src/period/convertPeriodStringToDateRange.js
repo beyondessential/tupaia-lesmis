@@ -8,6 +8,7 @@ import { periodToDateString } from './period';
 /**
  * Takes in a string of periods (separated by ';'), and returns the formatted start and end date.
  * Assumes the earliest period is in the first position, and the latest is in the last.
+ * @returns {[string, string]} [startDate, endDate]
  */
 export const convertPeriodStringToDateRange = periodString => {
   if (periodString === '') {

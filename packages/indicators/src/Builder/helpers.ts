@@ -19,18 +19,18 @@ export function validateConfig<T extends Record<string, unknown>>(
   );
 }
 
-const groupKeysByValueJson = (object: Record<string, unknown>) =>
+export const groupKeysByValueJson = (object: Record<string, unknown>) =>
   groupBy(Object.keys(object), code => JSON.stringify(object[code]));
 
 export const fetchAnalytics = async (
   aggregator: Aggregator,
-  aggregationLisByElement: Record<string, Aggregation[]>,
+  aggregationListByElement: Record<string, Aggregation[]>,
   fetchOptions: FetchOptions,
 ): Promise<Analytic[]> => {
   // A different aggregationList may be applied for each data element,
   // but only one aggregationList can be provided in an aggregator call
   // Group data elements per aggregationList to minimise aggregator calls
-  const aggregationJsonToElements = groupKeysByValueJson(aggregationLisByElement);
+  const aggregationJsonToElements = groupKeysByValueJson(aggregationListByElement);
 
   const analytics: Analytic[] = [];
   await Promise.all(
