@@ -19,6 +19,10 @@ const AGGREGATION_SWITCHES = {
     groupByPeriodField: 'week_period',
     aggregationFunction: VALUE_AGGREGATION_FUNCTIONS.MOST_RECENT,
   },
+  SUM_EACH_WEEK: {
+    groupByPeriodField: 'week_period',
+    aggregationFunction: VALUE_AGGREGATION_FUNCTIONS.SUM,
+  },
   FINAL_EACH_MONTH: {
     groupByPeriodField: 'month_period',
     aggregationFunction: VALUE_AGGREGATION_FUNCTIONS.MOST_RECENT,
