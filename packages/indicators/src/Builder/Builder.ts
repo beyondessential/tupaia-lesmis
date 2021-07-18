@@ -16,6 +16,10 @@ export abstract class Builder {
     this.indicator = indicator;
   }
 
+  public get indicatorApi() {
+    return this.api;
+  }
+
   public buildAnalytics = async (fetchOptions: FetchOptions): Promise<Analytic[]> => {
     const analyticValues = await this.buildAnalyticValues(fetchOptions);
     return analyticValues.map(value => ({ ...value, dataElement: this.indicator.code }));

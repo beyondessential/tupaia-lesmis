@@ -3,6 +3,7 @@
  * Copyright (c) 2017 - 2021 Beyond Essential Systems Pty Ltd
  */
 
+import { addOffsetToPeriod } from '@tupaia/aggregator';
 import { convertToPeriod } from '@tupaia/utils';
 
 import { Aggregation } from '../types';
@@ -34,6 +35,10 @@ const AGGREGATION_DIMENSION_TRANSFORMERS = {
     periodTransformer: (period: string) => convertToPeriod(period, 'YEAR'),
     entityTransformer: (entityCode: string) => entityCode,
   },
+  OFFSET_PERIOD: {
+    periodTransformer: addOffsetToPeriod,
+    entityTransformer: (entityCode: string) => entityCode,
+  },
 };
 
 export const transform = (dimensions: AnalyticDimension[], aggregation: Aggregation) => {
@@ -51,7 +56,7 @@ export const transform = (dimensions: AnalyticDimension[], aggregation: Aggregat
 
   const orgUnitMap = config?.orgUnitMap || undefined;
   const newDimensionsMap = dimensions.reduce((map, dimension) => {
-    const newPeriod = periodTransformer(dimension.period);
+    const newPeriod = periodTransformer(dimension.period, config);
     const newEntity = entityTransformer(dimension.organisationUnit, orgUnitMap);
     const newDimensionKey = `${newPeriod}_${newEntity}`;
     if (map[newDimensionKey]) {

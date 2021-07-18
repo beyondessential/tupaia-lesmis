@@ -5,3 +5,4 @@
 
 export * from './adjustOptionsToAggregationList';
 export { aggregateAnalytics } from './aggregateAnalytics';
+export { addOffsetToPeriod } from './aggregations';

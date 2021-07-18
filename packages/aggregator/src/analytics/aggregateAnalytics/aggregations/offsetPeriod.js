@@ -29,7 +29,7 @@ const validateOffsetPeriodConfig = (config = {}) => {
   }
 };
 
-const addOffsetToPeriod = (period, { periodType, offset }) => {
+export const addOffsetToPeriod = (period, { periodType, offset }) => {
   const momentUnit = periodTypeToMomentUnit(periodType.toUpperCase());
   const momentWithOffset = periodToMoment(period).add(offset, momentUnit);
   return momentToPeriod(momentWithOffset, periodToType(period));

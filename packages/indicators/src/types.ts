@@ -75,7 +75,10 @@ export interface ModelRegistry {
 
 export interface Aggregation {
   readonly type: string;
-  readonly config?: Record<string, unknown> & { orgUnitMap?: Record<string, { code: string }> };
+  readonly config?: Record<string, unknown> & { orgUnitMap?: Record<string, { code: string }> } & {
+    periodType?: string;
+    offset?: number;
+  };
 }
 
 export type AggregationList = Aggregation[];

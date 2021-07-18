@@ -10,6 +10,7 @@ import { convertPeriodStringToDateRange, convertDateRangeToPeriods } from '@tupa
 
 import { FetchOptions, Aggregation } from '../types';
 import { groupKeysByValueJson } from '../Builder/helpers';
+import { Builder } from '../Builder';
 import { IndicatorAnalytic, AnalyticDimension } from './types';
 import { transform } from './analyticDimensionTransformers';
 
@@ -49,6 +50,7 @@ const insertDataElementsAndAggregations = (
 };
 
 const buildIndicatorAnalyticParts = async (
+  context: any,
   dataElements: string[],
   aggregations: Aggregation[],
   fetchOptions: FetchOptions,
@@ -56,7 +58,7 @@ const buildIndicatorAnalyticParts = async (
   const [
     adjustedFetchOptions,
     adjustedAggregationOptions,
-  ] = await adjustOptionsToAggregationList({}, fetchOptions, { aggregations });
+  ] = await adjustOptionsToAggregationList(context, fetchOptions, { aggregations });
   const {
     organisationUnitCodes: sourceEntities,
     period: requestPeriod,
@@ -82,6 +84,7 @@ const buildIndicatorAnalyticParts = async (
 };
 
 export const deriveIndicatorAnalytics = async (
+  indicatorBuilder: Builder,
   indicatorAggregations: Record<string, Aggregation[]>,
   fetchOptions: FetchOptions,
 ) => {
@@ -91,6 +94,7 @@ export const deriveIndicatorAnalytics = async (
     Object.entries(aggregationJsonToElements).map(async ([aggregationJson, elements]) => {
       const aggregations = JSON.parse(aggregationJson);
       analyticParts[elements.join(',')] = await buildIndicatorAnalyticParts(
+        indicatorBuilder.indicatorApi.getAggregator().context,
         elements,
         aggregations,
         fetchOptions,

@@ -90,28 +90,27 @@ export class AnalyticArithmeticBuilder extends Builder {
 
   protected buildAnalyticValues = async (fetchOptions: FetchOptions) => {
     const indicatorAnalytics = await deriveIndicatorAnalytics(
+      this as AnalyticArithmeticBuilder,
       this.config.aggregation,
       fetchOptions,
     );
-
     const { hits: cacheHits, misses: cacheMisses } = await this.analyticsCache.getAnalytics(
       this.indicator.code,
       indicatorAnalytics,
     );
-
     if (cacheMisses.length === 0) {
       return cacheHits;
     }
-
     const newFetchOptions = { ...fetchOptions, ...deriveFetchOptions(cacheMisses) };
-
     const fetchedAnalytics = await this.fetchAnalytics(newFetchOptions);
     const clusters = this.buildAnalyticClusters(fetchedAnalytics);
     const fetchedValues = this.buildAnalyticValuesFromClusters(clusters);
-
     this.analyticsCache.storeAnalytics(this.indicator.code, cacheMisses, fetchedValues);
-
     return [...cacheHits, ...fetchedValues];
+
+    // const fetchedAnalytics = await this.fetchAnalytics(fetchOptions);
+    // const clusters = this.buildAnalyticClusters(fetchedAnalytics);
+    // return this.buildAnalyticValuesFromClusters(clusters);
   };
 
   private getVariables = () => Object.keys(this.config.aggregation);

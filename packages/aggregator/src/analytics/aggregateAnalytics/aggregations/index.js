@@ -12,7 +12,7 @@ export {
 export { filterLatest } from './filterLatest';
 export { getFinalValuePerPeriod } from './getFinalValuePerPeriod';
 export { getSumValuePerPeriod } from './getSumValuePerPeriod';
-export { offsetPeriod } from './offsetPeriod';
+export { offsetPeriod, addOffsetToPeriod } from './offsetPeriod';
 export { sumAcrossPeriods } from './sumAcrossPeriods';
 export { sumEachDataElement } from './sumEachDataElement';
 export { sumPreviousPerPeriod } from './sumPreviousPerPeriod';
