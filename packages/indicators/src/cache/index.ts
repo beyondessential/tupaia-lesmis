@@ -4,9 +4,5 @@
  */
 
 export { IndicatorCache } from './IndicatorCache';
-export {
-  deriveDimensionsAndAggregations,
-  mergeAnalyticDimensions,
-  deriveFetchOptions,
-} from './helpers';
-export { AnalyticDimension } from './types';
+export { deriveIndicatorAnalytics, deriveFetchOptions } from './helpers';
+export { IndicatorAnalytic } from './types';

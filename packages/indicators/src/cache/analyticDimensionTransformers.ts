@@ -6,7 +6,7 @@
 import { convertToPeriod } from '@tupaia/utils';
 
 import { Aggregation } from '../types';
-import { FlatAnalyticDimension } from './types';
+import { AnalyticDimension } from './types';
 
 const AGGREGATION_DIMENSION_TRANSFORMERS = {
   FINAL_EACH_DAY: {
@@ -36,7 +36,7 @@ const AGGREGATION_DIMENSION_TRANSFORMERS = {
   },
 };
 
-export const transform = (dimensions: FlatAnalyticDimension[], aggregation: Aggregation) => {
+export const transform = (dimensions: AnalyticDimension[], aggregation: Aggregation) => {
   const { type, config } = aggregation;
   if (!(type in AGGREGATION_DIMENSION_TRANSFORMERS)) {
     throw new Error(
@@ -67,6 +67,6 @@ export const transform = (dimensions: FlatAnalyticDimension[], aggregation: Aggr
       };
     }
     return map;
-  }, {} as Record<string, FlatAnalyticDimension>);
+  }, {} as Record<string, AnalyticDimension>);
   return Object.values(newDimensionsMap);
 };

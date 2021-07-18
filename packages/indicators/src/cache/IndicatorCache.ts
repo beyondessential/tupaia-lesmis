@@ -5,10 +5,10 @@
 
 import ObjectHasher, { Hasher } from 'node-object-hash';
 
-import { Aggregation, AnalyticValue } from '../types';
+import { AnalyticValue } from '../types';
 
 import { RedisCacheClient, RealRedisCacheClient } from './RedisCacheClient';
-import { AnalyticDimension } from './types';
+import { IndicatorAnalytic } from './types';
 
 const ANALYTIC_PREFIX = 'ANALYTIC';
 const KEY_JOINER = '|';
@@ -25,24 +25,17 @@ export class IndicatorCache {
     this.hasher = ObjectHasher();
   }
 
-  public async getAnalytics(
-    indicatorCode: string,
-    dimensions: AnalyticDimension[],
-    aggregationsByDataElements: Record<string, Aggregation[]>,
-  ) {
-    const aggregationsHash = this.hasher.hash(aggregationsByDataElements);
+  public async getAnalytics(indicatorCode: string, indicatorAnalytics: IndicatorAnalytic[]) {
     const resultsFromCache = await Promise.all(
-      dimensions.map(async dimension => ({
+      indicatorAnalytics.map(async dimension => ({
         ...dimension,
-        value: await this.redisClient.get(
-          this.buildAnalyticKey(indicatorCode, dimension, aggregationsHash),
-        ),
+        value: await this.redisClient.get(this.buildAnalyticKey(indicatorCode, dimension)),
       })),
     );
     const hitResults: AnalyticValue[] = [];
-    const missResults: AnalyticDimension[] = [];
+    const missResults: IndicatorAnalytic[] = [];
     resultsFromCache.forEach(cacheResult => {
-      const { value, period, organisationUnit, inputPeriods, inputOrganisationUnits } = cacheResult;
+      const { value, period, organisationUnit, inputs } = cacheResult;
       if (value !== null) {
         console.log(`cache hit! ${indicatorCode}|${period}|${organisationUnit} = ${value}`);
         if (value !== NO_DATA) {
@@ -50,38 +43,33 @@ export class IndicatorCache {
         }
       } else {
         console.log(`cache miss! ${indicatorCode}|${period}|${organisationUnit}`);
-        missResults.push({ period, organisationUnit, inputPeriods, inputOrganisationUnits });
+        missResults.push({ period, organisationUnit, inputs });
       }
     });
 
-    return { hit: hitResults, miss: missResults };
+    return { hits: hitResults, misses: missResults };
   }
 
   public async storeAnalytics(
     indicatorCode: string,
-    dimensions: AnalyticDimension[],
-    aggregationsByDataElements: Record<string, Aggregation[]>,
-    analytics: AnalyticValue[],
+    requestedAnalytics: IndicatorAnalytic[],
+    returnedAnalytics: AnalyticValue[],
   ) {
-    const resultsFromAnalytics = dimensions.map(dimension => ({
-      ...dimension,
+    const resultsFromAnalytics = requestedAnalytics.map(requested => ({
+      ...requested,
       value: `${
-        analytics.find(
-          analytic =>
-            analytic.organisationUnit === dimension.organisationUnit &&
-            analytic.period === dimension.period,
+        returnedAnalytics.find(
+          returned =>
+            returned.organisationUnit === requested.organisationUnit &&
+            returned.period === requested.period,
         )?.value || NO_DATA
       }`,
     }));
-    const aggregationsHash = this.hasher.hash(aggregationsByDataElements);
     resultsFromAnalytics.forEach(result => {
       console.log(
         `saving: ${indicatorCode}|${result.period}|${result.organisationUnit} = ${result.value}`,
       );
-      this.redisClient.set(
-        this.buildAnalyticKey(indicatorCode, result, aggregationsHash),
-        result.value,
-      );
+      this.redisClient.set(this.buildAnalyticKey(indicatorCode, result), result.value);
     });
   }
 
@@ -94,19 +82,13 @@ export class IndicatorCache {
     return parsedValue;
   }
 
-  private buildAnalyticKey(
-    indicatorCode: string,
-    dimension: AnalyticDimension,
-    aggregationsHash: string,
-  ) {
+  private buildAnalyticKey(indicatorCode: string, dimension: IndicatorAnalytic) {
     return [
       ANALYTIC_PREFIX,
       indicatorCode,
       dimension.period,
       dimension.organisationUnit,
-      `inputPeriods:${this.hasher.hash(dimension.inputPeriods)}`,
-      `inputOrganisationUnits:${this.hasher.hash(dimension.inputOrganisationUnits)}`,
-      `aggregations:${aggregationsHash}`,
+      `inputs:${this.hasher.hash(dimension.inputs)}`,
     ].join(KEY_JOINER);
   }
 }

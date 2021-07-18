@@ -9,11 +9,12 @@ import { adjustOptionsToAggregationList } from '@tupaia/aggregator';
 import { convertPeriodStringToDateRange, convertDateRangeToPeriods } from '@tupaia/utils';
 
 import { FetchOptions, Aggregation } from '../types';
-import { AnalyticDimension, FlatAnalyticDimension } from './types';
+import { groupKeysByValueJson } from '../Builder/helpers';
+import { IndicatorAnalytic, AnalyticDimension } from './types';
 import { transform } from './analyticDimensionTransformers';
 
 const buildSourceAnalyticDimensions = (sourcePeriods: string[], sourceEntities: string[]) => {
-  const analyticDimensions: FlatAnalyticDimension[] = [];
+  const analyticDimensions: AnalyticDimension[] = [];
   sourcePeriods.forEach(period => {
     sourceEntities.forEach(entity => {
       analyticDimensions.push({
@@ -27,23 +28,27 @@ const buildSourceAnalyticDimensions = (sourcePeriods: string[], sourceEntities: 
   return analyticDimensions;
 };
 
-const insertDataElementsKey = (
-  flatDimension: FlatAnalyticDimension,
-  dataElementsKey: string,
-): AnalyticDimension => {
+const insertDataElementsAndAggregations = (
+  flatDimension: AnalyticDimension,
+  dataElements: string[],
+  aggregations: Aggregation[],
+): IndicatorAnalytic => {
   return {
     period: flatDimension.period,
     organisationUnit: flatDimension.organisationUnit,
-    inputPeriods: {
-      [dataElementsKey]: flatDimension.inputPeriods,
-    },
-    inputOrganisationUnits: {
-      [dataElementsKey]: flatDimension.inputOrganisationUnits,
-    },
+    inputs: dataElements.reduce((object, dataElement) => {
+      // eslint-disable-next-line no-param-reassign
+      object[dataElement] = {
+        periods: flatDimension.inputPeriods,
+        organisationUnits: flatDimension.inputOrganisationUnits,
+        aggregations,
+      };
+      return object;
+    }, {} as Record<string, { periods: string[]; organisationUnits: string[]; aggregations: Aggregation[] }>),
   };
 };
 
-export const deriveDimensionsAndAggregations = async (
+const buildIndicatorAnalyticParts = async (
   dataElements: string[],
   aggregations: Aggregation[],
   fetchOptions: FetchOptions,
@@ -69,19 +74,38 @@ export const deriveDimensionsAndAggregations = async (
   const sourceAnalyticDimensions = buildSourceAnalyticDimensions(sourcePeriods, sourceEntities);
   const adjustedAggregations = adjustedAggregationOptions.aggregations as Aggregation[];
 
-  const dataElementsKey = dataElements.join(',');
-
-  return {
-    dimensions: adjustedAggregations
-      .reduce(transform, sourceAnalyticDimensions)
-      .map(flatDimension => insertDataElementsKey(flatDimension, dataElementsKey)),
-    aggregations: adjustedAggregations,
-  };
+  return adjustedAggregations
+    .reduce(transform, sourceAnalyticDimensions)
+    .map(flatDimension =>
+      insertDataElementsAndAggregations(flatDimension, dataElements, adjustedAggregations),
+    );
 };
 
-export const mergeAnalyticDimensions = (
-  dimensionsA: AnalyticDimension[],
-  dimensionsB: AnalyticDimension[],
+export const deriveIndicatorAnalytics = async (
+  indicatorAggregations: Record<string, Aggregation[]>,
+  fetchOptions: FetchOptions,
+) => {
+  const aggregationJsonToElements = groupKeysByValueJson(indicatorAggregations);
+  const analyticParts: Record<string, IndicatorAnalytic[]> = {};
+  await Promise.all(
+    Object.entries(aggregationJsonToElements).map(async ([aggregationJson, elements]) => {
+      const aggregations = JSON.parse(aggregationJson);
+      analyticParts[elements.join(',')] = await buildIndicatorAnalyticParts(
+        elements,
+        aggregations,
+        fetchOptions,
+      );
+    }),
+  );
+
+  const mergedDimensions = Object.values(analyticParts).reduce(mergeAnalyticParts);
+
+  return mergedDimensions;
+};
+
+export const mergeAnalyticParts = (
+  dimensionsA: IndicatorAnalytic[],
+  dimensionsB: IndicatorAnalytic[],
 ) => {
   const dimensionsAByOutput = keyBy(
     dimensionsA,
@@ -112,24 +136,22 @@ export const mergeAnalyticDimensions = (
     return {
       period: dimensionsAValue.period,
       organisationUnit: dimensionsAValue.organisationUnit,
-      inputPeriods: {
-        ...dimensionsAValue.inputPeriods,
-        ...dimensionsBValue.inputPeriods,
-      },
-      inputOrganisationUnits: {
-        ...dimensionsAValue.inputOrganisationUnits,
-        ...dimensionsBValue.inputOrganisationUnits,
+      inputs: {
+        ...dimensionsAValue.inputs,
+        ...dimensionsBValue.inputs,
       },
     };
   });
 };
 
-export const deriveFetchOptions = (dimensions: AnalyticDimension[]) => {
+export const deriveFetchOptions = (dimensions: IndicatorAnalytic[]) => {
   const allOrganisationUnitCodes: string[] = [];
   const allPeriods: string[] = [];
   dimensions.forEach(dimension => {
-    allPeriods.push(...Object.values(dimension.inputPeriods).flat());
-    allOrganisationUnitCodes.push(...Object.values(dimension.inputOrganisationUnits).flat());
+    Object.values(dimension.inputs).forEach(({ periods, organisationUnits }) => {
+      allPeriods.push(...periods);
+      allOrganisationUnitCodes.push(...organisationUnits);
+    });
   });
   const periods = [...new Set(allPeriods)].sort();
   const [startDate, endDate] = convertPeriodStringToDateRange(periods.join(';'));

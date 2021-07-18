@@ -3,16 +3,20 @@
  * Copyright (c) 2017 - 2021 Beyond Essential Systems Pty Ltd
  */
 
-export type FlatAnalyticDimension = {
+import { Aggregation } from '../types';
+
+export type AnalyticDimension = {
   readonly organisationUnit: string;
   readonly period: string;
   readonly inputOrganisationUnits: string[];
   readonly inputPeriods: string[];
 };
 
-export type AnalyticDimension = {
+export type IndicatorAnalytic = {
   readonly organisationUnit: string;
   readonly period: string;
-  readonly inputOrganisationUnits: Record<string, string[]>;
-  readonly inputPeriods: Record<string, string[]>;
+  readonly inputs: Record<
+    string,
+    { periods: string[]; organisationUnits: string[]; aggregations: Aggregation[] }
+  >;
 };

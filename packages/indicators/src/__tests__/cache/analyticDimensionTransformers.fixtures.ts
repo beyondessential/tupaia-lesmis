@@ -4,12 +4,12 @@
  */
 
 import { Aggregation } from '../../types';
-import { FlatAnalyticDimension } from '../../cache/types';
+import { AnalyticDimension } from '../../cache/types';
 
 type AnalyticDimensionTransformFixture = {
-  inputDimensions: FlatAnalyticDimension[];
+  inputDimensions: AnalyticDimension[];
   aggregation: Aggregation;
-  outputDimensions: FlatAnalyticDimension[];
+  outputDimensions: AnalyticDimension[];
 };
 
 export const ANALYTIC_DIMENSION_TRANSFORM_FIXTURES: AnalyticDimensionTransformFixture[] = [

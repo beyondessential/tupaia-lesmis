@@ -8,22 +8,9 @@ import groupBy from 'lodash.groupby';
 import { analyticsToAnalyticClusters } from '@tupaia/data-broker';
 import { stripFields } from '@tupaia/utils';
 import { getExpressionParserInstance } from '../../getExpressionParserInstance';
-import {
-  Aggregation,
-  AggregationList,
-  Analytic,
-  AnalyticCluster,
-  FetchOptions,
-  Indicator,
-} from '../../types';
+import { AggregationList, Analytic, AnalyticCluster, FetchOptions, Indicator } from '../../types';
 import { IndicatorApi } from '../../IndicatorApi';
-import {
-  IndicatorCache,
-  deriveDimensionsAndAggregations,
-  mergeAnalyticDimensions,
-  deriveFetchOptions,
-  AnalyticDimension,
-} from '../../cache';
+import { IndicatorCache, deriveIndicatorAnalytics, deriveFetchOptions } from '../../cache';
 import { Builder } from '../Builder';
 import { createBuilder } from '../createBuilder';
 import {
@@ -31,7 +18,6 @@ import {
   validateConfig,
   evaluateFormulaToNumber,
   replaceDataValuesWithDefaults,
-  groupKeysByValueJson,
 } from '../helpers';
 import {
   AnalyticArithmeticConfig,
@@ -103,56 +89,29 @@ export class AnalyticArithmeticBuilder extends Builder {
   };
 
   protected buildAnalyticValues = async (fetchOptions: FetchOptions) => {
-    const aggregationJsonToElements = groupKeysByValueJson(this.config.aggregation);
-    const analyticDimensionsAndAggregations: Record<
-      string,
-      { dimensions: AnalyticDimension[]; aggregations: Aggregation[] }
-    > = {};
-    await Promise.all(
-      Object.entries(aggregationJsonToElements).map(async ([aggregationJson, elements]) => {
-        const aggregations = JSON.parse(aggregationJson);
-        const dimensionsAndAggregations = await deriveDimensionsAndAggregations(
-          elements,
-          aggregations,
-          fetchOptions,
-        );
-        analyticDimensionsAndAggregations[elements.join(',')] = dimensionsAndAggregations;
-      }),
+    const indicatorAnalytics = await deriveIndicatorAnalytics(
+      this.config.aggregation,
+      fetchOptions,
     );
 
-    const mergedDimensions = Object.values(analyticDimensionsAndAggregations)
-      .map(({ dimensions }) => dimensions)
-      .reduce(mergeAnalyticDimensions);
-    const aggregationsByDataElements = Object.entries(analyticDimensionsAndAggregations).reduce(
-      (object, [dataElementsKey, { aggregations }]) => ({
-        ...object,
-        [dataElementsKey]: aggregations,
-      }),
-      {} as Record<string, Aggregation[]>,
-    );
-
-    const { hit, miss } = await this.analyticsCache.getAnalytics(
+    const { hits: cacheHits, misses: cacheMisses } = await this.analyticsCache.getAnalytics(
       this.indicator.code,
-      mergedDimensions,
-      aggregationsByDataElements,
+      indicatorAnalytics,
     );
 
-    if (miss.length === 0) {
-      return hit;
+    if (cacheMisses.length === 0) {
+      return cacheHits;
     }
 
-    const newFetchOptions = { ...fetchOptions, ...deriveFetchOptions(miss) };
+    const newFetchOptions = { ...fetchOptions, ...deriveFetchOptions(cacheMisses) };
 
-    const analytics = await this.fetchAnalytics(newFetchOptions);
-    const clusters = this.buildAnalyticClusters(analytics);
-    const builtValues = this.buildAnalyticValuesFromClusters(clusters);
-    this.analyticsCache.storeAnalytics(
-      this.indicator.code,
-      miss,
-      aggregationsByDataElements,
-      builtValues,
-    );
-    return [...hit, ...builtValues];
+    const fetchedAnalytics = await this.fetchAnalytics(newFetchOptions);
+    const clusters = this.buildAnalyticClusters(fetchedAnalytics);
+    const fetchedValues = this.buildAnalyticValuesFromClusters(clusters);
+
+    this.analyticsCache.storeAnalytics(this.indicator.code, cacheMisses, fetchedValues);
+
+    return [...cacheHits, ...fetchedValues];
   };
 
   private getVariables = () => Object.keys(this.config.aggregation);
