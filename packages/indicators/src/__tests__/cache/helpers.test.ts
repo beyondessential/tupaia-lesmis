@@ -6,6 +6,7 @@
 import {
   DERIVE_ANALYTIC_DIMENSIONS_FIXTURES,
   DERIVE_FETCH_OPTIONS_FIXTURES,
+  DERIVE_INDICATOR_CACHE_ENTRIES_FIXTURES,
 } from './helpers.fixtures';
 import { deriveIndicatorAnalytics, deriveFetchOptions } from '../../cache/helpers';
 
@@ -26,5 +27,21 @@ describe('deriveFetchOptions', () => {
     DERIVE_FETCH_OPTIONS_FIXTURES.forEach(({ dimensions, fetchOptions }) => {
       expect(deriveFetchOptions(dimensions)).toBe(fetchOptions);
     });
+  });
+});
+
+describe('deriveIndicatorCacheEntries', () => {
+  it('can derive cache entries for given aggregations and fetch options', () => {});
+});
+
+describe('buildEntityQueryString', () => {
+  it('can build an query string for an indicator', () => {
+    DERIVE_INDICATOR_CACHE_ENTRIES_FIXTURES.forEach(
+      async ({ fetchOptions, indicatorAggregations, cacheEntries }) => {
+        await expect(deriveIndicatorAnalytics(indicatorAggregations, fetchOptions)).resolves.toBe(
+          analyticDimensions,
+        );
+      },
+    );
   });
 });

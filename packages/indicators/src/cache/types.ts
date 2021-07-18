@@ -12,6 +12,12 @@ export type AnalyticDimension = {
   readonly inputPeriods: string[];
 };
 
+export type IndicatorCacheEntry = {
+  readonly organisationUnit: string;
+  readonly period: string;
+  readonly hierarchy?: string;
+};
+
 export type IndicatorAnalytic = {
   readonly organisationUnit: string;
   readonly period: string;

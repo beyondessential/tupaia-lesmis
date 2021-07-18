@@ -11,11 +11,20 @@ import { convertPeriodStringToDateRange, convertDateRangeToPeriods } from '@tupa
 import { FetchOptions, Aggregation } from '../types';
 import { groupKeysByValueJson } from '../Builder/helpers';
 import { Builder } from '../Builder';
-import { IndicatorAnalytic, AnalyticDimension } from './types';
+import { IndicatorAnalytic, IndicatorCacheEntry, AnalyticDimension } from './types';
 import { transform } from './analyticDimensionTransformers';
+
+const PERIOD_AGGREGATIONS: Record<string, string> = {
+  FINAL_EACH_DAY: 'DAY',
+  FINAL_EACH_WEEK: 'WEEK',
+  SUM_EACH_WEEK: 'WEEK',
+  FINAL_EACH_MONTH: 'MONTH',
+  FINAL_EACH_YEAR: 'YEAR',
+};
 
 const buildSourceAnalyticDimensions = (sourcePeriods: string[], sourceEntities: string[]) => {
   const analyticDimensions: AnalyticDimension[] = [];
+  const start = Date.now();
   sourcePeriods.forEach(period => {
     sourceEntities.forEach(entity => {
       analyticDimensions.push({
@@ -26,6 +35,7 @@ const buildSourceAnalyticDimensions = (sourcePeriods: string[], sourceEntities: 
       });
     });
   });
+  const end = Date.now();
   return analyticDimensions;
 };
 
@@ -47,6 +57,51 @@ const insertDataElementsAndAggregations = (
       return object;
     }, {} as Record<string, { periods: string[]; organisationUnits: string[]; aggregations: Aggregation[] }>),
   };
+};
+
+const buildCacheEntryParts = async (
+  context: any,
+  aggregations: Aggregation[],
+  fetchOptions: FetchOptions,
+) => {
+  const [
+    adjustedFetchOptions,
+    { aggregations: adjustedAggregations },
+  ] = await adjustOptionsToAggregationList(context, fetchOptions, {
+    aggregations,
+  });
+  const {
+    organisationUnitCodes: requestOrganisationUnits,
+    period: requestPeriod,
+  } = adjustedFetchOptions as FetchOptions;
+
+  if (!requestOrganisationUnits) {
+    throw new Error('organisationUnitCodes must be defined when building analytic dimensions');
+  }
+
+  const lastPeriodAggregationType = aggregations
+    .slice()
+    .reverse()
+    .map(aggregation => PERIOD_AGGREGATIONS[aggregation.type])
+    .find(periodType => periodType);
+
+  const lastEntityAggregationMap = (adjustedAggregations as Aggregation[])
+    .slice()
+    .reverse()
+    .find(aggregation => aggregation?.config?.orgUnitMap)?.config?.orgUnitMap;
+
+  const outputPeriods = convertDateRangeToPeriods(
+    ...convertPeriodStringToDateRange(requestPeriod),
+    lastPeriodAggregationType || 'DAY',
+  );
+
+  const outputOrganisationUnits = lastEntityAggregationMap
+    ? [...new Set(Object.values(lastEntityAggregationMap).map(({ code }) => code))]
+    : requestOrganisationUnits;
+
+  return outputPeriods
+    .map(period => outputOrganisationUnits.map(organisationUnit => ({ period, organisationUnit })))
+    .flat();
 };
 
 const buildIndicatorAnalyticParts = async (
@@ -76,11 +131,53 @@ const buildIndicatorAnalyticParts = async (
   const sourceAnalyticDimensions = buildSourceAnalyticDimensions(sourcePeriods, sourceEntities);
   const adjustedAggregations = adjustedAggregationOptions.aggregations as Aggregation[];
 
-  return adjustedAggregations
+  const start = Date.now();
+  const response = adjustedAggregations
     .reduce(transform, sourceAnalyticDimensions)
     .map(flatDimension =>
       insertDataElementsAndAggregations(flatDimension, dataElements, adjustedAggregations),
     );
+
+  const end = Date.now();
+  return response;
+};
+
+export const deriveCacheEntries = async (
+  indicatorBuilder: Builder,
+  indicatorAggregations: Record<string, Aggregation[]>,
+  fetchOptions: FetchOptions,
+) => {
+  const aggregationJsonToElements = groupKeysByValueJson(indicatorAggregations);
+  let periods: string[] = [];
+  let organisationUnits: string[] = [];
+  await Promise.all(
+    Object.entries(aggregationJsonToElements).map(async ([aggregationJson]) => {
+      const aggregations = JSON.parse(aggregationJson);
+      const entriesForPart = await buildCacheEntryParts(
+        indicatorBuilder.indicatorApi.getAggregator().context,
+        aggregations,
+        fetchOptions,
+      );
+
+      periods = [...periods, ...entriesForPart.map(entry => entry.period)];
+      organisationUnits = [
+        ...organisationUnits,
+        ...entriesForPart.map(entry => entry.organisationUnit),
+      ];
+    }),
+  );
+
+  const allPeriods = [...new Set(periods)];
+  const allOrganisationUnits = [...new Set(organisationUnits)];
+  return allPeriods
+    .map(period =>
+      allOrganisationUnits.map(organisationUnit => ({
+        period,
+        organisationUnit,
+        hierarchy: fetchOptions.hierarchy,
+      })),
+    )
+    .flat();
 };
 
 export const deriveIndicatorAnalytics = async (
@@ -88,6 +185,7 @@ export const deriveIndicatorAnalytics = async (
   indicatorAggregations: Record<string, Aggregation[]>,
   fetchOptions: FetchOptions,
 ) => {
+  const start = Date.now();
   const aggregationJsonToElements = groupKeysByValueJson(indicatorAggregations);
   const analyticParts: Record<string, IndicatorAnalytic[]> = {};
   await Promise.all(
@@ -103,6 +201,9 @@ export const deriveIndicatorAnalytics = async (
   );
 
   const mergedDimensions = Object.values(analyticParts).reduce(mergeAnalyticParts);
+  const end = Date.now();
+
+  // console.log(`Building indicator analytics took: ${end - start}ms`);
 
   return mergedDimensions;
 };
@@ -148,14 +249,12 @@ export const mergeAnalyticParts = (
   });
 };
 
-export const deriveFetchOptions = (dimensions: IndicatorAnalytic[]) => {
+export const deriveFetchOptions = (cacheEntries: IndicatorCacheEntry[]) => {
   const allOrganisationUnitCodes: string[] = [];
   const allPeriods: string[] = [];
-  dimensions.forEach(dimension => {
-    Object.values(dimension.inputs).forEach(({ periods, organisationUnits }) => {
-      allPeriods.push(...periods);
-      allOrganisationUnitCodes.push(...organisationUnits);
-    });
+  cacheEntries.forEach(cacheEntry => {
+    allPeriods.push(cacheEntry.period);
+    allOrganisationUnitCodes.push(cacheEntry.organisationUnit);
   });
   const periods = [...new Set(allPeriods)].sort();
   const [startDate, endDate] = convertPeriodStringToDateRange(periods.join(';'));

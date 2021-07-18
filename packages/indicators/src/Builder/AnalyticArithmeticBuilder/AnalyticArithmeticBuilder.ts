@@ -10,7 +10,7 @@ import { stripFields } from '@tupaia/utils';
 import { getExpressionParserInstance } from '../../getExpressionParserInstance';
 import { AggregationList, Analytic, AnalyticCluster, FetchOptions, Indicator } from '../../types';
 import { IndicatorApi } from '../../IndicatorApi';
-import { IndicatorCache, deriveIndicatorAnalytics, deriveFetchOptions } from '../../cache';
+import { IndicatorCache, deriveCacheEntries, deriveFetchOptions } from '../../cache';
 import { Builder } from '../Builder';
 import { createBuilder } from '../createBuilder';
 import {
@@ -89,7 +89,7 @@ export class AnalyticArithmeticBuilder extends Builder {
   };
 
   protected buildAnalyticValues = async (fetchOptions: FetchOptions) => {
-    const indicatorAnalytics = await deriveIndicatorAnalytics(
+    const indicatorAnalytics = await deriveCacheEntries(
       this as AnalyticArithmeticBuilder,
       this.config.aggregation,
       fetchOptions,
