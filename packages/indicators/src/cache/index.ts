@@ -5,4 +5,4 @@
 
 export { IndicatorCache } from './IndicatorCache';
 export { deriveIndicatorAnalytics, deriveCacheEntries, deriveFetchOptions } from './helpers';
-export { IndicatorAnalytic } from './types';
+export { IndicatorAnalytic, IndicatorCacheEntry } from './types';

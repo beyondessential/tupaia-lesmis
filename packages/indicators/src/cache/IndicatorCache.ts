@@ -3,14 +3,13 @@
  * Copyright (c) 2017 - 2021 Beyond Essential Systems Pty Ltd
  */
 
-import ObjectHasher, { Hasher } from 'node-object-hash';
-
 import { AnalyticValue } from '../types';
 
 import { RedisCacheClient, RealRedisCacheClient } from './RedisCacheClient';
 import { IndicatorAnalytic, IndicatorCacheEntry } from './types';
 
 const ANALYTIC_PREFIX = 'ANALYTIC';
+const RELATION_PREFIX = 'RELATION';
 const KEY_JOINER = '|';
 
 const NO_DATA = 'NO_DATA';
@@ -18,11 +17,8 @@ const NO_DATA = 'NO_DATA';
 export class IndicatorCache {
   private readonly redisClient: RedisCacheClient;
 
-  private readonly hasher: Hasher;
-
   constructor(redisClient: RedisCacheClient = RealRedisCacheClient.getInstance()) {
     this.redisClient = redisClient;
-    this.hasher = ObjectHasher();
   }
 
   public async getAnalytics(indicatorCode: string, cacheEntries: IndicatorCacheEntry[]) {
@@ -33,12 +29,7 @@ export class IndicatorCache {
       ...entry,
       value: resultsFromCache[index],
     }));
-    // const resultsFromCache = await Promise.all(
-    //   cacheEntries.map(async dimension => ({
-    //     ...dimension,
-    //     value: null,
-    //   })),
-    // );
+
     const end = Date.now();
     console.log(`Reading ${cacheEntries.length} items from cache took: ${end - start}ms`);
 
@@ -47,12 +38,10 @@ export class IndicatorCache {
     resultsForAnalytics.forEach(cacheResult => {
       const { value, period, organisationUnit, hierarchy } = cacheResult;
       if (value !== null) {
-        // console.log(`cache hit! ${indicatorCode}|${period}|${organisationUnit} = ${value}`);
         if (value !== NO_DATA) {
           hitResults.push({ organisationUnit, period, value: this.parseCacheValue(value) });
         }
       } else {
-        // console.log(`cache miss! ${indicatorCode}|${period}|${organisationUnit}`);
         missResults.push({ period, organisationUnit, hierarchy });
       }
     });
@@ -85,6 +74,15 @@ export class IndicatorCache {
     this.redisClient.hmSet(indicatorCode, resultByAnalytic);
   }
 
+  public async storeRelations(
+    indicatorCode: string,
+    indicatorAnalyticRelations: IndicatorAnalytic[],
+  ) {
+    const relationsAsSets = indicatorAnalyticRelations.map(analytic => {
+      const relationValue = this.buildRelationValue(indicatorCode, analytic);
+    });
+  }
+
   private parseCacheValue(cacheValue: string) {
     const parsedValue = parseFloat(cacheValue);
     if (isNaN(parsedValue)) {
@@ -101,5 +99,15 @@ export class IndicatorCache {
       dimension.organisationUnit,
       dimension.hierarchy,
     ].join(KEY_JOINER);
+  }
+
+  private buildRelationKey(dataElementCode: string, dimension: IndicatorCacheEntry) {
+    return [RELATION_PREFIX, dataElementCode, dimension.period, dimension.organisationUnit].join(
+      KEY_JOINER,
+    );
+  }
+
+  private buildRelationValue(indicatorCode: string, dimension: IndicatorCacheEntry) {
+    return [indicatorCode, dimension.period, dimension.organisationUnit].join(KEY_JOINER);
   }
 }

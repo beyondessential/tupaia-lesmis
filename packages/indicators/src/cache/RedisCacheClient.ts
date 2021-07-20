@@ -22,10 +22,13 @@ export class RealRedisCacheClient implements RedisCacheClient {
 
   private readonly fetchFromCacheMap: (key: string, fields: string[]) => Promise<(string | null)[]>;
 
+  private readonly fetchFromCacheSet: (key: string) => Promise<string[]>;
+
   private constructor() {
     this.client = redis.createClient();
     this.fetchFromCache = promisify(this.client.get).bind(this.client);
     this.fetchFromCacheMap = promisify(this.client.hmget).bind(this.client);
+    this.fetchFromCacheSet = promisify(this.client.smembers).bind(this.client);
   }
 
   public static getInstance() {
@@ -46,5 +49,13 @@ export class RealRedisCacheClient implements RedisCacheClient {
 
   public async hmSet(key: string, fieldValues: Record<string, string>) {
     return this.client.hmset(key, fieldValues);
+  }
+
+  public async sAdd(key: string, values: string[]) {
+    return this.client.sadd(key, values);
+  }
+
+  public async sMembers(key: string) {
+    return this.fetchFromCacheSet(key);
   }
 }

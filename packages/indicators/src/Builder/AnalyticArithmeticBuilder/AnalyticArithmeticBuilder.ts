@@ -8,9 +8,22 @@ import groupBy from 'lodash.groupby';
 import { analyticsToAnalyticClusters } from '@tupaia/data-broker';
 import { stripFields } from '@tupaia/utils';
 import { getExpressionParserInstance } from '../../getExpressionParserInstance';
-import { AggregationList, Analytic, AnalyticCluster, FetchOptions, Indicator } from '../../types';
+import {
+  AggregationList,
+  Analytic,
+  AnalyticCluster,
+  AnalyticValue,
+  FetchOptions,
+  Indicator,
+} from '../../types';
 import { IndicatorApi } from '../../IndicatorApi';
-import { IndicatorCache, deriveCacheEntries, deriveFetchOptions } from '../../cache';
+import {
+  IndicatorCache,
+  IndicatorCacheEntry,
+  deriveCacheEntries,
+  deriveIndicatorAnalytics,
+  deriveFetchOptions,
+} from '../../cache';
 import { Builder } from '../Builder';
 import { createBuilder } from '../createBuilder';
 import {
@@ -105,13 +118,27 @@ export class AnalyticArithmeticBuilder extends Builder {
     const fetchedAnalytics = await this.fetchAnalytics(newFetchOptions);
     const clusters = this.buildAnalyticClusters(fetchedAnalytics);
     const fetchedValues = this.buildAnalyticValuesFromClusters(clusters);
-    this.analyticsCache.storeAnalytics(this.indicator.code, cacheMisses, fetchedValues);
+    this.postProcessAnalytics(fetchOptions, cacheMisses, fetchedValues);
     return [...cacheHits, ...fetchedValues];
 
     // const fetchedAnalytics = await this.fetchAnalytics(fetchOptions);
     // const clusters = this.buildAnalyticClusters(fetchedAnalytics);
     // return this.buildAnalyticValuesFromClusters(clusters);
   };
+
+  private async postProcessAnalytics(
+    fetchOptions: FetchOptions,
+    cacheMisses: IndicatorCacheEntry[],
+    fetchedValues: AnalyticValue[],
+  ) {
+    this.analyticsCache.storeAnalytics(this.indicator.code, cacheMisses, fetchedValues);
+    const analyticRelations = await deriveIndicatorAnalytics(
+      this,
+      this.config.aggregation,
+      fetchOptions,
+    );
+    this.analyticsCache.storeRelations(this.indicator.code, analyticRelations);
+  }
 
   private getVariables = () => Object.keys(this.config.aggregation);
 
