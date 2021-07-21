@@ -51,7 +51,7 @@ const toIndicator = dataElement => ({
     aggregation: [
       'FINAL_EACH_YEAR',
       {
-        type: 'SUM_PER_PERIOD_PER_ORG_UNIT',
+        type: 'SUM_PER_PERIOD_PER_ORG_GROUP',
         config: { dataSourceEntityType: 'school', aggregationEntityType: 'requested' },
       },
     ],
