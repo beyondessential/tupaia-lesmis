@@ -36,7 +36,6 @@ const AGGREGATION_SWITCHES = {
   SUM_PER_PERIOD_PER_ORG_GROUP: {
     sum: true,
     aggregateEntities: true,
-    groupByPeriodField: 'day_period', // can assume first internal aggregation period type is daily
   },
 };
 

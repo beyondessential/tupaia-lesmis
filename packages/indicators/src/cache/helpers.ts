@@ -61,17 +61,17 @@ const buildOuputAnalyticDimensions = (
 const insertDataElementsAndAggregations = (
   flatDimension: AnalyticDimension,
   dataElements: string[],
-  aggregations: Aggregation[],
+  hierarchy?: string,
 ): IndicatorAnalytic => {
   return {
     period: flatDimension.period,
     organisationUnit: flatDimension.organisationUnit,
+    hierarchy,
     inputs: [
       {
         dataElements,
         periods: flatDimension.inputPeriods,
         organisationUnits: flatDimension.inputOrganisationUnits,
-        aggregations,
       },
     ],
   };
@@ -156,7 +156,7 @@ const buildIndicatorAnalyticParts = async (
     outputMappers.periodMap,
     outputMappers.entityMap,
   ).map(flatDimension =>
-    insertDataElementsAndAggregations(flatDimension, dataElements, adjustedAggregations),
+    insertDataElementsAndAggregations(flatDimension, dataElements, fetchOptions.hierarchy),
   );
 
   const end = Date.now();

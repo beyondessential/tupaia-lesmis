@@ -15,6 +15,8 @@ import {
   AnalyticsRefresher,
 } from '@tupaia/database';
 
+import { IndicatorCacheCleaner } from '@tupaia/indicators';
+
 import { createMeditrakSyncQueue } from './database';
 import * as modelClasses from './database/models';
 import { startSyncWithDhis } from './dhis';
@@ -42,6 +44,10 @@ entityHierarchyCacher.listenForChanges();
 // Add listener to refresh analytics table
 const analyticsRefresher = new AnalyticsRefresher(database, models);
 analyticsRefresher.listenForChanges();
+
+// Add listener to clean indicator cache
+const indicatorCacheCleaner = new IndicatorCacheCleaner(models);
+indicatorCacheCleaner.listenForChanges();
 
 /**
  * Set up actual app with routes etc.

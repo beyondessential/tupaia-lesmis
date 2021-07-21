@@ -4,3 +4,4 @@
  */
 
 export { IndicatorApi } from './IndicatorApi';
+export { IndicatorCacheCleaner } from './cache';

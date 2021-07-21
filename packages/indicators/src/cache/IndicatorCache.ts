@@ -75,6 +75,10 @@ export class IndicatorCache {
     this.redisClient.mSet(keyAndValues);
   }
 
+  public async deleteAnalytics(keys: string[]) {
+    return this.redisClient.del(keys);
+  }
+
   public async storeRelations(
     indicatorCode: string,
     indicatorAnalyticRelations: IndicatorAnalytic[],
@@ -132,6 +136,14 @@ export class IndicatorCache {
     });
   }
 
+  public async getRelations(dataElement: string, period: string, organisationUnit: string) {
+    return this.redisClient.sInter([
+      this.buildRelationKey('dataElement', dataElement),
+      this.buildRelationKey('period', period),
+      this.buildRelationKey('organisationUnit', organisationUnit),
+    ]);
+  }
+
   private parseCacheValue(cacheValue: string) {
     const parsedValue = parseFloat(cacheValue);
     if (isNaN(parsedValue)) {
@@ -155,7 +167,13 @@ export class IndicatorCache {
     return [RELATION_PREFIX, type, value].join(KEY_JOINER);
   }
 
-  private buildRelationValue(indicatorCode: string, dimension: IndicatorCacheEntry) {
-    return [indicatorCode, dimension.period, dimension.organisationUnit].join(KEY_JOINER);
+  public static splitAnalyticKey(key: string) {
+    const [_, dataElement, period, organisationUnit, hierarchy] = key.split(KEY_JOINER);
+    return {
+      dataElement,
+      period,
+      organisationUnit,
+      hierarchy,
+    };
   }
 }

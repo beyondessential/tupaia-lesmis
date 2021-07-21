@@ -44,6 +44,9 @@ type DbConditions<T extends DbRecord> = Partial<
 
 interface DatabaseModel<T extends DbRecord> {
   find: (dbConditions: DbConditions<T>) => Promise<DatabaseType<T>[]>;
+  addChangeHandler: (
+    handler: (change: { old_record: T | null; new_record: T | null }) => Promise<any>,
+  ) => any;
 }
 
 export type Indicator = {
@@ -62,6 +65,15 @@ type DataSourceRecord = {
   config: Record<string, DbValue>;
 };
 
+export type AnalyticRecord = {
+  entity_code: string;
+  data_element_code: string;
+  day_period: string;
+  week_period: string;
+  month_period: string;
+  year_period: string;
+};
+
 export type DataSourceType = DatabaseType<DataSourceRecord>;
 
 export type IndicatorType = DatabaseType<IndicatorRecord>;
@@ -71,6 +83,7 @@ type DataSourceModel = DatabaseModel<DataSourceRecord>;
 export interface ModelRegistry {
   readonly dataSource: DataSourceModel;
   readonly indicator: DatabaseModel<IndicatorRecord>;
+  readonly analytics: DatabaseModel<AnalyticRecord>;
 }
 
 export interface Aggregation {
