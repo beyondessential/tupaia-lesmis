@@ -22,20 +22,39 @@ const PERIOD_AGGREGATIONS: Record<string, string> = {
   FINAL_EACH_YEAR: 'YEAR',
 };
 
-const buildSourceAnalyticDimensions = (sourcePeriods: string[], sourceEntities: string[]) => {
+const buildSourceMappers = (sourcePeriods: string[], sourceEntities: string[]) => {
+  return {
+    periodMap: sourcePeriods.reduce((map, period) => {
+      // eslint-disable-next-line no-param-reassign
+      map[period] = [period];
+      return map;
+    }, {} as Record<string, string[]>),
+    entityMap: sourceEntities.reduce((map, entity) => {
+      // eslint-disable-next-line no-param-reassign
+      map[entity] = [entity];
+      return map;
+    }, {} as Record<string, string[]>),
+  };
+};
+
+const buildOuputAnalyticDimensions = (
+  periodMap: Record<string, string[]>,
+  entityMap: Record<string, string[]>,
+) => {
   const analyticDimensions: AnalyticDimension[] = [];
   const start = Date.now();
-  sourcePeriods.forEach(period => {
-    sourceEntities.forEach(entity => {
+  Object.entries(periodMap).forEach(([period, inputPeriods]) => {
+    Object.entries(entityMap).forEach(([entity, inputEntities]) => {
       analyticDimensions.push({
         period,
         organisationUnit: entity,
-        inputPeriods: [period],
-        inputOrganisationUnits: [entity],
+        inputPeriods,
+        inputOrganisationUnits: inputEntities,
       });
     });
   });
   const end = Date.now();
+  console.log('Building output dimensions took', end - start, 'ms');
   return analyticDimensions;
 };
 
@@ -47,15 +66,14 @@ const insertDataElementsAndAggregations = (
   return {
     period: flatDimension.period,
     organisationUnit: flatDimension.organisationUnit,
-    inputs: dataElements.reduce((object, dataElement) => {
-      // eslint-disable-next-line no-param-reassign
-      object[dataElement] = {
+    inputs: [
+      {
+        dataElements,
         periods: flatDimension.inputPeriods,
         organisationUnits: flatDimension.inputOrganisationUnits,
         aggregations,
-      };
-      return object;
-    }, {} as Record<string, { periods: string[]; organisationUnits: string[]; aggregations: Aggregation[] }>),
+      },
+    ],
   };
 };
 
@@ -128,17 +146,21 @@ const buildIndicatorAnalyticParts = async (
     'DAY',
   );
 
-  const sourceAnalyticDimensions = buildSourceAnalyticDimensions(sourcePeriods, sourceEntities);
+  const sourceMappers = buildSourceMappers(sourcePeriods, sourceEntities);
   const adjustedAggregations = adjustedAggregationOptions.aggregations as Aggregation[];
 
   const start = Date.now();
-  const response = adjustedAggregations
-    .reduce(transform, sourceAnalyticDimensions)
-    .map(flatDimension =>
-      insertDataElementsAndAggregations(flatDimension, dataElements, adjustedAggregations),
-    );
+  const outputMappers = adjustedAggregations.reduce(transform, sourceMappers);
+
+  const response = buildOuputAnalyticDimensions(
+    outputMappers.periodMap,
+    outputMappers.entityMap,
+  ).map(flatDimension =>
+    insertDataElementsAndAggregations(flatDimension, dataElements, adjustedAggregations),
+  );
 
   const end = Date.now();
+  console.log('transforming source to dest took: ', end - start, 'ms');
   return response;
 };
 
@@ -241,10 +263,7 @@ export const mergeAnalyticParts = (
     return {
       period: dimensionsAValue.period,
       organisationUnit: dimensionsAValue.organisationUnit,
-      inputs: {
-        ...dimensionsAValue.inputs,
-        ...dimensionsBValue.inputs,
-      },
+      inputs: [...dimensionsAValue.inputs, ...dimensionsBValue.inputs],
     };
   });
 };

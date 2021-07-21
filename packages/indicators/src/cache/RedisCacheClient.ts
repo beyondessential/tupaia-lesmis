@@ -8,9 +8,13 @@ import { promisify } from 'util';
 
 export interface RedisCacheClient {
   get: (key: string) => Promise<string | null>;
+  mGet: (keys: string[]) => Promise<(string | null)[]>;
   hmGet: (key: string, fields: string[]) => Promise<(string | null)[]>;
   set: (key: string, value: string) => Promise<boolean>;
+  mSet: (keyAndValues: string[]) => Promise<boolean>;
   hmSet: (key: string, fieldValues: Record<string, string>) => Promise<boolean>;
+  sAdd: (key: string, members: string[]) => Promise<boolean>;
+  sInter: (keys: string[]) => Promise<string[]>;
 }
 
 export class RealRedisCacheClient implements RedisCacheClient {
@@ -20,15 +24,21 @@ export class RealRedisCacheClient implements RedisCacheClient {
 
   private readonly fetchFromCache: (key: string) => Promise<string | null>;
 
+  private readonly fetchManyFromCache: (keys: string[]) => Promise<(string | null)[]>;
+
   private readonly fetchFromCacheMap: (key: string, fields: string[]) => Promise<(string | null)[]>;
 
   private readonly fetchFromCacheSet: (key: string) => Promise<string[]>;
 
+  private readonly fetchFromCacheSetIntersection: (keys: string[]) => Promise<string[]>;
+
   private constructor() {
     this.client = redis.createClient();
     this.fetchFromCache = promisify(this.client.get).bind(this.client);
+    this.fetchManyFromCache = promisify(this.client.mget).bind(this.client);
     this.fetchFromCacheMap = promisify(this.client.hmget).bind(this.client);
     this.fetchFromCacheSet = promisify(this.client.smembers).bind(this.client);
+    this.fetchFromCacheSetIntersection = promisify(this.client.sinter).bind(this.client);
   }
 
   public static getInstance() {
@@ -39,12 +49,20 @@ export class RealRedisCacheClient implements RedisCacheClient {
     return this.fetchFromCache(key);
   }
 
+  public async mGet(keys: string[]) {
+    return this.fetchManyFromCache(keys);
+  }
+
   public async hmGet(key: string, fields: string[]) {
     return this.fetchFromCacheMap(key, fields);
   }
 
   public async set(key: string, value: string) {
     return this.client.set(key, value);
+  }
+
+  public async mSet(keyAndValues: string[]) {
+    return this.client.mset(keyAndValues);
   }
 
   public async hmSet(key: string, fieldValues: Record<string, string>) {
@@ -57,5 +75,9 @@ export class RealRedisCacheClient implements RedisCacheClient {
 
   public async sMembers(key: string) {
     return this.fetchFromCacheSet(key);
+  }
+
+  public async sInter(keys: string[]) {
+    return this.fetchFromCacheSetIntersection(keys);
   }
 }

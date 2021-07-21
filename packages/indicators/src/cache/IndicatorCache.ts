@@ -23,8 +23,8 @@ export class IndicatorCache {
 
   public async getAnalytics(indicatorCode: string, cacheEntries: IndicatorCacheEntry[]) {
     const start = Date.now();
-    const cacheKeys = cacheEntries.map(entry => this.buildAnalyticKey(entry));
-    const resultsFromCache = await this.redisClient.hmGet(indicatorCode, cacheKeys);
+    const cacheKeys = cacheEntries.map(entry => this.buildAnalyticKey(indicatorCode, entry));
+    const resultsFromCache = await this.redisClient.mGet(cacheKeys);
     const resultsForAnalytics = cacheEntries.map((entry, index) => ({
       ...entry,
       value: resultsFromCache[index],
@@ -65,21 +65,70 @@ export class IndicatorCache {
       }`,
     }));
 
-    const resultByAnalytic = resultsFromAnalytics.reduce((object, analytic) => {
+    const keyAndValues = resultsFromAnalytics.reduce((array, analytic) => {
       // eslint-disable-next-line no-param-reassign
-      object[this.buildAnalyticKey(analytic)] = analytic.value;
-      return object;
-    }, {} as Record<string, string>);
+      array.push(this.buildAnalyticKey(indicatorCode, analytic), analytic.value);
+      return array;
+    }, [] as string[]);
+    console.log('storing analytics', keyAndValues.length / 2);
 
-    this.redisClient.hmSet(indicatorCode, resultByAnalytic);
+    this.redisClient.mSet(keyAndValues);
   }
 
   public async storeRelations(
     indicatorCode: string,
     indicatorAnalyticRelations: IndicatorAnalytic[],
   ) {
-    const relationsAsSets = indicatorAnalyticRelations.map(analytic => {
-      const relationValue = this.buildRelationValue(indicatorCode, analytic);
+    const start = Date.now();
+    console.log('building relation keys');
+    const dataElementInputs: Record<string, string[]> = {};
+    const periodInputs: Record<string, string[]> = {};
+    const organisationUnitInputs: Record<string, string[]> = {};
+    indicatorAnalyticRelations.forEach(analytic => {
+      const relationValue = this.buildAnalyticKey(indicatorCode, analytic);
+      analytic.inputs.forEach(({ periods, organisationUnits, dataElements }) => {
+        dataElements.forEach(dataElement => {
+          if (dataElementInputs[dataElement]) {
+            dataElementInputs[dataElement].push(relationValue);
+          } else {
+            dataElementInputs[dataElement] = [relationValue];
+          }
+        });
+        periods.forEach(period => {
+          if (periodInputs[period]) {
+            periodInputs[period].push(relationValue);
+          } else {
+            periodInputs[period] = [relationValue];
+          }
+        });
+        organisationUnits.forEach(organisationUnit => {
+          if (organisationUnitInputs[organisationUnit]) {
+            organisationUnitInputs[organisationUnit].push(relationValue);
+          } else {
+            organisationUnitInputs[organisationUnit] = [relationValue];
+          }
+        });
+      });
+    });
+    const end = Date.now();
+    console.log('Building relation keys took:', end - start, 'ms');
+
+    console.log(`Adding to dataElement relations`);
+    Object.entries(dataElementInputs).forEach(([dataElement, relationValues]) => {
+      const key = this.buildRelationKey('dataElement', dataElement);
+      this.redisClient.sAdd(key, relationValues);
+    });
+
+    console.log(`Adding to period relations`);
+    Object.entries(periodInputs).forEach(([period, relationValues]) => {
+      const key = this.buildRelationKey('period', period);
+      this.redisClient.sAdd(key, relationValues);
+    });
+
+    console.log(`Adding to orgUnit relations`);
+    Object.entries(organisationUnitInputs).forEach(([organisationUnit, relationValues]) => {
+      const key = this.buildRelationKey('organisationUnit', organisationUnit);
+      this.redisClient.sAdd(key, relationValues);
     });
   }
 
@@ -92,19 +141,18 @@ export class IndicatorCache {
     return parsedValue;
   }
 
-  private buildAnalyticKey(dimension: IndicatorCacheEntry) {
+  private buildAnalyticKey(indicatorCode: string, dimension: IndicatorCacheEntry) {
     return [
       ANALYTIC_PREFIX,
+      indicatorCode,
       dimension.period,
       dimension.organisationUnit,
       dimension.hierarchy,
     ].join(KEY_JOINER);
   }
 
-  private buildRelationKey(dataElementCode: string, dimension: IndicatorCacheEntry) {
-    return [RELATION_PREFIX, dataElementCode, dimension.period, dimension.organisationUnit].join(
-      KEY_JOINER,
-    );
+  private buildRelationKey(type: 'period' | 'organisationUnit' | 'dataElement', value: string) {
+    return [RELATION_PREFIX, type, value].join(KEY_JOINER);
   }
 
   private buildRelationValue(indicatorCode: string, dimension: IndicatorCacheEntry) {

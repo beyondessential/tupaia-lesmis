@@ -21,8 +21,10 @@ export type IndicatorCacheEntry = {
 export type IndicatorAnalytic = {
   readonly organisationUnit: string;
   readonly period: string;
-  readonly inputs: Record<
-    string,
-    { periods: string[]; organisationUnits: string[]; aggregations: Aggregation[] }
-  >;
+  readonly inputs: {
+    periods: string[];
+    organisationUnits: string[];
+    aggregations: Aggregation[];
+    dataElements: string[];
+  }[];
 };
