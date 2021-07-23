@@ -36,7 +36,6 @@ export class ReportRoute extends Route {
         }
         const report = await this.reportConnection.fetchReport(reportCode, {
           organisationUnitCodes: entityCode,
-          projectCodes: LESMIS_PROJECT_NAME,
           hierarchy: LESMIS_HIERARCHY_NAME,
         });
         return report.results;
@@ -52,8 +51,9 @@ export class ReportRoute extends Route {
         return this.reportConnection.fetchReport(reportCode, {
           // Report server can accept arrays so the parameters are plural
           organisationUnitCodes: entityCode,
-          projectCodes: LESMIS_PROJECT_NAME,
+          hierarchy: LESMIS_HIERARCHY_NAME,
           ...this.req.query,
+          ...this.req.body,
         });
     }
   }
