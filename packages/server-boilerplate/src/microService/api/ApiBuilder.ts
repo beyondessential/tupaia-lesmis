@@ -15,7 +15,7 @@ import { handleWith, handleError } from '../../utils';
 import { buildBasicBearerAuthMiddleware } from '../auth';
 import { TestRoute } from '../../routes';
 import { ExpressRequest, Params, ReqBody, ResBody, Query } from '../../routes/Route';
-import { ApiConnectionBuilder, EntityApi } from '../../connections';
+import { CachedOutboundConnection, ApiConnectionBuilder, EntityApi } from '../../connections';
 import { RequestContext } from '../types';
 
 export class ApiBuilder {
@@ -43,6 +43,8 @@ export class ApiBuilder {
     this.app.use(bodyParser.json({ limit: '50mb' }));
     this.app.use(errorHandler());
 
+    const cachedConnection = new CachedOutboundConnection();
+
     /**
      * Add singletons to be attached to req for every route
      */
@@ -54,6 +56,7 @@ export class ApiBuilder {
       };
 
       const entityApi = new ApiConnectionBuilder()
+        .useConnection(cachedConnection)
         .handleAuthWith(microServiceAuthHandler)
         .buildAs(EntityApi);
 
