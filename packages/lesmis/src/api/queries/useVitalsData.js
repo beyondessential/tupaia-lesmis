@@ -29,8 +29,6 @@ const PARTNERS_LOGOS = {
 
 const PARTNERS_IMAGE_PATH = '/images/partnerLogos/';
 
-const endDateFormat = 'YYYY-MM-DD';
-
 const getParentOfType = (entities, rootEntityCode, type) => {
   const entity = entities.find(e => e.code === rootEntityCode);
   if (!entity) {
@@ -71,47 +69,19 @@ const useReport = (entity, reportName, options, enabled) =>
   );
 
 const useSchoolReport = entity =>
-  useReport(
-    entity,
-    'LESMIS_school_vitals',
-    { params: { endDate: utcMoment().format(endDateFormat) } },
-    entity?.type === 'school',
-  );
+  useReport(entity, 'LESMIS_school_vitals', {}, entity?.type === 'school');
 
 const useDistrictReport = entity =>
-  useReport(
-    entity,
-    'LESMIS_sub_district_vitals',
-    { params: { endDate: utcMoment().format(endDateFormat) } },
-    entity?.type === 'sub_district',
-  );
+  useReport(entity, 'LESMIS_sub_district_vitals', {}, entity?.type === 'sub_district');
 
 const useMultiSchoolReport = (entities, rootEntity) => {
   const descendants = getDescendantCodesOfType(entities, rootEntity?.code, 'school');
-  return useReport(
-    rootEntity,
-    'LESMIS_multi_school_vitals',
-    {
-      params: {
-        endDate: utcMoment().format(endDateFormat),
-      },
-    },
-    descendants.length > 0,
-  );
+  return useReport(rootEntity, 'LESMIS_multi_school_vitals', {}, descendants.length > 0);
 };
 
 const useMultiDistrictReport = (entities, rootEntity) => {
   const descendants = getDescendantCodesOfType(entities, rootEntity?.code, 'sub_district');
-  return useReport(
-    rootEntity,
-    'LESMIS_sub_district_vitals',
-    {
-      params: {
-        endDate: utcMoment().format(endDateFormat),
-      },
-    },
-    descendants.length > 0,
-  );
+  return useReport(rootEntity, 'LESMIS_sub_district_vitals', {}, descendants.length > 0);
 };
 
 const useSchoolInformation = (entities, rootEntity) => {
