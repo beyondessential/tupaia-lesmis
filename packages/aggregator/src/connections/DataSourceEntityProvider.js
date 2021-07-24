@@ -35,7 +35,7 @@ export class DataSourceEntityProvider {
     dataSourceEntityType,
     dataSourceEntityFilter,
   ) {
-    const response = await this.entityApi.getRelationshipsOfEntity(
+    const response = await this.entityApi.getRelationshipsOfEntities(
       hierarchyName,
       entityCodes,
       'descendant',
