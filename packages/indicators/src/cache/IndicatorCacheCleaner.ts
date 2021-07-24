@@ -47,7 +47,7 @@ export class IndicatorCacheCleaner {
 
   constructor(models: ModelRegistry) {
     this.models = models;
-    this.indicatorCache = new IndicatorCache();
+    this.indicatorCache = IndicatorCache.getInstance();
     this.changeHandlerCancellers = [];
     this.scheduledCleanJobs = new Queue();
     this.scheduledCleanTimeout = null;
