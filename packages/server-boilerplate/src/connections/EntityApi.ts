@@ -162,10 +162,15 @@ export class EntityApi implements MicroserviceApi {
       filter?: EntityFilterObject;
     },
   ) {
-    return this.connection.get(`hierarchy/${hierarchyName}`, {
-      ...this.stringifyQueryParameters(queryOptions),
-      entities: entityCodes.join(MULTIPLE_VALUES_DELIMITER),
-    });
+    return this.connection.post(
+      `hierarchy/${hierarchyName}`,
+      {
+        ...this.stringifyQueryParameters(queryOptions),
+      },
+      {
+        entities: entityCodes,
+      },
+    );
   }
 
   public async getDescendantsOfEntity(
@@ -230,11 +235,16 @@ export class EntityApi implements MicroserviceApi {
     },
     includeRootEntity = false,
   ) {
-    return this.connection.get(`hierarchy/${hierarchyName}/descendants`, {
-      ...this.stringifyQueryParameters(queryOptions),
-      entities: entityCodes.join(MULTIPLE_VALUES_DELIMITER),
-      includeRootEntity: `${includeRootEntity}`,
-    });
+    return this.connection.post(
+      `hierarchy/${hierarchyName}/descendants`,
+      {
+        ...this.stringifyQueryParameters(queryOptions),
+        includeRootEntity: `${includeRootEntity}`,
+      },
+      {
+        entities: entityCodes,
+      },
+    );
   }
 
   public async getRelativesOfEntity(
@@ -292,10 +302,15 @@ export class EntityApi implements MicroserviceApi {
       filter?: EntityFilterObject;
     },
   ) {
-    return this.connection.get(`hierarchy/${hierarchyName}/relatives`, {
-      ...this.stringifyQueryParameters(queryOptions),
-      entities: entityCodes.join(MULTIPLE_VALUES_DELIMITER),
-    });
+    return this.connection.post(
+      `hierarchy/${hierarchyName}/relatives`,
+      {
+        ...this.stringifyQueryParameters(queryOptions),
+      },
+      {
+        entities: entityCodes,
+      },
+    );
   }
 
   public async getRelationshipsOfEntity(
@@ -355,12 +370,17 @@ export class EntityApi implements MicroserviceApi {
     ancestorQueryOptions?: RelationshipsSubQueryOptions,
     descendantQueryOptions?: RelationshipsSubQueryOptions,
   ) {
-    return this.connection.get(`hierarchy/${hierarchyName}/relationships`, {
-      ...this.stringifyQueryParameters(queryOptions),
-      ...this.stringifyRelationshipsSubQueryParameters(ancestorQueryOptions, 'ancestor'),
-      ...this.stringifyRelationshipsSubQueryParameters(descendantQueryOptions, 'descendant'),
-      entities: entityCodes.join(MULTIPLE_VALUES_DELIMITER),
-      groupBy,
-    });
+    return this.connection.post(
+      `hierarchy/${hierarchyName}/relationships`,
+      {
+        ...this.stringifyQueryParameters(queryOptions),
+        ...this.stringifyRelationshipsSubQueryParameters(ancestorQueryOptions, 'ancestor'),
+        ...this.stringifyRelationshipsSubQueryParameters(descendantQueryOptions, 'descendant'),
+        groupBy,
+      },
+      {
+        entities: entityCodes,
+      },
+    );
   }
 }
