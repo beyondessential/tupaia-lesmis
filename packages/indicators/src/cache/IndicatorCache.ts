@@ -44,7 +44,6 @@ export class IndicatorCache {
     }));
 
     const end = Date.now();
-    console.log(`Reading ${cacheEntries.length} items from cache took: ${end - start}ms`);
 
     const hitResults: AnalyticValue[] = [];
     const pendingResults: Promise<AnalyticValue | undefined>[] = [];
@@ -105,7 +104,6 @@ export class IndicatorCache {
 
   private async storeRelations(indicatorAnalyticRelations: IndicatorAnalytic[]) {
     const start = Date.now();
-    console.log('building relation keys');
     const dataElementInputs: Record<string, string[]> = {};
     const periodInputs: Record<string, string[]> = {};
     const organisationUnitInputs: Record<string, string[]> = {};
@@ -136,7 +134,6 @@ export class IndicatorCache {
       });
     });
     const end = Date.now();
-    console.log('Building relation keys took:', end - start, 'ms');
 
     Object.entries(dataElementInputs).forEach(([dataElement, relationValues]) => {
       const key = this.buildRelationKey('dataElement', dataElement);

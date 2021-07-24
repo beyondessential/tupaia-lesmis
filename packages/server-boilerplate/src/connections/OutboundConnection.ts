@@ -61,7 +61,6 @@ export class OutboundConnection {
     queryParameters: QueryParameters = {},
     body?: RequestBody,
   ) {
-    console.log(requestMethod, baseUrl, authHeader, endpoint, queryParameters, body);
     const queryUrl = stringifyQuery(baseUrl, endpoint, queryParameters);
     const fetchConfig: FetchConfig = {
       method: requestMethod || 'GET',
