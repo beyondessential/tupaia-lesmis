@@ -3,8 +3,6 @@
  * Copyright (c) 2017 - 2021 Beyond Essential Systems Pty Ltd
  */
 
-import { Aggregation } from '../types';
-
 export type AnalyticDimension = {
   readonly organisationUnit: string;
   readonly period: string;
@@ -15,10 +13,11 @@ export type AnalyticDimension = {
 export type IndicatorCacheEntry = {
   readonly organisationUnit: string;
   readonly period: string;
-  readonly hierarchy?: string;
+  readonly inputHash?: string;
 };
 
 export type IndicatorAnalytic = {
+  readonly indicatorCode: string;
   readonly organisationUnit: string;
   readonly period: string;
   readonly hierarchy?: string;
@@ -27,4 +26,5 @@ export type IndicatorAnalytic = {
     organisationUnits: string[];
     dataElements: string[];
   }[];
+  inputHash?: string;
 };

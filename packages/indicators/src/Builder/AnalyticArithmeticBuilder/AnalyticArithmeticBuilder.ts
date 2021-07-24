@@ -8,22 +8,9 @@ import groupBy from 'lodash.groupby';
 import { analyticsToAnalyticClusters } from '@tupaia/data-broker';
 import { stripFields } from '@tupaia/utils';
 import { getExpressionParserInstance } from '../../getExpressionParserInstance';
-import {
-  AggregationList,
-  Analytic,
-  AnalyticCluster,
-  AnalyticValue,
-  FetchOptions,
-  Indicator,
-} from '../../types';
+import { AggregationList, Analytic, AnalyticCluster, FetchOptions, Indicator } from '../../types';
 import { IndicatorApi } from '../../IndicatorApi';
-import {
-  IndicatorCache,
-  IndicatorCacheEntry,
-  deriveCacheEntries,
-  deriveIndicatorAnalytics,
-  deriveFetchOptions,
-} from '../../cache';
+import { IndicatorCache, deriveIndicatorAnalytics, deriveFetchOptions } from '../../cache';
 import { Builder } from '../Builder';
 import { createBuilder } from '../createBuilder';
 import {
@@ -71,7 +58,7 @@ export class AnalyticArithmeticBuilder extends Builder {
   constructor(api: IndicatorApi, indicator: Indicator) {
     super(api, indicator);
 
-    this.analyticsCache = new IndicatorCache();
+    this.analyticsCache = IndicatorCache.getInstance();
   }
 
   private get config() {
@@ -102,43 +89,38 @@ export class AnalyticArithmeticBuilder extends Builder {
   };
 
   protected buildAnalyticValues = async (fetchOptions: FetchOptions) => {
-    const indicatorAnalytics = await deriveCacheEntries(
-      this as AnalyticArithmeticBuilder,
+    const indicatorAnalytics = await deriveIndicatorAnalytics(
+      this,
+      this.indicator.code,
       this.config.aggregation,
       fetchOptions,
     );
-    const { hits: cacheHits, misses: cacheMisses } = await this.analyticsCache.getAnalytics(
-      this.indicator.code,
-      indicatorAnalytics,
-    );
+    const {
+      hits: cacheHits,
+      pending: cachePending,
+      misses: cacheMisses,
+    } = await this.analyticsCache.getAnalytics(indicatorAnalytics);
     if (cacheMisses.length === 0) {
-      return cacheHits;
+      return [
+        ...cacheHits,
+        ...(await Promise.all(cachePending)).filter(result => result !== undefined),
+      ];
     }
     const newFetchOptions = { ...fetchOptions, ...deriveFetchOptions(cacheMisses) };
     const fetchedAnalytics = await this.fetchAnalytics(newFetchOptions);
     const clusters = this.buildAnalyticClusters(fetchedAnalytics);
     const fetchedValues = this.buildAnalyticValuesFromClusters(clusters);
-    this.postProcessAnalytics(fetchOptions, cacheMisses, fetchedValues);
-    return [...cacheHits, ...fetchedValues];
+    this.analyticsCache.storeAnalytics(cacheMisses, fetchedValues);
+    return [
+      ...cacheHits,
+      ...(await Promise.all(cachePending)).filter(result => result !== undefined),
+      ...fetchedValues,
+    ];
 
     // const fetchedAnalytics = await this.fetchAnalytics(fetchOptions);
     // const clusters = this.buildAnalyticClusters(fetchedAnalytics);
     // return this.buildAnalyticValuesFromClusters(clusters);
   };
-
-  private async postProcessAnalytics(
-    fetchOptions: FetchOptions,
-    cacheMisses: IndicatorCacheEntry[],
-    fetchedValues: AnalyticValue[],
-  ) {
-    this.analyticsCache.storeAnalytics(this.indicator.code, cacheMisses, fetchedValues);
-    const analyticRelations = await deriveIndicatorAnalytics(
-      this,
-      this.config.aggregation,
-      fetchOptions,
-    );
-    this.analyticsCache.storeRelations(this.indicator.code, analyticRelations);
-  }
 
   private getVariables = () => Object.keys(this.config.aggregation);
 

@@ -6,7 +6,8 @@
 import { AnalyticValue } from '../types';
 
 import { RedisCacheClient, RealRedisCacheClient } from './RedisCacheClient';
-import { IndicatorAnalytic, IndicatorCacheEntry } from './types';
+import { CacheResponseQueue, IndicatorResponse } from './CacheResponseQueue';
+import { IndicatorAnalytic } from './types';
 
 const ANALYTIC_PREFIX = 'ANALYTIC';
 const RELATION_PREFIX = 'RELATION';
@@ -15,15 +16,27 @@ const KEY_JOINER = '|';
 const NO_DATA = 'NO_DATA';
 
 export class IndicatorCache {
+  private static instance = new IndicatorCache();
+
   private readonly redisClient: RedisCacheClient;
 
-  constructor(redisClient: RedisCacheClient = RealRedisCacheClient.getInstance()) {
+  private readonly cacheResponseQueue: CacheResponseQueue;
+
+  private constructor(redisClient: RedisCacheClient = new RealRedisCacheClient()) {
     this.redisClient = redisClient;
+    this.cacheResponseQueue = new CacheResponseQueue(async (responses: IndicatorResponse[]) => {
+      await this.commitResponsesToRedis(responses);
+      await this.storeRelations(responses.map(response => response.requested));
+    });
   }
 
-  public async getAnalytics(indicatorCode: string, cacheEntries: IndicatorCacheEntry[]) {
+  public static getInstance() {
+    return this.instance;
+  }
+
+  public async getAnalytics(cacheEntries: IndicatorAnalytic[]) {
     const start = Date.now();
-    const cacheKeys = cacheEntries.map(entry => this.buildAnalyticKey(indicatorCode, entry));
+    const cacheKeys = cacheEntries.map(entry => this.buildAnalyticKey(entry));
     const resultsFromCache = await this.redisClient.mGet(cacheKeys);
     const resultsForAnalytics = cacheEntries.map((entry, index) => ({
       ...entry,
@@ -34,40 +47,51 @@ export class IndicatorCache {
     console.log(`Reading ${cacheEntries.length} items from cache took: ${end - start}ms`);
 
     const hitResults: AnalyticValue[] = [];
-    const missResults: IndicatorCacheEntry[] = [];
+    const pendingResults: Promise<AnalyticValue | undefined>[] = [];
+    const missResults: IndicatorAnalytic[] = [];
     resultsForAnalytics.forEach(cacheResult => {
-      const { value, period, organisationUnit, hierarchy } = cacheResult;
+      const key = this.buildAnalyticKey(cacheResult);
+      const pendingResult = this.cacheResponseQueue.checkQueue(key);
+      const { value, ...analytic } = cacheResult;
+      const { organisationUnit, period } = analytic;
       if (value !== null) {
         if (value !== NO_DATA) {
           hitResults.push({ organisationUnit, period, value: this.parseCacheValue(value) });
         }
+      } else if (pendingResult) {
+        pendingResults.push(pendingResult);
       } else {
-        missResults.push({ period, organisationUnit, hierarchy });
+        missResults.push(analytic);
+        this.cacheResponseQueue.enqueue(key);
       }
     });
 
-    return { hits: hitResults, misses: missResults };
+    return { hits: hitResults, pending: pendingResults, misses: missResults };
   }
 
-  public async storeAnalytics(
-    indicatorCode: string,
-    requestedAnalytics: IndicatorCacheEntry[],
+  public storeAnalytics(
+    requestedAnalytics: IndicatorAnalytic[],
     returnedAnalytics: AnalyticValue[],
   ) {
-    const resultsFromAnalytics = requestedAnalytics.map(requested => ({
+    requestedAnalytics.forEach(requested => {
+      const value = returnedAnalytics.find(
+        returned =>
+          returned.organisationUnit === requested.organisationUnit &&
+          returned.period === requested.period,
+      );
+      this.cacheResponseQueue.dequeue(this.buildAnalyticKey(requested), requested, value);
+    });
+  }
+
+  private async commitResponsesToRedis(responses: IndicatorResponse[]) {
+    const resultsFromAnalytics = responses.map(({ requested, value }) => ({
       ...requested,
-      value: `${
-        returnedAnalytics.find(
-          returned =>
-            returned.organisationUnit === requested.organisationUnit &&
-            returned.period === requested.period,
-        )?.value || NO_DATA
-      }`,
+      value: value ? `${value.value}` : NO_DATA,
     }));
 
     const keyAndValues = resultsFromAnalytics.reduce((array, analytic) => {
       // eslint-disable-next-line no-param-reassign
-      array.push(this.buildAnalyticKey(indicatorCode, analytic), analytic.value);
+      array.push(this.buildAnalyticKey(analytic), analytic.value);
       return array;
     }, [] as string[]);
     console.log('storing analytics', keyAndValues.length / 2);
@@ -79,17 +103,14 @@ export class IndicatorCache {
     return this.redisClient.del(keys);
   }
 
-  public async storeRelations(
-    indicatorCode: string,
-    indicatorAnalyticRelations: IndicatorAnalytic[],
-  ) {
+  private async storeRelations(indicatorAnalyticRelations: IndicatorAnalytic[]) {
     const start = Date.now();
     console.log('building relation keys');
     const dataElementInputs: Record<string, string[]> = {};
     const periodInputs: Record<string, string[]> = {};
     const organisationUnitInputs: Record<string, string[]> = {};
     indicatorAnalyticRelations.forEach(analytic => {
-      const relationValue = this.buildAnalyticKey(indicatorCode, analytic);
+      const relationValue = this.buildAnalyticKey(analytic);
       analytic.inputs.forEach(({ periods, organisationUnits, dataElements }) => {
         dataElements.forEach(dataElement => {
           if (dataElementInputs[dataElement]) {
@@ -117,19 +138,16 @@ export class IndicatorCache {
     const end = Date.now();
     console.log('Building relation keys took:', end - start, 'ms');
 
-    console.log(`Adding to dataElement relations`);
     Object.entries(dataElementInputs).forEach(([dataElement, relationValues]) => {
       const key = this.buildRelationKey('dataElement', dataElement);
       this.redisClient.sAdd(key, relationValues);
     });
 
-    console.log(`Adding to period relations`);
     Object.entries(periodInputs).forEach(([period, relationValues]) => {
       const key = this.buildRelationKey('period', period);
       this.redisClient.sAdd(key, relationValues);
     });
 
-    console.log(`Adding to orgUnit relations`);
     Object.entries(organisationUnitInputs).forEach(([organisationUnit, relationValues]) => {
       const key = this.buildRelationKey('organisationUnit', organisationUnit);
       this.redisClient.sAdd(key, relationValues);
@@ -153,13 +171,13 @@ export class IndicatorCache {
     return parsedValue;
   }
 
-  private buildAnalyticKey(indicatorCode: string, dimension: IndicatorCacheEntry) {
+  private buildAnalyticKey(dimension: IndicatorAnalytic) {
     return [
       ANALYTIC_PREFIX,
-      indicatorCode,
+      dimension.indicatorCode,
       dimension.period,
       dimension.organisationUnit,
-      dimension.hierarchy,
+      dimension.inputHash,
     ].join(KEY_JOINER);
   }
 
@@ -168,7 +186,7 @@ export class IndicatorCache {
   }
 
   public static splitAnalyticKey(key: string) {
-    const [_, dataElement, period, organisationUnit, hierarchy] = key.split(KEY_JOINER);
+    const [, dataElement, period, organisationUnit, hierarchy] = key.split(KEY_JOINER);
     return {
       dataElement,
       period,

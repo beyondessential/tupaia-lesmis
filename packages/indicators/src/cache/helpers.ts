@@ -4,6 +4,7 @@
  */
 
 import keyBy from 'lodash.keyby';
+import createHasher from 'node-object-hash';
 
 import { adjustOptionsToAggregationList } from '@tupaia/aggregator';
 import { convertPeriodStringToDateRange, convertDateRangeToPeriods } from '@tupaia/utils';
@@ -54,19 +55,18 @@ const buildOuputAnalyticDimensions = (
     });
   });
   const end = Date.now();
-  console.log('Building output dimensions took', end - start, 'ms');
   return analyticDimensions;
 };
 
-const insertDataElementsAndAggregations = (
+const insertDataElementsAndCode = (
   flatDimension: AnalyticDimension,
   dataElements: string[],
-  hierarchy?: string,
+  indicatorCode: string,
 ): IndicatorAnalytic => {
   return {
     period: flatDimension.period,
     organisationUnit: flatDimension.organisationUnit,
-    hierarchy,
+    indicatorCode,
     inputs: [
       {
         dataElements,
@@ -124,6 +124,7 @@ const buildCacheEntryParts = async (
 
 const buildIndicatorAnalyticParts = async (
   context: any,
+  indicatorCode: string,
   dataElements: string[],
   aggregations: Aggregation[],
   fetchOptions: FetchOptions,
@@ -155,12 +156,9 @@ const buildIndicatorAnalyticParts = async (
   const response = buildOuputAnalyticDimensions(
     outputMappers.periodMap,
     outputMappers.entityMap,
-  ).map(flatDimension =>
-    insertDataElementsAndAggregations(flatDimension, dataElements, fetchOptions.hierarchy),
-  );
+  ).map(flatDimension => insertDataElementsAndCode(flatDimension, dataElements, indicatorCode));
 
   const end = Date.now();
-  console.log('transforming source to dest took: ', end - start, 'ms');
   return response;
 };
 
@@ -204,6 +202,7 @@ export const deriveCacheEntries = async (
 
 export const deriveIndicatorAnalytics = async (
   indicatorBuilder: Builder,
+  indicatorCode: string,
   indicatorAggregations: Record<string, Aggregation[]>,
   fetchOptions: FetchOptions,
 ) => {
@@ -215,6 +214,7 @@ export const deriveIndicatorAnalytics = async (
       const aggregations = JSON.parse(aggregationJson);
       analyticParts[elements.join(',')] = await buildIndicatorAnalyticParts(
         indicatorBuilder.indicatorApi.getAggregator().context,
+        indicatorCode,
         elements,
         aggregations,
         fetchOptions,
@@ -227,7 +227,11 @@ export const deriveIndicatorAnalytics = async (
 
   // console.log(`Building indicator analytics took: ${end - start}ms`);
 
-  return mergedDimensions;
+  const hasher = createHasher();
+  return mergedDimensions.map(dimension => ({
+    ...dimension,
+    inputHash: hasher.hash(dimension.inputs),
+  }));
 };
 
 export const mergeAnalyticParts = (
@@ -261,8 +265,7 @@ export const mergeAnalyticParts = (
     }
 
     return {
-      period: dimensionsAValue.period,
-      organisationUnit: dimensionsAValue.organisationUnit,
+      ...dimensionsAValue,
       inputs: [...dimensionsAValue.inputs, ...dimensionsBValue.inputs],
     };
   });

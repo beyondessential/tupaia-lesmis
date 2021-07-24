@@ -19,8 +19,6 @@ export interface RedisCacheClient {
 }
 
 export class RealRedisCacheClient implements RedisCacheClient {
-  static readonly realInstance = new RealRedisCacheClient();
-
   private readonly client: RedisClient;
 
   private readonly fetchFromCache: (key: string) => Promise<string | null>;
@@ -35,7 +33,7 @@ export class RealRedisCacheClient implements RedisCacheClient {
 
   private readonly deleteFromCache: (keys: string[]) => Promise<number>;
 
-  private constructor() {
+  public constructor() {
     this.client = redis.createClient();
     this.fetchFromCache = promisify(this.client.get).bind(this.client);
     this.fetchManyFromCache = promisify(this.client.mget).bind(this.client);
@@ -43,10 +41,6 @@ export class RealRedisCacheClient implements RedisCacheClient {
     this.fetchFromCacheSet = promisify(this.client.smembers).bind(this.client);
     this.fetchFromCacheSetIntersection = promisify(this.client.sinter).bind(this.client);
     this.deleteFromCache = promisify(this.client.del).bind(this.client);
-  }
-
-  public static getInstance() {
-    return RealRedisCacheClient.realInstance;
   }
 
   public async get(key: string) {
