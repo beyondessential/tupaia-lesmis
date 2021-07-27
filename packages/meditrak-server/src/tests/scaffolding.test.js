@@ -8,6 +8,7 @@ import sinonChai from 'sinon-chai';
 import winston from 'winston';
 
 import { clearTestData } from '@tupaia/database';
+import { configureWinstonForTests } from '@tupaia/utils';
 import { getIsProductionEnvironment } from '../devops';
 import { getModels, resetTestData } from './testUtilities';
 import * as SendEmail from '../utilities/sendEmail';
@@ -24,8 +25,8 @@ before(async () => {
     throw new Error('Never run the test suite on the production server, it messes with data!');
   }
 
+  configureWinstonForTests(winston);
   sinon.stub(SendEmail, 'sendEmail');
-
   await resetTestData();
 
   chai.use(chaiSubset);
@@ -33,11 +34,6 @@ before(async () => {
   chai.use(sinonChai);
   // `chaiAsPromised` must be used after other plugins to promisify them
   chai.use(chaiAsPromised);
-
-  // Silence winston logs
-  winston.configure({
-    transports: [new winston.transports.Console({ silent: true })],
-  });
 });
 
 after(async () => {

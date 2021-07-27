@@ -9,14 +9,12 @@ import moment from 'moment';
 import sinonChai from 'sinon-chai';
 import winston from 'winston';
 
+import { configureWinstonForTests } from '@tupaia/utils';
 import { clearTestData, getTestDatabase } from '../testUtilities';
 
-// Silence winston logs
-winston.configure({
-  transports: [new winston.transports.Console({ silent: true })],
-});
-
 before(() => {
+  configureWinstonForTests(winston);
+
   chai.use(deepEqualInAnyOrder);
   chai.use(sinonChai);
 });

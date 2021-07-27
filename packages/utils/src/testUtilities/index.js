@@ -4,4 +4,5 @@
  */
 
 export { addCustomJestMatchers } from './addCustomJestMatchers';
+export { configureWinstonForTests } from './configureWinstonForTests';
 export { createJestMockInstance } from './createJestMockInstance';
