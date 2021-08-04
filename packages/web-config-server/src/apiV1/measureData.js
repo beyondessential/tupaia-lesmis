@@ -17,12 +17,12 @@ const binaryOptionSet = [
   { name: 'No', value: 0 },
 ];
 
-const cannotFindCountryLevelInHierarchy = {
+const cannotFindAncestorLevelInHierarchy = {
   type: 'Permission Error',
   responseStatus: 404,
   responseText: {
     status: 'Not Found',
-    details: 'Cannot find country level in hierarchy',
+    details: 'Cannot find ancestor level in hierarchy',
   },
 };
 
@@ -320,14 +320,14 @@ export default class extends DataAggregatingRouteHandler {
     return dataElement.options;
   }
 
-  async getCountryLevelOrgUnitCode() {
-    const country = await this.entity.countryEntity();
+  async getAncestorOrgUnitCodeOfLevel(hierarchyId, level) {
+    const ancestor = await this.entity.getAncestorOfType(hierarchyId, level);
 
-    if (!country) {
-      throw new CustomError(cannotFindCountryLevelInHierarchy);
+    if (!ancestor) {
+      throw new CustomError(cannotFindAncestorLevelInHierarchy);
     }
 
-    return country.code;
+    return ancestor.code;
   }
 
   async fetchMeasureData(mapOverlay, shouldFetchSiblings) {
@@ -339,8 +339,14 @@ export default class extends DataAggregatingRouteHandler {
       measureBuilder,
     } = mapOverlay;
 
+    const { projectCode } = this.query;
+    const project = await this.models.project.findOne({ code: projectCode });
+
     const entityCode = shouldFetchSiblings
-      ? await this.getCountryLevelOrgUnitCode()
+      ? await this.getAncestorOrgUnitCodeOfLevel(
+          project.entity_hierarchy_id,
+          measureBuilderConfig.siblingAncestorLevel || 'country',
+        )
       : this.entity.code;
     const entity = await this.models.entity.findOne({ code: entityCode });
     const dataServices = createDataServices(mapOverlay);
