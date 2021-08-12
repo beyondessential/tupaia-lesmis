@@ -6,7 +6,9 @@
 export const ENTITIES = [
   { code: 'redblue', name: 'Pokemon Red/Blue', type: 'project' },
   { code: 'goldsilver', name: 'Pokemon Gold/Silver', type: 'project' },
-
+  // country -> city    -> facility
+  //         -> village
+  //         -> district
   { code: 'KANTO', name: 'Kanto', type: 'country' },
   { code: 'PALLET', name: 'Pallet Town', type: 'village' },
   { code: 'VIRIDIAN', name: 'Viridian City', type: 'city' },

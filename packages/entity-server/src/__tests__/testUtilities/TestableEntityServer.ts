@@ -8,7 +8,7 @@ import * as dotenv from 'dotenv';
  * Start the server
  */
 import supertest, { Test } from 'supertest';
-import sinon from 'sinon';
+
 import { Express } from 'express';
 
 import { Authenticator } from '@tupaia/auth';
@@ -37,6 +37,9 @@ export class TestableEntityServer {
   private readonly app: Express;
 
   private user: User;
+
+  // create test user
+  // create fake entities and relations
 
   constructor(username: string, password: string) {
     this.app = createApp(getTestDatabase());
