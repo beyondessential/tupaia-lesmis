@@ -29,7 +29,7 @@ export const getAuthorizationHeader = () => {
 };
 
 type User = { username: string; password: string };
-type RequestOptions = { headers?: Record<string, any>; body?: any };
+type RequestOptions = { headers?: Record<string, any>; query?: Record<string, any>; body?: any };
 
 export class TestableEntityServer {
   public readonly database: TupaiaDatabase;
@@ -80,7 +80,7 @@ export class TestableEntityServer {
   }
 
   private addOptionsToRequest(request: Test, options: RequestOptions = {}) {
-    const { headers, body } = options;
+    const { headers, query, body } = options;
     request.set(
       'Authorization',
       `Basic ${Buffer.from(`${this.user.username}:${this.user.password}`).toString('base64')}`,
@@ -89,6 +89,11 @@ export class TestableEntityServer {
     if (headers) {
       Object.entries(headers).forEach(([key, value]) => request.set(key, value));
     }
+
+    if (query) {
+      request.query(query);
+    }
+
     if (body) {
       request.send(body);
     }
