@@ -23,6 +23,7 @@ const {
   createPermissionGroups,
   createUserEntityPermissions,
   createDashboardRelations,
+  createDashboardVisualisations,
   deleteAnswers,
   deleteDashboards,
   deleteDashboardItems,
@@ -45,6 +46,7 @@ const {
   editDashboards,
   editDashboardItems,
   editDashboardRelations,
+  editDashboardVisualisations,
   editLegacyReports,
   editDataSources,
   editDisasters,
@@ -70,6 +72,7 @@ const {
   getDashboards,
   getDashboardItems,
   getDashboardRelations,
+  getDashboardVisualisations,
   getLegacyReports,
   getDataSources,
   getEntities,
@@ -172,6 +175,7 @@ export function addRoutesToApp(app) {
   app.get('(/v[0-9]+)/dashboards/:parentRecordId/dashboardRelations', getDashboardRelations);
   app.get('(/v[0-9]+)/dashboardItems/:recordId?', getDashboardItems);
   app.get('(/v[0-9]+)/dashboardRelations/:recordId?', getDashboardRelations);
+  app.get('(/v[0-9]+)/dashboardVisualisations/:recordId?', getDashboardVisualisations);
   app.get('(/v[0-9]+)/legacyReports/:recordId?', getLegacyReports);
   app.get('(/v[0-9]+)/indicators/:recordId?', getIndicators);
   app.get('(/v[0-9]+)/feedItems/:recordId?', getFeedItems);
@@ -243,6 +247,7 @@ export function addRoutesToApp(app) {
   app.post('(/v[0-9]+)/indicators', createIndicators);
   app.post('(/v[0-9]+)/permissionGroups', createPermissionGroups);
   app.post('(/v[0-9]+)?/dashboardRelations', createDashboardRelations);
+  app.post('(/v[0-9]+)?/dashboardVisualisations', createDashboardVisualisations);
   app.post('(/v[0-9]+)?/syncFromService', requestManualKoBoSync);
 
   /**
@@ -265,6 +270,7 @@ export function addRoutesToApp(app) {
   app.put('(/v[0-9]+)/dashboards/:recordId', editDashboards);
   app.put('(/v[0-9]+)/dashboardItems/:recordId', editDashboardItems);
   app.put('(/v[0-9]+)/dashboardRelations/:recordId', editDashboardRelations);
+  app.put('(/v[0-9]+)/dashboardVisualisations/:recordId', editDashboardVisualisations);
   app.put('(/v[0-9]+)/legacyReports/:recordId', editLegacyReports);
   app.put('(/v[0-9]+)/mapOverlays/:recordId', editMapOverlays);
   app.put('(/v[0-9]+)/indicators/:recordId', editIndicators);
