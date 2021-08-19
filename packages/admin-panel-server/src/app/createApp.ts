@@ -8,11 +8,23 @@ import { Express } from 'express';
 import { createProxyMiddleware, fixRequestBody } from 'http-proxy-middleware';
 
 import { TupaiaDatabase } from '@tupaia/database';
-import { OrchestratorApiBuilder, attachSession, handleError } from '@tupaia/server-boilerplate';
+import {
+  OrchestratorApiBuilder,
+  attachSession,
+  handleWith,
+  handleError,
+} from '@tupaia/server-boilerplate';
 
 import { AdminPanelSessionModel } from '../models';
 import { hasTupaiaAdminPanelAccess } from '../utils';
-import { attachAuthorizationHeader } from '../middleware';
+import { attachAuthorizationHeader, verifyBESAdminAccess } from '../middleware';
+import {
+  UserRoute,
+  FetchHierarchyEntitiesRoute,
+  FetchReportPreviewDataRoute,
+  SaveDashboardVisualisationRoute,
+  FetchDashboardVisualisationRoute,
+} from '../routes';
 
 const useForwardUnhandledRequestsToMeditrak = (app: Express) => {
   const { MEDITRAK_API_URL = 'http://localhost:8090/v2' } = process.env;
@@ -47,6 +59,32 @@ export function createApp() {
   const app = new OrchestratorApiBuilder(new TupaiaDatabase())
     .useSessionModel(AdminPanelSessionModel)
     .verifyLogin(hasTupaiaAdminPanelAccess)
+    .get('/v1/user', handleWith(UserRoute))
+    .get(
+      '/v1/hierarchy/:hierarchyName/:entityCode',
+      verifyBESAdminAccess,
+      handleWith(FetchHierarchyEntitiesRoute),
+    )
+    .post(
+      '/v1/fetchReportPreviewData',
+      verifyBESAdminAccess,
+      handleWith(FetchReportPreviewDataRoute),
+    )
+    .post(
+      '/v1/dashboardVisualisation',
+      verifyBESAdminAccess,
+      handleWith(SaveDashboardVisualisationRoute),
+    )
+    .put(
+      '/v1/dashboardVisualisation/:dashboardVisualisationId',
+      verifyBESAdminAccess,
+      handleWith(SaveDashboardVisualisationRoute),
+    )
+    .get(
+      '/v1/dashboardVisualisation/:dashboardVisualisationId',
+      verifyBESAdminAccess,
+      handleWith(FetchDashboardVisualisationRoute),
+    )
     .build();
 
   useForwardUnhandledRequestsToMeditrak(app);
