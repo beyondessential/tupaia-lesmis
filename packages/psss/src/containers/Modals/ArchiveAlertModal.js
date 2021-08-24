@@ -19,6 +19,7 @@ import CheckCircle from '@material-ui/icons/CheckCircle';
 import Typography from '@material-ui/core/Typography';
 import { ConfirmModal } from './ConfirmModal';
 import { useArchiveAlert } from '../../api/queries';
+import { AlertsPanelContext } from '../../context';
 
 const TickIcon = styled(CheckCircle)`
   font-size: 2.5rem;
@@ -38,7 +39,7 @@ const STATUS = {
   SUCCESS: 'success',
 };
 
-export const ArchiveAlertModal = ({ isOpen, onClose, alertId, AlertsPanelContext }) => {
+export const ArchiveAlertModal = ({ isOpen, onClose, alertId }) => {
   const [status, setStatus] = useState(STATUS.INITIAL);
   const { setIsOpen } = useContext(AlertsPanelContext);
   const [archiveAlert, { error }] = useArchiveAlert(alertId);
