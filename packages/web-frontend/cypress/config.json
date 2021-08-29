@@ -1,6 +1,6 @@
 {
   "baselineUrl": "https://e2e.tupaia.org",
-  "compareUrl": "",
+  "compareUrl": "https://mel-372-tupaia-client-2.tupaia.org",
   "dashboardReports": {
     "allowEmptyResponse": false,
     "snapshotTypes": ["responseData", "html"],
