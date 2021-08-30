@@ -8,6 +8,8 @@
 #   required by e2e tests in web-frontend
 # - the 'db' service provides a postgres db with postgis (and takes a little while to run, thus the
 #   splitting of the above services so validation isn't slower than it should be)
+# - the 'lastpass' service is simply set up to be able to communicate with LastPass, to fetch
+#   environment variables
 # - the 'builder' service uses the same image as the 'testing' service, but skips the dependency on
 #   the db, and makes the built files available to the later deployment step
 # - the 'deployment' service just uses the base alpine image + ssh to log into an ec2 instance and
@@ -51,6 +53,7 @@ lastpass:
     dockerfile: lastpass.Dockerfile
   cached: true
   default_cache_branch: 'dev'
+  encrypted_dockercfg_path: dockercfg.encrypted
   encrypted_env_file: ./lastpass-env-vars.encrypted # lastpass credentials to fetch env vars
   volumes:
     - ./tupaia:/root/tupaia # environment available
