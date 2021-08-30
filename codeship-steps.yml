@@ -10,42 +10,36 @@
           command: './packages/devops/scripts/ci/validateBranchName.sh'
         - name: validate tests
           command: './packages/devops/scripts/ci/validateTests.sh'
-    - type: serial
+    - type: parallel
       name: test
       service: testing
       steps:
-        - type: parallel
-          name: test-batch-1 # they're in sandboxed containers, but share a db which can't handle all at once
-          steps:
-            - name: test-admin-panel-server
-              command: './packages/devops/scripts/ci/testBackend.sh admin-panel-server'
-            - name: test-lesmis-server
-              command: './packages/devops/scripts/ci/testBackend.sh lesmis-server'
-            - name: test-meditrak-server
-              command: './packages/devops/scripts/ci/testBackend.sh meditrak-server'
-            - name: test-web-config-server
-              command: './packages/devops/scripts/ci/testBackend.sh web-config-server'
-            - name: test-psss-server
-              command: './packages/devops/scripts/ci/testBackend.sh psss-server'
-            - name: test-report-server
-              command: './packages/devops/scripts/ci/testBackend.sh report-server'
-            - name: test-entity-server
-              command: './packages/devops/scripts/ci/testBackend.sh entity-server'
-        - type: parallel
-          name: test-batch-2
-          steps:
-            - name: test-database
-              command: './packages/devops/scripts/ci/testBackend.sh database'
-            - name: test-data-api
-              command: './packages/devops/scripts/ci/testBackend.sh data-api'
-            - name: test-auth
-              command: './packages/devops/scripts/ci/testBackend.sh auth'
-            - name: test-indicators
-              command: './packages/devops/scripts/ci/testBackend.sh indicators'
-            - name: test-internal-dependencies
-              command: './packages/devops/scripts/ci/testInternalDependencies.sh'
-            - name: test-web-frontend
-              command: './packages/devops/scripts/ci/testFrontend.sh web-frontend'
+        - name: test-admin-panel-server
+          command: './packages/devops/scripts/ci/testBackend.sh admin-panel-server'
+        - name: test-lesmis-server
+          command: './packages/devops/scripts/ci/testBackend.sh lesmis-server'
+        - name: test-meditrak-server
+          command: './packages/devops/scripts/ci/testBackend.sh meditrak-server'
+        - name: test-web-config-server
+          command: './packages/devops/scripts/ci/testBackend.sh web-config-server'
+        - name: test-psss-server
+          command: './packages/devops/scripts/ci/testBackend.sh psss-server'
+        - name: test-report-server
+          command: './packages/devops/scripts/ci/testBackend.sh report-server'
+        - name: test-entity-server
+          command: './packages/devops/scripts/ci/testBackend.sh entity-server'
+        - name: test-database
+          command: './packages/devops/scripts/ci/testBackend.sh database'
+        - name: test-data-api
+          command: './packages/devops/scripts/ci/testBackend.sh data-api'
+        - name: test-auth
+          command: './packages/devops/scripts/ci/testBackend.sh auth'
+        - name: test-indicators
+          command: './packages/devops/scripts/ci/testBackend.sh indicators'
+        - name: test-internal-dependencies
+          command: './packages/devops/scripts/ci/testInternalDependencies.sh'
+        - name: test-web-frontend
+          command: './packages/devops/scripts/ci/testFrontend.sh web-frontend'
 
 - name: check-for-deployment
   service: deployment
@@ -63,7 +57,7 @@
     - name: chmod id_rsa
       command: chmod 600 /root/.ssh/id_rsa
 
-- type: serial
+- type: parallel
   name: build-packages
   service: builder
   exclude: -e2e$
