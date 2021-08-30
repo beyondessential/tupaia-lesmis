@@ -65,19 +65,9 @@ root, and it will install dependencies everywhere.
 
 We use codeship for the admin-panel, meditrak-server, web-config-server, and web-frontend packages.
 
-For codeship to use our environment variables, we store them encrypted and committed to the repo as
-ci-env-vars.encrypted. In order to update an environment variable:
-
-- modify your local .env file
-- download the codeship encryption key (either from LastPass or codeship itself) and save as codeship.aes in the root directory
-- run `yarn update-codeship-env-vars`
-
-Note that environment variables are also stored in AWS parameter store for new dev and feature deployments to pull from,
-so if you've updated the environment variables here, you probably also need to persist them across there
-
-- ssh into the aws instance (cannot be run locally at this stage)
-- update the .env file (if it hasn't been updated automatically by the CI/CD process)
-- run `ENVIRONMENT=dev yarn update-paramater-store-env-vars` (setting environment to either dev or production)
+Codeship pulls environment variables from the "Tupaia Environment Variables" shared folder on LastPass, so to update one,
+just modify the entry. If you'd like to test it for a specific branch, you can make a new entry using the same naming
+convention you'll find already in there, i.e. `package-name.branch-name.env`.
 
 ## Tests
 

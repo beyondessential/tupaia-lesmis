@@ -57,6 +57,11 @@
     - name: chmod id_rsa
       command: chmod 600 /root/.ssh/id_rsa
 
+- name: Fetch environment variables
+  service: lastpass
+  exclude: -e2e$
+  command: './scripts/bash/downloadEnvironmentVariables.sh $CI_BRANCH'
+
 - type: parallel
   name: build-packages
   service: builder

@@ -8,7 +8,7 @@
   - RestoreCode: tupaia (if production)
   - RestoreFrom: tupaia (if dev, i.e. should be recloned from production nightly)
 - Add ElasticIP
-- Attach the role TupaiaServerRole to grant access to parameter store, lambda invocation, and cloudwatch monitoring
+- Attach the role TupaiaServerRole to grant access to lambda invocation and cloudwatch monitoring
 
 # node
 
@@ -167,7 +167,7 @@ chmod og-rwx server.key
 - `vi postgresql.conf`
 - Under Connection Settings: `max_connections = 500`
 - This gives the app enough connections if processes are replicated on a 8-32 core machine
-- 32 cores + 10 other services with their own pools, with knex default of 7 connections = 42 * 7 = 294
+- 32 cores + 10 other services with their own pools, with knex default of 7 connections = 42 x 7 = 294
 
 ### Edit pg_hba.conf
 
@@ -266,12 +266,6 @@ pip install --upgrade virtualenv --user
 pip install awscli --upgrade --user
 echo "Leave all fields blank except region, which should be to ap-southeast-2"
 aws configure
-```
-
-### Install jq for processing json returned by SSM parameter store
-
-```
-sudo apt install jq
 ```
 
 # startup

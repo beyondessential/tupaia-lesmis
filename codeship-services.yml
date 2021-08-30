@@ -10,7 +10,7 @@
 #   splitting of the above services so validation isn't slower than it should be)
 # - the 'builder' service uses the same image as the 'testing' service, but skips the dependency on
 #   the db, and makes the built files available to the later deployment step
-# - the deployment service just uses the base alpine image + ssh to log into an ec2 instance and
+# - the 'deployment' service just uses the base alpine image + ssh to log into an ec2 instance and
 #   deploy the latest version of the code for each package
 
 validation:
@@ -46,13 +46,21 @@ db:
   cached: true
   encrypted_dockercfg_path: dockercfg.encrypted
 
+lastpass:
+  build:
+    dockerfile: lastpass.Dockerfile
+  cached: true
+  default_cache_branch: 'dev'
+  encrypted_env_file: ./lastpass-env-vars.encrypted # lastpass credentials to fetch env vars
+  volumes:
+    - ./tupaia:/root/tupaia # environment available
+
 builder:
   build:
     dockerfile: tupaia.Dockerfile
   cached: true
-  encrypted_env_file: ./lastpass-env-vars.encrypted # lastpass credentials to fetch env vars
-  encrypted_dockercfg_path: dockercfg.encrypted
   default_cache_branch: 'dev'
+  encrypted_dockercfg_path: dockercfg.encrypted
   volumes:
     - ./tupaia:/root/tupaia # make built files available to deployment service
 
