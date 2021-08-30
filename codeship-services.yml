@@ -15,14 +15,14 @@
 
 validation:
   build:
-    dockerfile: full-testable-package.Dockerfile
+    dockerfile: tupaia.Dockerfile
   cached: true
   encrypted_dockercfg_path: dockercfg.encrypted
   default_cache_branch: 'dev'
 
 testing:
   build:
-    dockerfile: full-testable-package.Dockerfile
+    dockerfile: tupaia.Dockerfile
   depends_on:
     - db
   encrypted_env_file: ./ci-env-vars.encrypted # all individual .env files combined and encrypted
@@ -48,7 +48,7 @@ db:
 
 builder:
   build:
-    dockerfile: full-testable-package.Dockerfile
+    dockerfile: tupaia.Dockerfile
   cached: true
   encrypted_env_file: ./lastpass-env-vars.encrypted # lastpass credentials to fetch env vars
   encrypted_dockercfg_path: dockercfg.encrypted
