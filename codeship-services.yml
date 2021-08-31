@@ -19,26 +19,37 @@ validation:
   build:
     dockerfile: tupaia.Dockerfile
   cached: true
-  encrypted_dockercfg_path: dockercfg.encrypted
   default_cache_branch: 'dev'
+  encrypted_dockercfg_path: dockercfg.encrypted
+
+lastpass:
+  build:
+    dockerfile: lastpass.Dockerfile
+  encrypted_env_file: ./lastpass.env.encrypted # lastpass credentials to fetch env vars
+  cached: true
+  default_cache_branch: 'dev'
+  encrypted_dockercfg_path: dockercfg.encrypted
+  volumes:
+    - ./tupaia:/root/tupaia # make env files available to other containers
 
 testing:
   build:
     dockerfile: tupaia.Dockerfile
   depends_on:
     - db
-  encrypted_env_file: ./ci-env-vars.encrypted # all individual .env files combined and encrypted
   cached: true
-  encrypted_dockercfg_path: dockercfg.encrypted
   default_cache_branch: 'dev'
+  encrypted_dockercfg_path: dockercfg.encrypted
+  volumes:
+    - ./tupaia:/root/tupaia # retrieve env files
 
 e2e:
   build:
     dockerfile: e2e.Dockerfile
-  encrypted_env_file: ./ci-env-vars.encrypted
+  encrypted_env_file: ./e2e.env.encrypted
   cached: true
-  encrypted_dockercfg_path: dockercfg.encrypted
   default_cache_branch: 'e2e'
+  encrypted_dockercfg_path: dockercfg.encrypted
   volumes:
     # see https://docs.cloudbees.com/docs/cloudbees-codeship/latest/pro-continuous-integration/browser-testing#_chrome_crashing
     - /dev/shm:/dev/shm
@@ -47,16 +58,6 @@ db:
   image: mdillon/postgis:10-alpine
   cached: true
   encrypted_dockercfg_path: dockercfg.encrypted
-
-lastpass:
-  build:
-    dockerfile: lastpass.Dockerfile
-  cached: true
-  default_cache_branch: 'dev'
-  encrypted_dockercfg_path: dockercfg.encrypted
-  encrypted_env_file: ./lastpass-env-vars.encrypted # lastpass credentials to fetch env vars
-  volumes:
-    - ./tupaia:/root/tupaia # environment available
 
 builder:
   build:
@@ -70,10 +71,10 @@ builder:
 deployment:
   build:
     dockerfile: deploy-only.Dockerfile
-  encrypted_env_file: ./ci-env-vars.encrypted
+  encrypted_env_file: ./ssh.env.encrypted
+  cached: true
+  default_cache_branch: 'dev'
+  encrypted_dockercfg_path: dockercfg.encrypted
   volumes:
     - ./.ssh:/root/.ssh # persist `id_rsa` file to subsequent steps
     - ./tupaia:/root/tupaia # retrieve files to enable push
-  cached: true
-  encrypted_dockercfg_path: dockercfg.encrypted
-  default_cache_branch: 'dev'
