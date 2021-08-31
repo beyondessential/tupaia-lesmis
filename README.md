@@ -69,6 +69,10 @@ Codeship pulls environment variables from the "Tupaia Environment Variables" sha
 just modify the entry. If you'd like to test it for a specific branch, you can make a new entry using the same naming
 convention you'll find already in there, i.e. `package-name.branch-name.env`.
 
+Codeship also uses a few secrets for various services. To update any of these, create a service.env (e.g. lastpass.env) file
+within the root tupaia directory, then run `jet encrypt lastpass.env lastpass.env.encrypted`. There are example.env files
+that show requirements for lastpass, deployment, testing, and e2e services
+
 ## Tests
 
 Most of the packages support the following scripts for testing:

@@ -37,6 +37,7 @@ testing:
     dockerfile: tupaia.Dockerfile
   depends_on:
     - db
+  encrypted_env_file: ./testing.env.encrypted # test db env vars
   cached: true
   default_cache_branch: 'dev'
   encrypted_dockercfg_path: dockercfg.encrypted
@@ -71,7 +72,7 @@ builder:
 deployment:
   build:
     dockerfile: deploy-only.Dockerfile
-  encrypted_env_file: ./ssh.env.encrypted
+  encrypted_env_file: ./deployment.env.encrypted
   cached: true
   default_cache_branch: 'dev'
   encrypted_dockercfg_path: dockercfg.encrypted
