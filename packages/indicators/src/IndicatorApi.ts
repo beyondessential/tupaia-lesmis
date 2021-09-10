@@ -9,6 +9,10 @@ import { getSortByKey } from '@tupaia/utils';
 import { Builder, createBuilder } from './Builder';
 import { Analytic, FetchOptions, ModelRegistry } from './types';
 
+export type Prefix<T, P extends string> = {
+  [field in keyof T & string as `${P}_${field}`]: T[field];
+};
+
 export class IndicatorApi {
   private readonly models: ModelRegistry;
 

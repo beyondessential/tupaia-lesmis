@@ -7,7 +7,7 @@ const isTest = process.env.NODE_ENV === 'test';
 
 const presets = [];
 if (isTest) {
-  presets.push('@babel/preset-env'); // Required for code coverage collection
+  // presets.push('@babel/preset-env'); // Required for code coverage collection
 }
 presets.push('@babel/preset-typescript');
 

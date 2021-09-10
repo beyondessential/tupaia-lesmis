@@ -11,6 +11,11 @@ GET {{baseUrl}}/fetchReport/PSSS_Weekly_Report?organisationUnitCodes=TO&hierarch
 content-type: {{contentType}}
 Authorization: {{authorization}}
 
+### Fetch PSSS Weekly Report
+GET {{baseUrl}}/fetchReport/AU_FLUTRACKING_Percentage_Non_First_Nations_ILI?organisationUnitCodes=AU&hierarchy=covidau&period=2020;2021 HTTP/1.1
+content-type: {{contentType}}
+Authorization: {{authorization}}
+
 ### Fetch Report With Test Config
 POST {{baseUrl}}/testReport?organisationUnitCodes=TO&hierarchy=explore&period=2020 HTTP/1.1
 content-type: {{contentType}}
@@ -20,19 +25,7 @@ Authorization: {{authorization}}
   "testConfig": {
     "fetch": {
       "dataElements": [
-        "BCD46",
-        "BCD47",
-        "BCD48",
-        "BCD48a",
-        "BCD48b",
-        "BCD49",
-        "BCD50",
-        "BCD50",
-        "BCD51",
-        "BCD52",
-        "BCD53",
-        "BCD54",
-        "BCD55"
+        "PSSS_AFR_Cases"
       ],
       "aggregations": ["MOST_RECENT"]
     },
