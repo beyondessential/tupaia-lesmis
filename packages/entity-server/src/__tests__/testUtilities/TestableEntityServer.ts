@@ -7,18 +7,19 @@ import * as dotenv from 'dotenv';
 /**
  * Start the server
  */
+// eslint-disable-next-line import/no-extraneous-dependencies
 import supertest, { Test } from 'supertest';
 
 import { Express } from 'express';
 
 import { Authenticator } from '@tupaia/auth';
-import { getTestDatabase, TupaiaDatabase } from '@tupaia/database';
+import { getTestDatabase } from '@tupaia/database';
 
 import { createApp } from '../../app';
 
 dotenv.config(); // Load the environment variables into process.env
 
-export const BES_ADMIN_PERMISSION_GROUP = 'BES Admin';
+export const PUBLIC_PERMISSION_GROUP = 'Public';
 const DEFAULT_API_VERSION = 1;
 const getVersionedEndpoint = (endpoint: string, apiVersion = DEFAULT_API_VERSION) =>
   `/v${apiVersion}/${endpoint}`;
@@ -28,56 +29,54 @@ export const getAuthorizationHeader = () => {
   return `Basic ${Buffer.from(credentials).toString('base64')}`;
 };
 
-type User = { username: string; password: string };
 type RequestOptions = { headers?: Record<string, any>; query?: Record<string, any>; body?: any };
 
 export class TestableEntityServer {
-  public readonly database: TupaiaDatabase;
-
   private readonly app: Express;
 
-  private user: User;
+  private readonly email: string;
 
-  // create test user
-  // create fake entities and relations
+  private readonly password: string;
 
-  constructor(username: string, password: string) {
+  constructor(email: string, password: string) {
+    this.email = email;
+    this.password = password;
     this.app = createApp(getTestDatabase());
-    this.user = { username, password };
   }
 
-  public async grantFullAccess() {
-    const policy = {
-      DL: [BES_ADMIN_PERMISSION_GROUP],
-    };
+  public async grantAccessToCountries(countries: string[]) {
+    const policy = Object.fromEntries(
+      countries.map(country => [country, [PUBLIC_PERMISSION_GROUP]]),
+    );
     return this.grantAccess(policy);
   }
 
-  public async grantAccess(policy) {
-    sinon.stub(Authenticator.prototype, 'getAccessPolicyForUser').resolves(policy);
-    return this.authenticate();
+  private async grantAccess(policy: Record<string, string[]>) {
+    jest
+      .spyOn(Authenticator.prototype, 'getAccessPolicyForUser')
+      .mockImplementation(async () => policy);
   }
 
   public revokeAccess() {
-    Authenticator.prototype.getAccessPolicyForUser.restore();
+    jest.restoreAllMocks();
   }
 
-  public async get(endpoint: string, options: RequestOptions, apiVersion = DEFAULT_API_VERSION) {
+  public get(endpoint: string, options: RequestOptions = {}, apiVersion = DEFAULT_API_VERSION) {
     const versionedEndpoint = getVersionedEndpoint(endpoint, apiVersion);
     return this.addOptionsToRequest(supertest(this.app).get(versionedEndpoint), options);
   }
 
-  public post(endpoint: string, options: RequestOptions, apiVersion = DEFAULT_API_VERSION) {
+  public post(endpoint: string, options: RequestOptions = {}, apiVersion = DEFAULT_API_VERSION) {
     const versionedEndpoint = getVersionedEndpoint(endpoint, apiVersion);
     return this.addOptionsToRequest(supertest(this.app).post(versionedEndpoint), options);
   }
 
-  public put(endpoint: string, options: RequestOptions, apiVersion = DEFAULT_API_VERSION) {
+  public put(endpoint: string, options: RequestOptions = {}, apiVersion = DEFAULT_API_VERSION) {
     const versionedEndpoint = getVersionedEndpoint(endpoint, apiVersion);
     return this.addOptionsToRequest(supertest(this.app).put(versionedEndpoint), options);
   }
 
-  public delete(endpoint: string, options: RequestOptions, apiVersion = DEFAULT_API_VERSION) {
+  public delete(endpoint: string, options: RequestOptions = {}, apiVersion = DEFAULT_API_VERSION) {
     const versionedEndpoint = getVersionedEndpoint(endpoint, apiVersion);
     return this.addOptionsToRequest(supertest(this.app).delete(versionedEndpoint), options);
   }
@@ -86,7 +85,7 @@ export class TestableEntityServer {
     const { headers, query, body } = options;
     request.set(
       'Authorization',
-      `Basic ${Buffer.from(`${this.user.username}:${this.user.password}`).toString('base64')}`,
+      `Basic ${Buffer.from(`${this.email}:${this.password}`).toString('base64')}`,
     );
 
     if (headers) {

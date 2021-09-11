@@ -4,3 +4,4 @@
  */
 
 export { TestableEntityServer } from './TestableEntityServer';
+export { setupTestApp } from './setupTestApp';
