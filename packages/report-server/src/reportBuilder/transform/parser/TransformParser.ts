@@ -13,6 +13,7 @@ import {
   functionExtensions,
   functionOverrides,
 } from './functions';
+import { createDataFrameType, DataFrame } from './customTypes';
 import { TransformScope } from './TransformScope';
 
 type RowLookup = {
@@ -36,7 +37,7 @@ type Lookups = {
   all: RowLookup;
   allPrevious: RowLookup;
   index: number; // one-based index, this.currentRow + 1
-  table: Row[];
+  table: DataFrame;
 };
 
 export class TransformParser extends ExpressionParser {
@@ -51,6 +52,8 @@ export class TransformParser extends ExpressionParser {
   public constructor(rows: Row[] = [], context?: Context) {
     super(new TransformScope());
 
+    this.math.import([createDataFrameType]);
+
     this.rows = rows;
     this.lookups = {
       current: {},
@@ -59,7 +62,7 @@ export class TransformParser extends ExpressionParser {
       all: {},
       allPrevious: {},
       index: this.currentRow + 1,
-      table: this.rows,
+      table: new DataFrame(this.rows),
     };
 
     if (rows.length > 0) {
