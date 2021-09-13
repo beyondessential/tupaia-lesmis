@@ -28,7 +28,7 @@ import OpenIcon from 'material-ui/svg-icons/navigation/expand-more';
 import SelectedIcon from 'material-ui/svg-icons/toggle/radio-button-checked';
 import UnSelectedIcon from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import { ReferenceTooltip, TOOLTIP_ICON_STYLE_OPTIONS } from './ReferenceTooltip';
+import { ReferenceTooltip, TOOLTIP_ICON_STYLE_OPTIONS } from '../ReferenceTooltip';
 
 export class HierarchyItem extends Component {
   constructor(props) {

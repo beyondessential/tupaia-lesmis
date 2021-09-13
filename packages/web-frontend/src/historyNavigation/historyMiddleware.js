@@ -11,8 +11,10 @@
 
 import moment from 'moment';
 import {
+  ADD_MEASURE,
   CLEAR_MEASURE,
   CLOSE_ENLARGED_DIALOG,
+  DESELECT_MEASURE,
   GO_HOME,
   OPEN_ENLARGED_DIALOG,
   SET_DASHBOARD_GROUP,
@@ -31,6 +33,8 @@ import {
   attemptPushHistory,
   clearLocation,
   setLocationComponent,
+  addToLocationComponent,
+  removeFromLocationComponent,
 } from './historyNavigation';
 import { convertDateRangeToUrlPeriodString } from './utils';
 
@@ -41,14 +45,14 @@ export const historyMiddleware = store => next => action => {
   switch (action.type) {
     // Actions that modify the path
     case SET_PROJECT:
-      dispatchLocationUpdate(store, URL_COMPONENTS.PROJECT, action.projectCode);
+      dispatchSetLocation(store, URL_COMPONENTS.PROJECT, action.projectCode);
       break;
     case SET_ORG_UNIT:
-      dispatchLocationUpdate(store, URL_COMPONENTS.ORG_UNIT, action.organisationUnitCode);
-      dispatchLocationUpdate(store, URL_COMPONENTS.DASHBOARD, '');
+      dispatchSetLocation(store, URL_COMPONENTS.ORG_UNIT, action.organisationUnitCode);
+      dispatchSetLocation(store, URL_COMPONENTS.DASHBOARD, '');
       break;
     case SET_DASHBOARD_GROUP:
-      dispatchLocationUpdate(store, URL_COMPONENTS.DASHBOARD, encodeURIComponent(action.name));
+      dispatchSetLocation(store, URL_COMPONENTS.DASHBOARD, encodeURIComponent(action.name));
       break;
     case GO_HOME:
       // Completely clear location, explore project will be set in a saga.
@@ -57,12 +61,12 @@ export const historyMiddleware = store => next => action => {
 
     // Actions that modify search params
     case OPEN_ENLARGED_DIALOG:
-      dispatchLocationUpdate(store, URL_COMPONENTS.REPORT, action.itemCode);
+      dispatchSetLocation(store, URL_COMPONENTS.REPORT, action.itemCode);
       break;
     case SET_ENLARGED_DIALOG_DATE_RANGE:
       // Drill down dates are handled in normal redux state
       if (action.drillDownLevel === 0) {
-        dispatchLocationUpdate(
+        dispatchSetLocation(
           store,
           URL_COMPONENTS.REPORT_PERIOD,
           convertDateRangeToUrlPeriodString({
@@ -73,15 +77,27 @@ export const historyMiddleware = store => next => action => {
       }
       break;
     case CLOSE_ENLARGED_DIALOG:
-      dispatchLocationUpdate(store, URL_COMPONENTS.REPORT, null);
-      dispatchLocationUpdate(store, URL_COMPONENTS.REPORT_PERIOD, null);
+      dispatchSetLocation(store, URL_COMPONENTS.REPORT, null);
+      dispatchSetLocation(store, URL_COMPONENTS.REPORT_PERIOD, null);
       break;
     case SET_MEASURE: {
       const { startDate, endDate, periodGranularity } =
         selectMeasureBarItemById(state, action.measureId) || {};
 
-      dispatchLocationUpdate(store, URL_COMPONENTS.MEASURE, action.measureId);
-      dispatchLocationUpdate(
+      dispatchSetLocation(store, URL_COMPONENTS.MEASURE, action.measureId);
+      dispatchSetLocation(
+        store,
+        URL_COMPONENTS.MEASURE_PERIOD,
+        convertDateRangeToUrlPeriodString({ startDate, endDate }, periodGranularity),
+      );
+      break;
+    }
+    case ADD_MEASURE: {
+      const { startDate, endDate, periodGranularity } =
+        selectMeasureBarItemById(state, action.measureId) || {};
+
+      dispatchAddToLocation(store, URL_COMPONENTS.MEASURE, action.measureId);
+      dispatchSetLocation(
         store,
         URL_COMPONENTS.MEASURE_PERIOD,
         convertDateRangeToUrlPeriodString({ startDate, endDate }, periodGranularity),
@@ -89,11 +105,14 @@ export const historyMiddleware = store => next => action => {
       break;
     }
     case CLEAR_MEASURE:
-      dispatchLocationUpdate(store, URL_COMPONENTS.MEASURE, null);
-      dispatchLocationUpdate(store, URL_COMPONENTS.MEASURE_PERIOD, null);
+      dispatchSetLocation(store, URL_COMPONENTS.MEASURE, null);
+      dispatchSetLocation(store, URL_COMPONENTS.MEASURE_PERIOD, null);
+      break;
+    case DESELECT_MEASURE:
+      dispatchRemoveFromLocation(store, URL_COMPONENTS.MEASURE, action.measureId);
       break;
     case UPDATE_MEASURE_CONFIG:
-      dispatchLocationUpdate(
+      dispatchSetLocation(
         store,
         URL_COMPONENTS.MEASURE_PERIOD,
         convertDateRangeToUrlPeriodString(
@@ -127,12 +146,24 @@ export const initHistoryDispatcher = store => {
   });
 };
 
-const dispatchLocationUpdate = (store, component, value) => {
+const dispatchLocationUpdate = (store, component, value, modifyLocationComponent) => {
   const { dispatch } = store;
   const { routing } = store.getState();
 
-  const newLocation = setLocationComponent(routing, component, value);
+  const newLocation = modifyLocationComponent(routing, component, value);
   dispatch(updateHistoryLocation(newLocation));
+};
+
+const dispatchSetLocation = (store, component, value) => {
+  dispatchLocationUpdate(store, component, value, setLocationComponent);
+};
+
+const dispatchAddToLocation = (store, component, value) => {
+  dispatchLocationUpdate(store, component, value, addToLocationComponent);
+};
+
+const dispatchRemoveFromLocation = (store, component, value) => {
+  dispatchLocationUpdate(store, component, value, removeFromLocationComponent);
 };
 
 const dispatchClearLocation = store => {
