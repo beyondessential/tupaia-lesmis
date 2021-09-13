@@ -30,14 +30,6 @@ import {
 import { getDefaultDates, getLimits } from '../../utils/periodGranularities';
 
 export class MeasureBar extends Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      hasNeverBeenChanged: true,
-    };
-  }
-
   shouldComponentUpdate(nextProps) {
     const propsAreUnchanged = shallowEqual(this.props, nextProps);
     if (propsAreUnchanged) return false;
@@ -45,12 +37,6 @@ export class MeasureBar extends Component {
   }
 
   handleSelectMeasure = measure => {
-    if (this.state.hasNeverBeenChanged) {
-      this.setState({
-        hasNeverBeenChanged: false,
-      });
-    }
-
     this.props.onSelectMeasure(measure);
   };
 
