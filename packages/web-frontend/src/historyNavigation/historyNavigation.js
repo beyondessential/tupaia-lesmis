@@ -62,6 +62,24 @@ export const setLocationComponent = (baseLocation, component, value) => {
   return createLocation(params);
 };
 
+export const addToLocationComponent = (baseLocation, component, value) => {
+  const previousComponents = decodeLocation(baseLocation);
+  const params = {
+    ...previousComponents,
+    [component]: `${previousComponents[component]},${value}`,
+  };
+  return createLocation(params);
+};
+
+export const removeFromLocationComponent = (baseLocation, component, value) => {
+  const previousComponents = decodeLocation(baseLocation);
+  const params = {
+    ...previousComponents,
+    [component]: `,${previousComponents[component]}`.replace(`,/${value}/g`, '').substr(1),
+  };
+  return createLocation(params);
+};
+
 /**
  * Returns a location which represents the root.
  */

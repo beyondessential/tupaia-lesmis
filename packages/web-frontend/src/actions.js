@@ -34,6 +34,8 @@ export const ATTEMPT_RESET_TOKEN_LOGIN = 'ATTEMPT_RESET_TOKEN_LOGIN';
 export const CHANGE_SIDE_BAR_CONTRACTED_WIDTH = 'CHANGE_SIDE_BAR_CONTRACTED_WIDTH';
 export const CHANGE_SIDE_BAR_EXPANDED_WIDTH = 'CHANGE_SIDE_BAR_EXPANDED_WIDTH';
 export const CLEAR_MEASURE_HIERARCHY = 'CLEAR_MEASURE_HIERARCHY';
+export const ADD_MEASURE = 'ADD_MEASURE';
+export const DESELECT_MEASURE = 'DESELECT_MEASURE';
 export const SET_MEASURE = 'SET_MEASURE';
 export const UPDATE_MEASURE_CONFIG = 'UPDATE_MEASURE_CONFIG';
 export const REQUEST_ORG_UNIT = 'REQUEST_ORG_UNIT';
@@ -533,6 +535,13 @@ export function changeBounds(bounds) {
 export function setMeasure(measureId) {
   return {
     type: SET_MEASURE,
+    measureId,
+  };
+}
+
+export function addMeasure(measureId) {
+  return {
+    type: ADD_MEASURE,
     measureId,
   };
 }

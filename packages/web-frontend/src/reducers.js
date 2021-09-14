@@ -36,6 +36,7 @@ import {
   ATTEMPT_REQUEST_COUNTRY_ACCESS,
   CHANGE_SIDE_BAR_CONTRACTED_WIDTH,
   CHANGE_SIDE_BAR_EXPANDED_WIDTH,
+  ADD_MEASURE,
   SET_MEASURE,
   UPDATE_MEASURE_CONFIG,
   CLEAR_MEASURE_HIERARCHY,
@@ -592,6 +593,7 @@ function measureBar(
   switch (action.type) {
     case CLEAR_MEASURE_HIERARCHY:
       return { ...state, measureHierarchy: [] };
+    case ADD_MEASURE:
     case SET_MEASURE:
       return {
         ...state,

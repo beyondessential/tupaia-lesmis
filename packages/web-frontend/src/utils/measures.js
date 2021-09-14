@@ -412,7 +412,7 @@ export const getMeasureFromHierarchy = (measureHierarchy, measureIdString) => {
 
   const targetMeasureIds = measureIdString.split(',');
   const flattenedMeasures = flattenMeasureHierarchy(measureHierarchy);
-
+  console.log(flattenedMeasures);
   return flattenedMeasures.find(({ measureId }) => {
     const measureIds = measureId.split(',');
     // check if all the measureIds match with the id we want to find (there can be more than 1 id in measureId if they are linked measures)

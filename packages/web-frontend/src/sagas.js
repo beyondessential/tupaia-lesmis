@@ -76,8 +76,10 @@ import {
   REQUEST_ORG_UNIT,
   REQUEST_PROJECT_ACCESS,
   setMeasure,
+  addMeasure,
   setOverlayComponent,
   FETCH_ENLARGED_DIALOG_DATA,
+  ADD_MEASURE,
   SET_MEASURE,
   SET_ORG_UNIT,
   SET_VERIFY_EMAIL_TOKEN,
@@ -912,6 +914,10 @@ function* watchMeasureChange() {
   yield takeLatest(SET_MEASURE, fetchMeasureInfoForMeasureChange);
 }
 
+function* watchMeasureChangeForAddMeasure() {
+  yield takeLatest(ADD_MEASURE, fetchMeasureInfoForMeasureChange);
+}
+
 function* watchMeasurePeriodChange() {
   yield takeLatest(UPDATE_MEASURE_CONFIG, fetchMeasureInfoForMeasureChange);
 }
@@ -949,10 +955,10 @@ function* fetchCurrentMeasureInfo() {
        * i.e. page reloaded when on org with measure selected
        */
       yield put(setMeasure(selectedMeasureId));
-    } else if (!selectIsMeasureInHierarchy(state, selectedMeasureId)) {
-      // Update to the default measure ID if the current measure id isn't in the hierarchy
-      const newMeasureId = selectDefaultMeasureId(state);
-      yield put(setMeasure(newMeasureId));
+      // } else if (!selectIsMeasureInHierarchy(state, selectedMeasureId)) {
+      //   // Update to the default measure ID if the current measure id isn't in the hierarchy
+      //   const newMeasureId = selectDefaultMeasureId(state);
+      //   yield put(setMeasure(newMeasureId));
     }
   }
 }
@@ -1100,8 +1106,8 @@ function* fetchEnlargedDialogData(action) {
   // If the expanded view has changed, don't update the enlargedDialog's viewContent
   if (viewData && newInfoViewKey === infoViewKey) {
     const viewConfig = drillDownLevel
-    ? selectViewConfig(state, drillDownItemKey)
-    : selectCurrentExpandedViewConfig(state);
+      ? selectViewConfig(state, drillDownItemKey)
+      : selectCurrentExpandedViewConfig(state);
     yield put(updateEnlargedDialog(action.options, viewConfig, viewData));
   }
 }
@@ -1195,4 +1201,5 @@ export default [
   watchMeasurePeriodChange,
   watchTryUpdateMeasureConfigAndWaitForHierarchyLoad,
   watchHandleLocationChange,
+  watchMeasureChangeForAddMeasure,
 ];
