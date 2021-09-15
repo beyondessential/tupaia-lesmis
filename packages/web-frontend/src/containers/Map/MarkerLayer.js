@@ -82,10 +82,16 @@ export class MarkerLayer extends Component {
   }
 
   shouldComponentUpdate(nextProps) {
-    const { isMeasureLoading, measureData, currentCountry, measureId, sidePanelWidth } = this.props;
+    const {
+      isMeasureLoading,
+      measureData,
+      currentCountry,
+      measureIds,
+      sidePanelWidth,
+    } = this.props;
     if (
       nextProps.isMeasureLoading !== isMeasureLoading ||
-      nextProps.measureId !== measureId ||
+      nextProps.measureIds !== measureIds ||
       nextProps.currentCountry !== currentCountry ||
       nextProps.sidePanelWidth !== sidePanelWidth ||
       nextProps.measureData !== measureData
@@ -96,10 +102,10 @@ export class MarkerLayer extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    const { measureId, currentPopupId } = this.props;
+    const { measureIds, currentPopupId } = this.props;
 
     // Re-open popups after a measure update.
-    if (prevProps.measureId !== measureId) {
+    if (prevProps.measureIds !== measureIds) {
       this.openPopup(currentPopupId);
     }
   }
@@ -210,7 +216,7 @@ const selectMeasureDataWithCoordinates = createSelector([measureData => measureD
 const mapStateToProps = state => {
   const { isSidePanelExpanded } = state.global;
   const {
-    measureInfo: { measureOptions, measureId, currentCountry },
+    measureInfo: { measureOptions, measureIds, currentCountry },
     popup,
     isMeasureLoading,
   } = state.map;
@@ -223,7 +229,7 @@ const mapStateToProps = state => {
   return {
     isMeasureLoading,
     measureOptions,
-    measureId,
+    measureIds,
     currentCountry,
     measureData,
     radiusScaleFactor: selectRadiusScaleFactor(state),

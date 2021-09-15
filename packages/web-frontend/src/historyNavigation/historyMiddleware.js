@@ -17,14 +17,14 @@ import {
   OPEN_ENLARGED_DIALOG,
   SET_DASHBOARD_GROUP,
   SET_ENLARGED_DIALOG_DATE_RANGE,
-  SET_MEASURE,
+  SET_MAP_OVERLAY,
   SET_ORG_UNIT,
   SET_PROJECT,
   updateHistoryLocation,
   UPDATE_MEASURE_CONFIG,
   LOCATION_CHANGE,
 } from '../actions';
-import { selectCurrentPeriodGranularity, selectMeasureBarItemById } from '../selectors';
+import { selectCurrentPeriodGranularity, selectMapOverlaysByIds } from '../selectors';
 import { URL_COMPONENTS } from './constants';
 import {
   addPopStateListener,
@@ -76,11 +76,11 @@ export const historyMiddleware = store => next => action => {
       dispatchLocationUpdate(store, URL_COMPONENTS.REPORT, null);
       dispatchLocationUpdate(store, URL_COMPONENTS.REPORT_PERIOD, null);
       break;
-    case SET_MEASURE: {
+    case SET_MAP_OVERLAY: {
       const { startDate, endDate, periodGranularity } =
-        selectMeasureBarItemById(state, action.measureId) || {};
+        selectMapOverlaysByIds(state, action.mapOverlayIds) || {};
 
-      dispatchLocationUpdate(store, URL_COMPONENTS.MEASURE, action.measureId);
+      dispatchLocationUpdate(store, URL_COMPONENTS.MAP_OVERLAY_IDS, action.mapOverlayIds);
       dispatchLocationUpdate(
         store,
         URL_COMPONENTS.MEASURE_PERIOD,

@@ -20,10 +20,10 @@ export {
   getMeasureDisplayInfo,
   getSingleFormattedValue,
   flattenNumericalMeasureData,
-  flattenMeasureHierarchy,
-  getMeasureFromHierarchy,
+  flattenMapOverlayHierarchy,
   isMeasureHierarchyEmpty,
 } from './measures';
+export { getMapOverlaysFromHierarchy } from './mapOverlays';
 export { default as ga, gaEvent, gaPageView, gaMiddleware } from './ga';
 export { formatDateForApi } from './formatDateForApi';
 export { getBrowserTimeZone } from './getBrowserTimeZone';

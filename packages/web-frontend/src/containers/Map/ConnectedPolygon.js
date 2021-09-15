@@ -18,7 +18,7 @@ import {
   selectOrgUnit,
   selectHasPolygonMeasure,
   selectAllMeasuresWithDisplayInfo,
-  selectCurrentMeasureId,
+  selectCurrentMapOverlayIds,
   selectOrgUnitChildren,
   selectAreRegionLabelsPermanent,
 } from '../../selectors';
@@ -52,8 +52,8 @@ export const ShadedPolygon = styled(Polygon)`
  */
 class ConnectedPolygon extends Component {
   shouldComponentUpdate(nextProps) {
-    const { measureId, coordinates, orgUnitMeasureData, isHidden } = this.props;
-    if (nextProps.measureId !== measureId) return true;
+    const { mapOverlayId, coordinates, orgUnitMeasureData, isHidden } = this.props;
+    if (nextProps.mapOverlayId !== mapOverlayId) return true;
     if (nextProps.coordinates !== coordinates) return true;
     if (nextProps.orgUnitMeasureData !== orgUnitMeasureData) return true;
     if (isHidden !== nextProps.isHidden) return true;
@@ -148,7 +148,7 @@ ConnectedPolygon.propTypes = {
     type: PropTypes.string,
     organisationUnitCode: PropTypes.string,
   }).isRequired,
-  measureId: PropTypes.string,
+  mapOverlayId: PropTypes.string,
   isActive: PropTypes.bool,
   permanentLabels: PropTypes.bool,
   isChildArea: PropTypes.bool,
@@ -171,7 +171,7 @@ ConnectedPolygon.propTypes = {
 };
 
 ConnectedPolygon.defaultProps = {
-  measureId: '',
+  mapOverlayId: '',
   isActive: false,
   permanentLabels: true,
   isChildArea: false,
@@ -189,7 +189,9 @@ ConnectedPolygon.defaultProps = {
 const mapStateToProps = (state, givenProps) => {
   const { organisationUnitCode } = givenProps.area;
   const { measureData, measureOptions } = state.map.measureInfo;
-  const measureId = selectCurrentMeasureId(state);
+  console.log('state');
+  console.log(state);
+  const mapOverlayId = selectCurrentMapOverlayIds(state)[0];
   const organisationUnitChildren = selectOrgUnitChildren(state, organisationUnitCode);
 
   let shade;
@@ -222,7 +224,7 @@ const mapStateToProps = (state, givenProps) => {
 
   return {
     permanentLabels: selectAreRegionLabelsPermanent(state),
-    measureId,
+    mapOverlayId,
     coordinates,
     hasShadedChildren,
     orgUnitMeasureData,

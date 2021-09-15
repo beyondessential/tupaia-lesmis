@@ -52,7 +52,7 @@ export class CustomMap extends Component {
     } = this.props;
     // Only updates/re-renders when the measure has changed or the orgUnit has changed.
     // These are the only cases where polygons or area tooltips should rerender.
-    if (nextProps.measureInfo.measureId !== measureInfo.measureId) return true;
+    if (nextProps.measureInfo.mapOverlayId !== measureInfo.mapOverlayId) return true;
 
     if (nextProps.displayedChildren !== displayedChildren) return true;
 
