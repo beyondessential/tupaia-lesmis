@@ -175,8 +175,8 @@ export default class extends DataAggregatingRouteHandler {
 
   buildResponse = async () => {
     const { code } = this.entity;
-    const { measureId } = this.query;
-    const measureIds = measureId.split(',');
+    const { measureIds: measureIdsString } = this.query;
+    const measureIds = measureIdsString.split(',');
     const overlayResults = await this.models.mapOverlay.find({ id: measureIds });
 
     // Re-order the overlays array to follow the order in measureIds
@@ -207,10 +207,7 @@ export default class extends DataAggregatingRouteHandler {
     const measureOptions = await this.fetchMeasureOptions(overlays, measureData);
 
     return {
-      measureId: overlays
-        .map(o => o.id)
-        .sort()
-        .join(','),
+      measureIds: overlays.map(o => o.id).sort(),
       measureLevel: getMeasureLevel(overlays),
       measureOptions,
       serieses: measureOptions,

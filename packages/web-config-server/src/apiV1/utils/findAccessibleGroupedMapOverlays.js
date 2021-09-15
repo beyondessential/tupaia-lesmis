@@ -73,11 +73,7 @@ const findNestedGroupedMapOverlays = async (
     mapOverlayGroupResults.concat(mapOverlayResults),
     mapOverlayItemRelations,
   );
-  return sortedMapOverlayResults.map(item => {
-    // id was added only for sorting purposes, remove it because it is not required in the front end
-    const { id, ...itemToReturn } = item;
-    return itemToReturn;
-  });
+  return sortedMapOverlayResults;
 };
 
 /**
@@ -147,10 +143,10 @@ const checkIfGroupedMapOverlaysAreEmpty = nestedMapOverlayGroups => {
 const sortMapOverlayItems = (mapOverlayItems, relations) => {
   const childIdToSortOrder = reduceToDictionary(relations, 'child_id', 'sort_order');
   const sortedOverlaysByOrder = mapOverlayItems
-    .filter(m => childIdToSortOrder[m.id] !== null)
-    .sort((m1, m2) => childIdToSortOrder[m1.id] - childIdToSortOrder[m2.id]);
+    .filter(m => childIdToSortOrder[m.mapOverlayId] !== null)
+    .sort((m1, m2) => childIdToSortOrder[m1.mapOverlayId] - childIdToSortOrder[m2.mapOverlayId]);
   const sortedOverlaysAlphabetically = mapOverlayItems
-    .filter(m => childIdToSortOrder[m.id] === null)
+    .filter(m => childIdToSortOrder[m.mapOverlayId] === null)
     .sort(getSortByKey('name'));
 
   return [...sortedOverlaysByOrder, ...sortedOverlaysAlphabetically];
@@ -160,12 +156,11 @@ const translateOverlaysForResponse = mapOverlays =>
   mapOverlays
     .filter(({ presentationOptions: { hideFromMenu } }) => !hideFromMenu)
     .map(({ id, name, linkedMeasures, presentationOptions }) => {
-      const idString = [id, ...(linkedMeasures || [])].sort().join(',');
+      const measureIds = [id, ...(linkedMeasures || [])].sort();
 
       return {
-        id, // just for sorting purpose, will be removed later
-        measureId: idString,
-        code: idString,
+        measureIds,
+        mapOverlayId: id,
         name,
         ...presentationOptions,
       };
