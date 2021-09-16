@@ -13,5 +13,3 @@ export { AuthHandler } from './types';
 export { BasicAuthHandler } from './BasicAuthHandler';
 
 export * from './constants';
-
-

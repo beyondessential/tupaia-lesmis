@@ -11,6 +11,4 @@ export class BaseApi {
   constructor(connection: ApiConnection) {
     this.connection = connection;
   }
-  
 }
-
