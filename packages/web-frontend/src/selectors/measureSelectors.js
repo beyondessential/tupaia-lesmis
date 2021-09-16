@@ -9,7 +9,7 @@ import createCachedSelector from 're-reselect';
 import { createSelector } from 'reselect';
 import { DEFAULT_MEASURE_ID } from '../defaults';
 import { getLocationComponentValue, URL_COMPONENTS } from '../historyNavigation';
-import { getMapOverlaysFromHierarchy } from '../utils';
+import { getMapOverlayFromHierarchy } from '../utils';
 import {
   calculateRadiusScaleFactor,
   flattenMapOverlayHierarchy,
@@ -51,14 +51,13 @@ const getOrgUnitFromMeasureData = (measureData, code) =>
 const selectDisplayInfo = (measureOptions, hiddenMeasures, measureData, organisationUnitCode) =>
   safeGet(displayInfoCache, [measureOptions, hiddenMeasures, measureData, organisationUnitCode]);
 
-export const selectCurrentMapOverlayIds = createSelector(
-  [selectLocation],
-  location => getLocationComponentValue(location, URL_COMPONENTS.MAP_OVERLAY_IDS) || [''],
+export const selectCurrentMapOverlayId = createSelector([selectLocation], location =>
+  getLocationComponentValue(location, URL_COMPONENTS.MAP_OVERLAY_IDS),
 );
 
-export const selectCurrentMapOverlays = createSelector(
-  [state => selectMapOverlaysByIds(state, selectCurrentMapOverlayIds(state))],
-  currentMapOverlays => currentMapOverlays || [{}],
+export const selectCurrentMapOverlay = createSelector(
+  [state => selectMapOverlayById(state, selectCurrentMapOverlayId(state))],
+  currentMapOverlay => currentMapOverlay || {},
 );
 
 const selectDisplayLevelAncestor = createSelector(
@@ -197,21 +196,22 @@ export const selectRadiusScaleFactor = createSelector(
   calculateRadiusScaleFactor,
 );
 
-export const selectMapOverlaysByIds = createSelector(
-  [state => state.measureBar.measureHierarchy, (_, ids) => ids],
-  (measureHierarchy, ids) => {
-    return getMapOverlaysFromHierarchy(measureHierarchy, ids);
+export const selectMapOverlayById = createSelector(
+  [state => state.measureBar.measureHierarchy, (_, id) => id],
+  (measureHierarchy, id) => {
+    return getMapOverlayFromHierarchy(measureHierarchy, id) || {};
   },
 );
 
 export const selectMeasureBarItemCategoryById = createSelector(
-  [state => state.measureBar.measureHierarchy, (_, id) => id],
-  (measureHierarchy, id) => {
+  [state => state.measureBar.measureHierarchy, (_, ids) => ids],
+  (measureHierarchy, ids) => {
     let categoryMeasureIndex = {};
 
+    // TODO Select multiple measure bar item
     measureHierarchy.forEach(({ name, children }, categoryIndex) => {
-      const selectedMeasureIndex = children.findIndex(
-        measure => measure.measureIds.toString() === id.toString(),
+      const selectedMeasureIndex = children.findIndex(measure =>
+        ids.includes(measure.mapOverlayId),
       );
       if (selectedMeasureIndex > -1) {
         categoryMeasureIndex = {
@@ -222,23 +222,20 @@ export const selectMeasureBarItemCategoryById = createSelector(
         };
       }
     });
-
     return categoryMeasureIndex;
   },
 );
 
 export const selectIsMeasureInHierarchy = createSelector(
   [state => state.measureBar.measureHierarchy, (_, ids) => ids],
-  (measureHierarchy, ids) => !!getMapOverlaysFromHierarchy(measureHierarchy, ids),
+  (measureHierarchy, ids) => !!getMapOverlayFromHierarchy(measureHierarchy, ids),
 );
 
-export const selectDefaultMapOverlayIds = createSelector(
+export const selectDefaultMapOverlayId = createSelector(
   [state => state.measureBar.measureHierarchy, selectCurrentProject],
   (measureHierarchy, project) => {
-    console.log('measureHierarchy');
-    console.log(measureHierarchy);
     const projectMeasureId = project.defaultMeasure;
-    const measureIsDefined = id => !!getMapOverlaysFromHierarchy(measureHierarchy, id);
+    const measureIsDefined = id => !!getMapOverlayFromHierarchy(measureHierarchy, id);
 
     if (measureIsDefined(projectMeasureId)) return projectMeasureId;
     if (measureIsDefined(DEFAULT_MEASURE_ID)) return DEFAULT_MEASURE_ID;
@@ -251,14 +248,16 @@ export const selectDefaultMapOverlayIds = createSelector(
 );
 
 export const selectCurrentPeriodGranularity = createSelector(
-  [selectCurrentMapOverlays],
-  mapOverlays => mapOverlays[0].periodGranularity || null,
+  [selectCurrentMapOverlay],
+  mapOverlay => {
+    return mapOverlay.periodGranularity;
+  },
 );
 
-export const selectMeasureIdsByOverlayIds = createSelector(
-  [state => state, (_, id) => id],
-  (state, id) => {
-    console.log(state);
-    return id;
+export const selectMeasureIdsByOverlayId = createSelector(
+  [state => state, (_, mapOverlayId) => mapOverlayId],
+  (state, mapOverlayId) => {
+    const mapOverlay = selectMapOverlayById(state, mapOverlayId);
+    return mapOverlay?.measureIds || null;
   },
 );

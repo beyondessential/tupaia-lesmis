@@ -93,7 +93,7 @@ export const MeasurePopup = ({ data, measureOptions, onOrgUnitClick }) => {
       coordinates={coordinates}
       onDetailButtonClick={() => onOrgUnitClick(organisationUnitCode)}
     >
-      <PopupDataItemList measureOptions={measureOptions} data={data} showNoDataLabel="true" />
+      <PopupDataItemList measureOptions={measureOptions} data={data} showNoDataLabel />
     </PopupMarker>
   );
 };

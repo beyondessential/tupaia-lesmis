@@ -12,7 +12,7 @@ import { Dialog, DialogHeader, DialogContent } from '@tupaia/ui-components';
 import { Table, useMapDataExport } from '@tupaia/ui-components/lib/map';
 import MuiIconButton from '@material-ui/core/IconButton';
 import {
-  selectCurrentMapOverlays,
+  selectCurrentMapOverlay,
   selectOrgUnitCountry,
   selectRenderedMeasuresWithDisplayInfo,
 } from '../../selectors';
@@ -79,7 +79,8 @@ MapTableModalComponent.defaultProps = {
 
 const mapStateToProps = state => {
   const { measureOptions } = state.map.measureInfo;
-  const currentMapOverlay = selectCurrentMapOverlays(state)[0];
+  // TODO: select multiple map overlays
+  const currentMapOverlay = selectCurrentMapOverlay(state);
   const measureData = selectRenderedMeasuresWithDisplayInfo(state);
   const currentCountry = selectOrgUnitCountry(state, state.map.measureInfo.currentCountry);
 

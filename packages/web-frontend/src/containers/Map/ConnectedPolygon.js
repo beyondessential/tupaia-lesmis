@@ -18,7 +18,7 @@ import {
   selectOrgUnit,
   selectHasPolygonMeasure,
   selectAllMeasuresWithDisplayInfo,
-  selectCurrentMapOverlayIds,
+  selectCurrentMapOverlayId,
   selectOrgUnitChildren,
   selectAreRegionLabelsPermanent,
 } from '../../selectors';
@@ -189,9 +189,8 @@ ConnectedPolygon.defaultProps = {
 const mapStateToProps = (state, givenProps) => {
   const { organisationUnitCode } = givenProps.area;
   const { measureData, measureOptions } = state.map.measureInfo;
-  console.log('state');
-  console.log(state);
-  const mapOverlayId = selectCurrentMapOverlayIds(state)[0];
+  // TODO select multiple map overlays
+  const mapOverlayId = selectCurrentMapOverlayId(state);
   const organisationUnitChildren = selectOrgUnitChildren(state, organisationUnitCode);
 
   let shade;

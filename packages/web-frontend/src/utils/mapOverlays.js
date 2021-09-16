@@ -7,16 +7,13 @@
 
 import { flattenMapOverlayHierarchy } from './measures';
 
-export const getMapOverlaysFromHierarchy = (mapOverlayHierarchy, targetMapOverlayIds) => {
-  if (!targetMapOverlayIds) {
+export const getMapOverlayFromHierarchy = (mapOverlayHierarchy, targetMapOverlayId) => {
+  if (!targetMapOverlayId) {
     return null;
   }
-  const flattenMapOverlays = flattenMapOverlayHierarchy(mapOverlayHierarchy);
 
-  return (
-    flattenMapOverlays.find(({ mapOverlayId }) => targetMapOverlayIds.includes(mapOverlayId)) ||
-    flattenMapOverlays[0]
-  );
+  const flattenMapOverlays = flattenMapOverlayHierarchy(mapOverlayHierarchy);
+  return flattenMapOverlays.find(({ mapOverlayId }) => targetMapOverlayId === mapOverlayId);
 };
 
 export const getMeasureIdsByMapOverlayIds = (mapOverlayHierarchy, targetMapOverlayIds) => {
