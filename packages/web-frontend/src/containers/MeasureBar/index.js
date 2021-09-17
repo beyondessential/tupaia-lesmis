@@ -211,14 +211,11 @@ const mapStateToProps = state => {
   const currentMapOverlayId = selectCurrentMapOverlayId(state) || '';
   // TODO: current measures in Measure Bar
   // const currentMeasures = selectCurrentMeasures(state);
-  // console.log('currentMeasures');
-  // console.log(currentMeasures);
   const activeProject = selectCurrentProject(state);
 
   const defaultMapOverlay = selectMapOverlayById(state, activeProject.defaultMeasure);
 
   return {
-    // currentMeasures,
     currentMapOverlay,
     currentMapOverlayId,
     measureHierarchy,
@@ -239,14 +236,14 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const { dispatch } = dispatchProps;
-  const { currentMeasure } = stateProps;
+  const { currentMapOverlayId } = stateProps;
 
   return {
     ...stateProps,
     ...dispatchProps,
     ...ownProps,
     onUpdateMeasurePeriod: (startDate, endDate) =>
-      dispatch(updateMeasureConfig(currentMeasure.mapOverlayId, { startDate, endDate })),
+      dispatch(updateMeasureConfig(currentMapOverlayId, { startDate, endDate })),
   };
 };
 

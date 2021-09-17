@@ -858,7 +858,7 @@ function* watchFetchMoreSearchResults() {
 }
 
 /**
- * fetchmeasureInfo
+ * fetchMeasureInfo
  *
  * Fetches data for a measure and write it to map state by calling fetchMeasureSuccess.
  *
@@ -949,7 +949,7 @@ function* fetchCurrentMeasureInfo() {
 
   if (currentOrganisationUnitCode) {
     const isHierarchyPopulated = !!measureHierarchy.length;
-
+    // TODO refactor the logic
     if (!isHierarchyPopulated) {
       /** Ensure measure is selected if there is a current measure selected in the case
        * it is not selected through the measureBar UI
@@ -960,7 +960,7 @@ function* fetchCurrentMeasureInfo() {
       // Update to the default measure ID if the current measure id isn't in the hierarchy
       const newMapOverlayId = selectDefaultMapOverlayId(state);
       yield put(setMapOverlay(newMapOverlayId));
-    }
+    } else yield put(setMapOverlay(selectedMapOverlayIds));
   }
 }
 
@@ -986,7 +986,7 @@ function* fetchMeasureInfoForNewOrgUnit(action) {
   }
 
   if (mapOverlayIds) {
-    yield put(setMapOverlay(mapOverlayIds.toString()));
+    yield put(setMapOverlay(mapOverlayIds));
   }
 }
 
