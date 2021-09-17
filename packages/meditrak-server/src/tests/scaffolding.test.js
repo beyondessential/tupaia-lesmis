@@ -1,3 +1,4 @@
+import {} from 'dotenv/config'; // Load the environment variables into process.env
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiSubset from 'chai-subset';

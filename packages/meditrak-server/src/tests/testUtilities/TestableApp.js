@@ -2,7 +2,6 @@
  * Tupaia MediTrak
  * Copyright (c) 2017 Beyond Essential Systems Pty Ltd
  */
-import {} from 'dotenv/config'; // Load the environment variables into process.env
 import supertest from 'supertest';
 import autobind from 'react-autobind';
 import sinon from 'sinon';
