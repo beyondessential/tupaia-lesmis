@@ -210,8 +210,8 @@ export const selectMeasureBarItemCategoryById = createSelector(
 
     // TODO Select multiple measure bar item
     measureHierarchy.forEach(({ name, children }, categoryIndex) => {
-      const selectedMeasureIndex = children.findIndex(measure =>
-        ids.includes(measure.mapOverlayId),
+      const selectedMeasureIndex = children.findIndex(
+        mapOverlay => mapOverlay.mapOverlayId === ids,
       );
       if (selectedMeasureIndex > -1) {
         categoryMeasureIndex = {
@@ -222,6 +222,7 @@ export const selectMeasureBarItemCategoryById = createSelector(
         };
       }
     });
+
     return categoryMeasureIndex;
   },
 );
@@ -249,9 +250,7 @@ export const selectDefaultMapOverlayId = createSelector(
 
 export const selectCurrentPeriodGranularity = createSelector(
   [selectCurrentMapOverlay],
-  mapOverlay => {
-    return mapOverlay.periodGranularity;
-  },
+  mapOverlay => mapOverlay.periodGranularity,
 );
 
 export const selectMeasureIdsByOverlayId = createSelector(

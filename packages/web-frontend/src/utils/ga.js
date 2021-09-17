@@ -23,7 +23,6 @@ import {
   OPEN_USER_DIALOG,
   CLOSE_USER_DIALOG,
 } from '../actions';
-import { DEFAULT_BOUNDS } from '../defaults';
 
 const ga = window.ga || (() => {});
 
@@ -56,7 +55,7 @@ export const gaMiddleware = () => next => action => {
         break;
 
       case SET_MAP_OVERLAY:
-        gaEvent('Map Overlay', 'Change', action.measureIds);
+        gaEvent('Map Overlay', 'Change', action.mapOverlayIds);
         break;
 
       case CHANGE_TILE_SET:
