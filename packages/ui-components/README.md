@@ -12,8 +12,8 @@ Runs the storybook app and pulls stories from the `src` directory which have a .
 
 The page will reload if you make edits.<br />
 
-You will need to have `storybook` installed globally for this to work. We don't include it as a listed
-dependency as it bloats the repository.<br />
+You will need to have `storybook` installed globally using `npm install --global storybook`. We don't
+include it as a listed dependency as it bloats the repository, but isn't needed during CI/CD etc.<br />
 
 ## Story Book
 
