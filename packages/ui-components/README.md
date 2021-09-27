@@ -12,6 +12,9 @@ Runs the storybook app and pulls stories from the `src` directory which have a .
 
 The page will reload if you make edits.<br />
 
+You will need to have `storybook` installed globally for this to work. We don't include it as a listed
+dependency as it bloats the repository.<br />
+
 ## Story Book
 
 Storybook is an open source tool for developing UI components.
@@ -30,6 +33,7 @@ The components are mostly built on top of components from the Material UI librar
 - Export components using named exports
 
 ### Importing Components
+
 The build splits the ui components into the following 3 bundles.
 
 - map components (based on what's in: `src/components/Map/index.js`)
@@ -37,10 +41,13 @@ The build splits the ui components into the following 3 bundles.
 - core ui components (based on what's in: `src/components/index.js`)
 
 #### Core UI Components
+
 eg. `import { Buttton } from @tupaia/ui-components`
 
 #### Map Components
+
 eg `import { Legend } from @tupaia/ui-components/lib/map`
 
 #### Chart Components
+
 eg `import { Chart } from @tupaia/ui-components/lib/chart`
