@@ -35,13 +35,13 @@ export const TILE_SETS = [
     key: 'osm',
     label: 'Open Streets',
     thumbnail: 'https://tupaia.s3-ap-southeast-2.amazonaws.com/uploads/osm-tile-thumbnail.png',
-    url: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
+    url: 'mapbox://styles/mapbox/streets-v11',
   },
   {
     key: 'satellite',
     label: 'Satellite',
     thumbnail:
       'https://tupaia.s3-ap-southeast-2.amazonaws.com/uploads/satellite-tile-thumbnail.png',
-    url: `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v10/tiles/256/{z}/{x}/{y}?access_token=${MAPBOX_TOKEN}`,
+    url: 'mapbox://styles/mapbox/satellite-v9',
   },
 ];

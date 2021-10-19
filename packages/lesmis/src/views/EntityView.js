@@ -7,7 +7,7 @@ import React from 'react';
 import { Switch, Route, useRouteMatch, Redirect } from 'react-router-dom';
 import { LocationHeader, Toolbar, Breadcrumbs, Footer } from '../components';
 import { DashboardView } from './DashboardView';
-import { MapView } from './MapView';
+import { MapGLView } from './MapGLView';
 import { useEntityBreadcrumbs } from '../utils';
 
 export const EntityView = () => {
@@ -26,7 +26,7 @@ export const EntityView = () => {
           <DashboardView />
         </Route>
         <Route path={`${match.path}/map`}>
-          <MapView />
+          <MapGLView />
         </Route>
         <Redirect to={`/${entityCode}/dashboard`} />
       </Switch>
