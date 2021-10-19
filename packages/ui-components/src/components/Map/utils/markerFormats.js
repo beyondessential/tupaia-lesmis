@@ -327,7 +327,7 @@ export function getMeasureDisplayInfo(
             max,
             noDataColour,
           );
-          displayInfo.icon = valueInfo.icon || displayInfo.icon || SPECTRUM_ICON;
+          displayInfo.icon = valueInfo.icon || displayInfo.icon;
           break;
         case MEASURE_TYPE_POPUP_ONLY:
           break;
@@ -343,7 +343,7 @@ export function getMeasureDisplayInfo(
   );
 
   if (!displayInfo.icon && typeof displayInfo.radius === 'undefined') {
-    displayInfo.icon = DEFAULT_ICON;
+    // displayInfo.icon = DEFAULT_ICON;
   }
 
   if (!displayInfo.color) {

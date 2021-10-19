@@ -63,7 +63,7 @@ export function translateRegion(regionGeoJsonString) {
   if (regionGeoJson.type !== 'MultiPolygon') return null;
 
   // need to recurse into data structure and flip all coordinate arrays
-  return flipLatLngRecursive(regionGeoJson.coordinates);
+  return regionGeoJson.coordinates;
 }
 
 /**

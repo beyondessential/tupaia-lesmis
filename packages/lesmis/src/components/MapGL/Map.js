@@ -12,8 +12,8 @@ export const Map = ({ bounds, ...props }) => {
   const [viewport, setViewport] = useState({
     width: 500,
     height: 500,
-    latitude: 37.7577,
-    longitude: -122.4376,
+    latitude: 14.7,
+    longitude: 107.5,
     zoom: 8,
   });
 
@@ -28,7 +28,7 @@ export const Map = ({ bounds, ...props }) => {
       longitude,
       latitude,
       zoom,
-      transitionDuration: 5000,
+      transitionDuration: 1000,
       transitionInterpolator: new FlyToInterpolator(),
     });
   };

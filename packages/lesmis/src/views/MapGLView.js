@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { TilePicker as TilePickerComponent } from '@tupaia/ui-components/lib/map';
 import { Map } from '../components/MapGL/Map';
+import { Source, Layer } from 'react-map-gl';
 import { YearSelector, MapOverlaysPanel } from '../components';
 import { useMapOverlayReportData, useMapOverlaysData } from '../api';
 import { TILE_SETS, DEFAULT_DATA_YEAR } from '../constants';
@@ -56,6 +57,24 @@ const getDefaultTileSet = () => {
   return window.loadTime < SLOW_LOAD_TIME_THRESHOLD ? 'satellite' : 'osm';
 };
 
+const dataLayer = {
+  id: 'entity',
+  type: 'fill',
+  paint: {
+    'fill-color': '#0080ff', // blue color fill
+    'fill-opacity': 0.5,
+  },
+};
+
+const getGeoJson = region => {
+  return {
+    type: 'Feature',
+    geometry: {
+      type: 'Polygon',
+      coordinates: region,
+    },
+  };
+};
 export const MapGLView = () => {
   const { entityCode } = useUrlParams();
   const [selectedYear, setSelectedYear] = useUrlSearchParam('year', DEFAULT_DATA_YEAR);
@@ -75,6 +94,10 @@ export const MapGLView = () => {
 
   const activeTileSet = TILE_SETS.find(tileSet => tileSet.key === activeTileSetKey);
 
+  const region = entityData?.region[0];
+
+  const geoJson = getGeoJson(region);
+
   return (
     <Container>
       <MapOverlaysPanel
@@ -86,7 +109,11 @@ export const MapGLView = () => {
         YearSelector={<YearSelector value={selectedYear} onChange={setSelectedYear} />}
       />
       <Main>
-        <Map bounds={entityData ? entityData.bounds : null} mapStyle={activeTileSet.url} />
+        <Map bounds={entityData ? entityData.bounds : null} mapStyle={activeTileSet.url}>
+          <Source type="geojson" data={geoJson}>
+            <Layer {...dataLayer} />
+          </Source>
+        </Map>
         <MapInner>
           <LegendContainer>Legend</LegendContainer>
           <TilePicker
