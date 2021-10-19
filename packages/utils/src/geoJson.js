@@ -48,7 +48,7 @@ export function translateBounds(boundsGeoJsonString) {
   if (!box) return null;
 
   const [topLeft, _, bottomRight] = box;
-  return [flipLatLng(topLeft), flipLatLng(bottomRight)];
+  return [topLeft, bottomRight];
 }
 
 /**
@@ -80,7 +80,7 @@ export const calculateOuterBounds = listOfBounds => {
   const points = bounds.reduce((values, bound) => [...values, ...bound], []);
 
   return [
-    [Math.min(...points.map(point => point[0])), Math.min(...points.map(point => point[1]))],
-    [Math.max(...points.map(point => point[0])), Math.max(...points.map(point => point[1]))],
+    [Math.min(...points.map(point => point[1])), Math.min(...points.map(point => point[0]))],
+    [Math.max(...points.map(point => point[1])), Math.max(...points.map(point => point[0]))],
   ];
 };

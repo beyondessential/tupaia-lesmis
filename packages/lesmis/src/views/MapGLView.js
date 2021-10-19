@@ -86,7 +86,7 @@ export const MapGLView = () => {
         YearSelector={<YearSelector value={selectedYear} onChange={setSelectedYear} />}
       />
       <Main>
-        <Map mapStyle={activeTileSet.url} />
+        <Map bounds={entityData ? entityData.bounds : null} mapStyle={activeTileSet.url} />
         <MapInner>
           <LegendContainer>Legend</LegendContainer>
           <TilePicker
