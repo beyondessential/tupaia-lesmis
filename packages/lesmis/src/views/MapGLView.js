@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { TilePicker as TilePickerComponent } from '@tupaia/ui-components/lib/map';
 import { Map } from '../components/MapGL/Map';
-import { Source, Layer } from 'react-map-gl';
+import { Marker, Source, Layer, Popup } from 'react-map-gl';
 import { YearSelector, MapOverlaysPanel } from '../components';
 import { useMapOverlayReportData, useMapOverlaysData } from '../api';
 import { TILE_SETS, DEFAULT_DATA_YEAR } from '../constants';
@@ -75,11 +75,47 @@ const getGeoJson = region => {
     },
   };
 };
+
+// Important for perf: the markers never change, avoid rerender when the map viewport changes
+const Markers = ({ data, onClick }) => {
+  if (!data) {
+    return null;
+  }
+
+  return data
+    .filter(({ coordinates, region }) => region || (coordinates && coordinates.length === 2))
+    .filter(({ isHidden }) => !isHidden)
+    .map((measure, index) => {
+      return (
+        <Marker
+          key={`marker-${index}`}
+          longitude={measure.coordinates[1]}
+          latitude={measure.coordinates[0]}
+        >
+          <svg
+            height={20}
+            width={20}
+            viewBox="0 0 27 39"
+            style={{
+              cursor: 'pointer',
+              fill: '#d00',
+              stroke: 'none',
+            }}
+            onClick={() => onClick(measure)}
+          >
+            <path d="M13.5 0.631592C6.04607 0.631592 0 6.64584 0 14.0605C0 24.1322 13.5 39 13.5 39C13.5 39 27 24.1322 27 14.0605C27 6.64584 20.9539 0.631592 13.5 0.631592Z" />
+            <circle cx="13.5" cy="14.1316" r="6" fill="white" fillOpacity="0.9" />
+          </svg>
+        </Marker>
+      );
+    });
+};
+
 export const MapGLView = () => {
   const { entityCode } = useUrlParams();
   const [selectedYear, setSelectedYear] = useUrlSearchParam('year', DEFAULT_DATA_YEAR);
   const [activeTileSetKey, setActiveTileSetKey] = useState(getDefaultTileSet());
-
+  const [popupInfo, setPopupInfo] = useState(null);
   const { data: overlaysData, isLoading: isLoadingOverlays } = useMapOverlaysData({ entityCode });
 
   const {
@@ -113,6 +149,19 @@ export const MapGLView = () => {
           <Source type="geojson" data={geoJson}>
             <Layer {...dataLayer} />
           </Source>
+          <Markers data={overlayReportData?.measureData} onClick={setPopupInfo} />
+          {popupInfo && (
+            <Popup
+              tipSize={5}
+              anchor="top"
+              longitude={popupInfo.coordinates[1]}
+              latitude={popupInfo.coordinates[0]}
+              closeOnClick={false}
+              onClose={setPopupInfo}
+            >
+              <h3>{popupInfo.name}</h3>
+            </Popup>
+          )}
         </Map>
         <MapInner>
           <LegendContainer>Legend</LegendContainer>
