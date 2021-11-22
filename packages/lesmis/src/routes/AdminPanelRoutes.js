@@ -9,9 +9,7 @@ import { TabsToolbar } from '@tupaia/ui-components';
 import { Assignment, InsertChart, PeopleAlt } from '@material-ui/icons';
 import {
   DashboardsPage,
-  QuestionsPage,
   SurveysPage,
-  DataElementsPage,
   DashboardRelationsPage,
   MapOverlayGroupRelationsPage,
   MapOverlayGroupsPage,
@@ -34,15 +32,12 @@ import {
   DraftSurveyResponsesView,
 } from '../views/AdminPanel/SurveyResponsesView';
 
-const ADMIN_URL = '/admin';
-
-// Todo: Replace SurveyResponsesPage with ApprovedSurveyResponsesView and DraftSurveyResponsesView
-// @see WAI-832
 export const ROUTES = [
   {
     label: 'Survey Data',
-    to: `${ADMIN_URL}/survey-responses`,
+    to: `/survey-responses`,
     icon: <Assignment />,
+    // Todo: Replace SurveyResponsesPage with ApprovedSurveyResponsesView and DraftSurveyResponsesView @see WAI-832
     tabs: [
       // {
       //   label: 'Review',
@@ -63,7 +58,7 @@ export const ROUTES = [
   },
   {
     label: 'Surveys',
-    to: `${ADMIN_URL}/surveys`,
+    to: `/surveys`,
     icon: <Assignment />,
     tabs: [
       {
@@ -71,21 +66,22 @@ export const ROUTES = [
         to: '',
         component: SurveysPage,
       },
-      {
-        label: 'Questions',
-        to: '/questions',
-        component: QuestionsPage,
-      },
-      {
-        label: 'Data Elements',
-        to: '/data-elements',
-        component: DataElementsPage,
-      },
+      // Todo: Add Questions and DataElementsPage tabs after permissions refactor Relates to WAI-1003
+      // {
+      //   label: 'Questions',
+      //   to: '/questions',
+      //   component: QuestionsPage,
+      // },
+      // {
+      //   label: 'Data Elements',
+      //   to: '/data-elements',
+      //   component: DataElementsPage,
+      // },
     ],
   },
   {
     label: 'Visualisations',
-    to: `${ADMIN_URL}/visualisations`,
+    to: `/visualisations`,
     icon: <InsertChart />,
     tabs: [
       {
@@ -122,7 +118,7 @@ export const ROUTES = [
   },
   {
     label: 'Users & Permissions',
-    to: `${ADMIN_URL}/users`,
+    to: `/users`,
     icon: <PeopleAlt />,
     tabs: [
       {
@@ -183,7 +179,7 @@ const AdminPanelRoutes = () => {
               </Switch>
             </LesmisAdminRoute>
           ))}
-          <Redirect to={`${path}${ADMIN_URL}/survey-responses`} />
+          <Redirect to={`${path}/survey-responses`} />
         </Switch>
       </div>
     </AdminPanelDataProviders>

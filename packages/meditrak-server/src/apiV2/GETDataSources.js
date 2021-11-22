@@ -5,14 +5,14 @@
 
 import { TYPES } from '@tupaia/database';
 import { GETHandler } from './GETHandler';
-import { assertBESAdminAccess } from '../permissions';
+import { assertAdminPanelAccess } from '../permissions';
 import { mergeMultiJoin } from './utilities';
 
 export class GETDataSources extends GETHandler {
   permissionsFilteredInternally = true;
 
   async assertUserHasAccess() {
-    await this.assertPermissions(assertBESAdminAccess);
+    await this.assertPermissions(assertAdminPanelAccess);
   }
 
   async getPermissionsFilter(criteria, options) {
