@@ -26,7 +26,7 @@ for PACKAGE in ${PACKAGES[@]}; do
 
             # ensure db master password is set correctly
             echo "Setting RDS master password for ${DEPLOYMENT_NAME}"
-            source packages/data-api/.env && aws rds modify-db-instance --db-instance-identifier $DEPLOYMENT_NAME --master-user-password $DB_PG_PASSWORD
+            source packages/data-api/.env && aws rds modify-db-instance --db-instance-identifier rn-195-test-4 --master-user-password $DB_PG_PASSWORD
 
             # ensure that the analytics table is fully built
             echo "Building analytics table"
