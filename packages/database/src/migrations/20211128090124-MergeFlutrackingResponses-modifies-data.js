@@ -19,7 +19,7 @@ exports.setup = function (options, seedLink) {
   seed = seedLink;
 };
 
-const RESPONSE_GROUP_BATCH_SIZE = 50;
+const RESPONSE_GROUP_BATCH_SIZE = 20;
 
 const printProgress = (current, total) => {
   const percentage = Math.round((current / total) * 10000) / 100;
