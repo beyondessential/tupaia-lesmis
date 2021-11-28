@@ -19,7 +19,6 @@ exports.setup = function (options, seedLink) {
   seed = seedLink;
 };
 
-const FLUTRACKING_SURVEY = 'FLWV';
 const RESPONSE_GROUP_BATCH_SIZE = 50;
 
 const printProgress = (current, total) => {
@@ -134,7 +133,7 @@ const groupResponsesByEntityAndWeek = duplicateResponses => {
   return Object.values(groupedResponses).map(group => Object.values(group));
 };
 
-const selectDuplicateFlutrackingResponses = async db => {
+const selectDuplicateFlutrackingResponses = async (db, surveyCode) => {
   const { rows } = await db.runSql(`
     select
       sr.id as id1,
@@ -147,7 +146,7 @@ const selectDuplicateFlutrackingResponses = async db => {
     join survey_response sr2 on sr2.id > sr.id and sr2.survey_id = sr.survey_id and sr2.entity_id = sr.entity_id
     join survey s on s.id = sr.survey_id
     where
-      s.code = '${FLUTRACKING_SURVEY}' and
+      s.code = '${surveyCode}' and
       -- Join on same ISO week
       date_part('year', sr.data_time) = date_part('year', sr2.data_time) and
       date_part('week', sr.data_time) = date_part('week', sr2.data_time);
@@ -156,10 +155,10 @@ const selectDuplicateFlutrackingResponses = async db => {
   return rows;
 };
 
-exports.up = async function (db) {
-  console.log('** Start merging duplicate Flutracking responses **');
+const mergeFlutrackingResponses = async (db, surveyCode) => {
+  console.log(`Merging duplicate responses for ${surveyCode}`);
 
-  const duplicateResponses = await selectDuplicateFlutrackingResponses(db);
+  const duplicateResponses = await selectDuplicateFlutrackingResponses(db, surveyCode);
   const responseGroups = groupResponsesByEntityAndWeek(duplicateResponses);
 
   console.log(
@@ -173,7 +172,12 @@ exports.up = async function (db) {
     await db.runSql('COMMIT');
   });
 
-  console.log('\nFlutracking response merging was successful!');
+  console.log('\nResponse merge was successful!');
+};
+
+exports.up = async function (db) {
+  await mergeFlutrackingResponses(db, 'FLWV'); // Flutracking LGA Weekly Values
+  await mergeFlutrackingResponses(db, 'FPWV'); // Flutracking - Postcode
 };
 
 exports.down = function (db) {
