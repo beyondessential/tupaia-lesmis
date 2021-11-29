@@ -21,12 +21,8 @@ exports.setup = function (options, seedLink) {
 
 const RESPONSE_GROUP_BATCH_SIZE = 20;
 
-const printProgress = (current, total) => {
-  const percentage = Math.round((current / total) * 10000) / 100;
-  // Return console cursor to the start of the current line
-  process.stdout.write('\r\x1b[K');
-  process.stdout.write(`${percentage}% done`);
-};
+const getPercentage = (numerator, denominator) =>
+  Math.round((numerator / denominator) * 10000) / 100;
 
 const processInBatches = async (array, batchSize, processBatch) => {
   let i = 0;
@@ -49,11 +45,9 @@ const deleteResponses = async (db, responseIds) => {
 };
 
 /**
- * Our eventually merging strategy is the following:
- * For each response group, use the most recent answer for each question and merge them in the
- * most recent response in the group
- *
- * This function returns the records that should be mutated to enable the above strategy
+ * We merge group responses by using the most recent answers we can find in the group.
+ * Start with the first (more recent) response and keep on adding any missing answers by using the
+ * next response
  */
 const mergeAnswersInResponseGroup = (responses, answersByResponseId) => {
   assert.ok(responses.length > 1, 'Each response group should have at least 2 elements');
@@ -96,8 +90,6 @@ const selectAnswersForResponseGroups = async (db, responseGroups) => {
 };
 
 const processResponseGroups = async (db, responseGroupBatch) => {
-  const a = Date.now();
-
   const answerByResponseId = await selectAnswersForResponseGroups(db, responseGroupBatch);
   const mergeData = responseGroupBatch.map(responseGroup =>
     mergeAnswersInResponseGroup(responseGroup, answerByResponseId),
@@ -165,14 +157,24 @@ const mergeFlutrackingResponses = async (db, surveyCode) => {
     'Processing response groups in batches. Each batch will be processed as a transaction',
   );
   console.log(`Batches found: ${responseGroups.length}`);
+
+  let prevPercentage = -1;
   await processInBatches(responseGroups, RESPONSE_GROUP_BATCH_SIZE, async (responseGroup, i) => {
     await db.runSql('START TRANSACTION');
-    printProgress(i, responseGroups.length);
+
+    // Print progress
+    const percentage = getPercentage(i, responseGroups.length);
+    if (parseInt(percentage - prevPercentage) > 0) {
+      // Print percentage when its integer part changes
+      console.log(`${Math.round(percentage)}%`);
+      prevPercentage = percentage;
+    }
+
     await processResponseGroups(db, responseGroup);
     await db.runSql('COMMIT');
   });
 
-  console.log('\nResponse merge was successful!');
+  console.log(`${surveyCode} responses merged successfully!`);
 };
 
 exports.up = async function (db) {
