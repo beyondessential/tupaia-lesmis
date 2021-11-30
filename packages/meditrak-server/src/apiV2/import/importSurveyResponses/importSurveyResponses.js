@@ -18,6 +18,7 @@ import {
   UploadError,
   stripTimezoneFromDate,
 } from '@tupaia/utils';
+import winston from '../../../log';
 import { getArrayQueryParameter, extractTabNameFromQuery } from '../../utilities';
 import { ANSWER_TYPES } from '../../../database/models/Answer';
 import { constructAnswerValidator } from '../../utilities/constructAnswerValidator';
@@ -230,6 +231,13 @@ export async function importSurveyResponses(req, res) {
         ? `Not all responses were successfully processed:
 ${failures.map(getFailureMessage).join('\n')}`
         : null;
+
+    if (failures.length > 0) {
+      winston.error(`----- ERROR: ${message} -----`);
+    } else {
+      winston.info('----- All responses successfully processed -----');
+    }
+
     respond(res, { message, failures });
   } catch (error) {
     if (error.respond) {
