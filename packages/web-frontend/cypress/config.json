@@ -1,16 +1,39 @@
 {
   "baselineUrl": "https://e2e.tupaia.org",
-  "compareUrl": "",
+  "compareUrl": "https://e2e.tupaia.org",
   "dashboardReports": {
     "allowEmptyResponse": false,
     "snapshotTypes": ["responseData"],
-    "urlFiles": ["cypress/config/dashboardReportUrls/default.json"],
-    "urls": []
+    "urls": [
+      {
+        "code": "8",
+        "project": "explore",
+        "orgUnit": "KI",
+        "dashboard": "General"
+      },
+      {
+        "code": "8",
+        "project": "supplychain_fiji",
+        "orgUnit": "FJ",
+        "dashboard": "General"
+      },
+      {
+        "code": "10",
+        "project": "supplychain_fiji",
+        "orgUnit": "FJ",
+        "dashboard": "General"
+      },
+      {
+        "code": "39",
+        "project": "explore",
+        "orgUnit": "TO_Neikihp",
+        "dashboard": "PEHS"
+      }
+    ]
   },
   "mapOverlays": {
     "allowEmptyResponse": false,
     "snapshotTypes": ["responseData"],
-    "urlFiles": ["cypress/config/mapOverlayUrls/default.json"],
     "urls": []
   }
 }
