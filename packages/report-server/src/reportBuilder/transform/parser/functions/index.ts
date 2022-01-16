@@ -4,7 +4,12 @@
  */
 
 import { value, last, eq, notEq, exists, notExists, gt, length, any, all } from './basic';
-import { orgUnitCodeToName, dataElementCodeToName, orgUnitIdToCode, orgUnitAttribute } from "./context";
+import {
+  orgUnitCodeToName,
+  dataElementCodeToName,
+  orgUnitIdToCode,
+  orgUnitAttribute,
+} from './context';
 import {
   convertToPeriod,
   dateStringToPeriod,
@@ -12,7 +17,9 @@ import {
   periodToDisplayString,
   formatAsFractionAndPercentage,
 } from './utils';
-import { add, divide, sum, mean } from './math';
+
+import { add, divide, range, mean } from './math';
+import { sum, subtract } from './factory';
 
 /**
  * Custom functions to be imported into mathjs
@@ -61,6 +68,16 @@ export const functionExtensions = {
  * Functions to override existing mathjs functions
  */
 export const functionOverrides = {
+  // sum,
+  // range,
+};
+
+/**
+ * Functions to override existing mathjs functions
+ */
+export const factoryFunctions = {
   sum,
   mean,
+  range,
+  subtract,
 };

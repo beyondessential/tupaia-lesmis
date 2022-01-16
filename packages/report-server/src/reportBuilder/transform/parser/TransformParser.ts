@@ -12,8 +12,9 @@ import {
   contextFunctions,
   functionExtensions,
   functionOverrides,
+  factoryFunctions,
 } from './functions';
-import { createDataFrameType, DataFrame } from './customTypes';
+import { typeCreators, DataFrame, OrderedSet } from './customTypes';
 import { TransformScope } from './TransformScope';
 
 type RowLookup = {
@@ -38,6 +39,7 @@ type Lookups = {
   allPrevious: RowLookup;
   index: number; // one-based index, this.currentRow + 1
   table: DataFrame;
+  columnNames: OrderedSet<string>;
 };
 
 export class TransformParser extends ExpressionParser {
@@ -45,6 +47,9 @@ export class TransformParser extends ExpressionParser {
 
   private currentRow = 0;
   private rows: Row[];
+
+  private table: DataFrame;
+
   private lookups: Lookups;
   // eslint-disable-next-line react/static-property-placement
   private context?: Context;
@@ -52,9 +57,8 @@ export class TransformParser extends ExpressionParser {
   public constructor(rows: Row[] = [], context?: Context) {
     super(new TransformScope());
 
-    this.math.import([createDataFrameType]);
-
     this.rows = rows;
+    this.table = new DataFrame(this.rows);
     this.lookups = {
       current: {},
       previous: {},
@@ -62,7 +66,8 @@ export class TransformParser extends ExpressionParser {
       all: {},
       allPrevious: {},
       index: this.currentRow + 1,
-      table: new DataFrame(this.rows),
+      table: this.table,
+      columnNames: new OrderedSet(this.table.columnNames),
     };
 
     if (rows.length > 0) {
@@ -139,14 +144,20 @@ export class TransformParser extends ExpressionParser {
     return whereData;
   };
 
+  protected getCustomTypes() {
+    return [...this.buildTypeCreators()];
+  }
+
   protected getCustomFunctions() {
-    const { functions: factoryFunctions, dependencies } = this.buildFactoryFunctions();
+    const { functions: builtContextFunctions, dependencies } = this.buildContextFunctions();
+    const getCurrentTable = () => this.table;
 
     return {
       ...super.getCustomFunctions(),
       ...customFunctions,
-      ...factoryFunctions,
+      ...builtContextFunctions,
       ...dependencies,
+      getCurrentTable,
     };
   }
 
@@ -155,10 +166,14 @@ export class TransformParser extends ExpressionParser {
   }
 
   protected getFunctionOverrides() {
-    return { ...super.getFunctionOverrides(), ...functionOverrides };
+    return {
+      ...super.getFunctionOverrides(),
+      ...functionOverrides,
+      ...this.buildFactoryFunctions(),
+    };
   }
 
-  private buildFactoryFunctions() {
+  private buildContextFunctions() {
     const dependencies = {
       getContext: () => this.context,
     };
@@ -171,6 +186,21 @@ export class TransformParser extends ExpressionParser {
     );
 
     return { functions, dependencies };
+  }
+
+  private buildFactoryFunctions() {
+    return Object.fromEntries(
+      Object.entries(factoryFunctions).map(([fnName, { func: fn, dependencies }]) => [
+        fnName,
+        this.factory(fnName, dependencies, fn),
+      ]),
+    );
+  }
+
+  private buildTypeCreators() {
+    return Object.entries(typeCreators).map(([typeName, { creator, dependencies }]) =>
+      this.factory(typeName, dependencies, creator),
+    );
   }
 }
 

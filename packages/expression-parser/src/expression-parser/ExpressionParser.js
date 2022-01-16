@@ -46,6 +46,7 @@ export class ExpressionParser {
 
     this.customScope = customScope;
     this.customFunctionNames = Object.keys(this.getCustomFunctions());
+    this.math.import(this.getCustomTypes());
     this.math.import(this.getCustomFunctions(), { wrap: true });
     this.math.import(this.getFunctionExtensions());
     this.math.import(this.getFunctionOverrides(), { wrap: true, override: true });
@@ -170,6 +171,16 @@ export class ExpressionParser {
    */
   clearScope() {
     this.customScope.clear();
+  }
+
+  /**
+   * Custom types to be imported
+   * @protected
+   * This can be overridden in child classes to import new functions.
+   * @returns {Record<string, (...args: any[]) => any>} functions
+   */
+  getCustomTypes() {
+    return [];
   }
 
   /**
