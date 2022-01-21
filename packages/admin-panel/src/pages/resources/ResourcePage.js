@@ -6,6 +6,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
+import { PostImportLink } from './PostImportLink';
 import { DataFetchingTable } from '../../table';
 import { EditModal } from '../../editor';
 import { Header, PageBody } from '../../widgets';
@@ -64,6 +65,7 @@ export const ResourcePage = ({
         onProcessDataForSave={onProcessDataForSave}
         displayUsedBy={displayUsedBy}
       />
+      <PostImportLink />
     </>
   );
 };
