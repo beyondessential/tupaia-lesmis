@@ -30,6 +30,7 @@ export * from './components/NavBar';
 export * from './components/PasswordStrengthBar';
 export * from './components/ProfileButton';
 export * from './components/ReferenceTooltip';
+export * from './components/TupaiaSnackbar';
 export * from './components/SplitButton';
 export * from './components/Table';
 export * from './components/Tabs';

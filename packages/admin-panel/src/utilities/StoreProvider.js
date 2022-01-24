@@ -5,12 +5,13 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { createStore, applyMiddleware, compose } from 'redux';
+import { createStore, applyMiddleware } from 'redux';
 import { PersistGate } from 'redux-persist/lib/integration/react';
 import { Provider } from 'react-redux';
 import thunk from 'redux-thunk';
 import localforage from 'localforage';
 import { persistReducer, persistStore } from 'redux-persist';
+import { composeWithDevTools } from 'redux-devtools-extension';
 import { rootReducer } from '../rootReducer';
 import { RememberMeTransform } from '../authentication/reducer';
 
@@ -36,7 +37,7 @@ if (process.env.NODE_ENV === 'development') {
 
 export const StoreProvider = React.memo(({ children, api, persist }) => {
   const middleware = [thunk.withExtraArgument({ api })];
-  const composedEnhancers = compose(applyMiddleware(...middleware), ...enhancers);
+  const composedEnhancers = composeWithDevTools(applyMiddleware(...middleware), ...enhancers);
   const store = createStore(persistedRootReducer, initialState, composedEnhancers);
   const persistor = persistStore(store);
 

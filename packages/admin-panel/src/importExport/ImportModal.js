@@ -93,6 +93,7 @@ export const ImportModalComponent = React.memo(
           ...values,
           ...actionConfig.extraQueryParameters,
         });
+        const { id } = response;
         if (response.emailTimeoutHit) {
           setStatus(STATUS.TIMEOUT);
           setFinishedMessage(
@@ -102,7 +103,7 @@ export const ImportModalComponent = React.memo(
           setStatus(STATUS.SUCCESS);
           setFinishedMessage('Your import has been successfully processed.');
         }
-        changeSuccess();
+        changeSuccess(id);
       } catch (error) {
         setStatus(STATUS.ERROR);
         setFinishedMessage(null);
@@ -233,7 +234,7 @@ ImportModalComponent.defaultProps = {
 
 const mapDispatchToProps = dispatch => ({
   changeRequest: () => dispatch({ type: DATA_CHANGE_REQUEST }),
-  changeSuccess: () => dispatch({ type: DATA_CHANGE_SUCCESS }),
+  changeSuccess: id => dispatch({ type: DATA_CHANGE_SUCCESS, id }),
   changeError: () => dispatch({ type: DATA_CHANGE_ERROR }),
 });
 

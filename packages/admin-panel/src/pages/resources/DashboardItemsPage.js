@@ -5,11 +5,11 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { ResourcePage } from './ResourcePage';
 import { LightOutlinedButton } from '@tupaia/ui-components';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
+import { ResourcePage } from './ResourcePage';
 
 const StyledLink = styled(Link)`
   text-decoration: none;
@@ -129,6 +129,7 @@ export const DashboardItemsPage = ({ getHeaderEl, isBESAdmin, ...props }) => {
       }}
       LinksComponent={renderNewDashboardVizButton}
       getHeaderEl={getHeaderEl}
+      recentImport={{ id: 12345 }}
       {...props}
     />
   );

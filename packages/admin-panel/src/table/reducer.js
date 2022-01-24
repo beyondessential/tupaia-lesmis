@@ -36,11 +36,20 @@ const handleErrorMessage = (payload, currentState) => {
 
 const handleDataFetchSuccess = (payload, currentState) => {
   const currentFetchId = getFetchId(currentState);
+  console.log(payload);
   if (payload.fetchId !== currentFetchId) return {}; // From a previous fetch request, ignore it
   return {
     ...payload,
     errorMessage: DEFAULT_TABLE_STATE.errorMessage,
     fetchId: DEFAULT_TABLE_STATE.fetchId,
+  };
+};
+
+const handleDataChangeSuccess = payload => {
+  const { id: lastChangeId } = payload;
+  return {
+    ...payload,
+    reduxId: lastChangeId,
   };
 };
 
@@ -67,7 +76,7 @@ const stateChanges = {
     fetchId,
     errorMessage: DEFAULT_TABLE_STATE.errorMessage,
   }),
-  [DATA_CHANGE_SUCCESS]: handleDataFetchSuccess,
+  [DATA_CHANGE_SUCCESS]: handleDataChangeSuccess,
   [DATA_CHANGE_ERROR]: handleErrorMessage,
   [PAGE_INDEX_CHANGE]: payload => payload,
   [PAGE_SIZE_CHANGE]: payload => ({

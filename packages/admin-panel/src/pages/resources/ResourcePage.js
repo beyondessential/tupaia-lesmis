@@ -6,7 +6,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import { PostImportLink } from './PostImportLink';
+import { PostImportSnackbar } from './PostImportSnackbar';
 import { DataFetchingTable } from '../../table';
 import { EditModal } from '../../editor';
 import { Header, PageBody } from '../../widgets';
@@ -34,6 +34,7 @@ export const ResourcePage = ({
   defaultFilters,
   defaultSorting,
   displayUsedBy,
+  recentImport,
 }) => {
   const HeaderPortal = usePortalWithCallback(
     <Header
@@ -65,7 +66,7 @@ export const ResourcePage = ({
         onProcessDataForSave={onProcessDataForSave}
         displayUsedBy={displayUsedBy}
       />
-      <PostImportLink />
+      <PostImportSnackbar recentImport={recentImport} />
     </>
   );
 };
@@ -95,6 +96,7 @@ ResourcePage.propTypes = {
   defaultSorting: PropTypes.array,
   defaultFilters: PropTypes.array,
   displayUsedBy: PropTypes.bool,
+  recentImport: PropTypes.object,
 };
 
 ResourcePage.defaultProps = {
@@ -111,4 +113,5 @@ ResourcePage.defaultProps = {
   defaultFilters: [],
   reduxId: null,
   displayUsedBy: false,
+  recentImport: {},
 };
