@@ -5,7 +5,7 @@
 
 import { SqlQuery } from './SqlQuery';
 
-export class EventsFetchQuery {
+export class DataLakeEventsFetchQuery {
   constructor(database, options) {
     this.database = database;
 
@@ -39,7 +39,7 @@ export class EventsFetchQuery {
     const aliasedColumns = [
       'date',
       'entity_code AS "entityCode"',
-      'entity_name AS "entityName"',
+      'entity_code AS "entityName"',
       'event_id as "eventId"',
       'value',
       'type',

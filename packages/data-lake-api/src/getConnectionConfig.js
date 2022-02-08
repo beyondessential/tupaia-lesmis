@@ -5,7 +5,7 @@
 
 import { requireEnv, getEnvVarOrDefault } from '@tupaia/utils';
 
-const getServerConfig = () => ({
+export const getConnectionConfig = () => ({
   host: requireEnv('DATA_LAKE_DB_URL'),
   port: getEnvVarOrDefault('DATA_LAKE_DB_PORT', 5432),
   user: requireEnv('DATA_LAKE_DB_USER'),
@@ -19,16 +19,3 @@ const getServerConfig = () => ({
         }
       : null,
 });
-
-const getCiConfig = () => ({
-  host: requireEnv('CI_TEST_DATA_LAKE_DB_URL'),
-  user: requireEnv('CI_TEST_DATA_LAKE_DB_USER'),
-  password: requireEnv('CI_TEST_DATA_LAKE_DB_PASSWORD'),
-  database: requireEnv('CI_TEST_DATA_LAKE_DB_NAME'),
-  ssl: null,
-});
-
-export const getConnectionConfig = () => {
-  // Note: Must use functions to guarantee environment variables have loaded
-  return process.env.CI_NAME === 'codeship' ? getCiConfig() : getServerConfig();
-};
