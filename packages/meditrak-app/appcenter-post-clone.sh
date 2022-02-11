@@ -11,16 +11,13 @@ env | grep "USER-DEFINED_.*" | awk -F "USER-DEFINED_" '{print $2}' > .env
 ## To manage that, we here manually install external deps, build internal deps, then redirect the
 ## package.json entries to the internal filesystem
 
-# Required nodeJS version
-NODE_VERSION=12.18.3
+# move to the root folder
+cd ../..
 
 # workaround to override the v8 alias
 npm config delete prefix
 . ~/.bashrc
-nvm install "$NODE_VERSION"
-
-# move to the root folder
-cd ../..
+nvm use
 
 # install root dependencies
 SKIP_BUILD_INTERNAL_DEPENDENCIES=true yarn install
