@@ -1,10 +1,10 @@
 {
   "baselineUrl": "https://e2e.tupaia.org",
-  "compareUrl": "",
+  "compareUrl": "https://release-2022-6-e2e.tupaia.org",
   "dashboardReports": {
     "allowEmptyResponse": false,
     "snapshotTypes": ["responseData"],
-    "urlFiles": ["cypress/config/dashboardReportUrls/default.json"],
+    "urlFiles": ["cypress/config/dashboardReportUrls/default.json","cypress/config/dashboardReportUrls/covidau.json"],
     "urls": []
   },
   "mapOverlays": {
