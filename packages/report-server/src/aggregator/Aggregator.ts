@@ -27,7 +27,8 @@ export class Aggregator extends BaseAggregator {
       ? aggregationList.map(this.aggregationToAggregationConfig)
       : [{ type: 'RAW' }];
 
-    return super.fetchAnalytics(
+    console.log('report: starting to fetchAnalytics in report');
+    const result = await super.fetchAnalytics(
       dataElementCodes,
       {
         organisationUnitCodes,
@@ -39,6 +40,8 @@ export class Aggregator extends BaseAggregator {
       },
       { aggregations },
     );
+    console.log('report: fetchAnalytics is done');
+    return result;
   }
 
   async fetchEvents(

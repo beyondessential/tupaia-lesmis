@@ -24,6 +24,7 @@ const fetchAnalytics = async (
   params: DataElementFetchParams,
 ): Promise<FetchResponse> => {
   const { organisationUnitCodes, hierarchy, period, startDate, endDate } = query;
+  console.log('start in report');
   return aggregator.fetchAnalytics(
     params.dataElementCodes,
     params.aggregations,
@@ -31,8 +32,8 @@ const fetchAnalytics = async (
     hierarchy,
     {
       period,
-      startDate,
-      endDate,
+      startDate: '2021-05-21',
+      endDate: '2022-02-28',
     },
   );
 };

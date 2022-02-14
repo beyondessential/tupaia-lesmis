@@ -19,6 +19,7 @@ export class DataSourceEntityProvider {
     dataSourceEntityType,
     dataSourceEntityFilter,
   ) {
+    console.log('aggregator: getDataSourceEntities in progress');
     return this.entityApi.getRelativesOfEntities(hierarchyName, entityCodes, {
       field: 'code',
       filter: {

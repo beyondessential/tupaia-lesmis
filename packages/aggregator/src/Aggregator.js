@@ -34,13 +34,15 @@ export class Aggregator {
 
   processAnalytics = (results, aggregationOptions, requestedPeriod) => {
     const { aggregations = [], filter } = aggregationOptions;
+    console.log('processAnalytics is in progress');
+
     const aggregatedAnalytics = results.reduce((array, { analytics, numAggregationsProcessed }) => {
       const remainingAggregations = aggregations.slice(numAggregationsProcessed);
       return array.concat(
         this.aggregateAnalytics(analytics, remainingAggregations, requestedPeriod),
       );
     }, []);
-
+    console.log('processAnalytics is done');
     return filterAnalytics(aggregatedAnalytics, filter);
   };
 

@@ -7,9 +7,12 @@ import groupBy from 'lodash.groupby';
 import { min, max, findCoarsestPeriodType, periodToType } from '@tupaia/utils';
 
 export const periodFromAnalytics = (analytics, { period: requestedPeriod }) => {
+  console.log('periodFromAnalytics is in progress');
+  const result = getMostAndLeastRecentPeriod(analytics.map(analytic => analytic.period));
+  console.log('periodFromAnalytics is done');
   return {
     requested: requestedPeriod,
-    ...getMostAndLeastRecentPeriod(analytics.map(analytic => analytic.period)),
+    ...result,
   };
 };
 

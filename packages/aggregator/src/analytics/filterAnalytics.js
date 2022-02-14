@@ -33,7 +33,7 @@ const applyFilter = (analytics, filterProperty, operator, value) => {
  */
 export const filterAnalytics = (analytics, filter = {}) => {
   let filteredAnalytics = analytics;
-
+  console.log('filterAnalytics is in progress');
   Object.entries(filter).forEach(([property, value]) => {
     const filterProperty = property || 'value';
 
@@ -54,6 +54,7 @@ export const filterAnalytics = (analytics, filter = {}) => {
       filteredAnalytics = applyFilter(filteredAnalytics, filterProperty, operator, value);
     }
   });
+  console.log('filterAnalytics is done');
 
   return filteredAnalytics;
 };

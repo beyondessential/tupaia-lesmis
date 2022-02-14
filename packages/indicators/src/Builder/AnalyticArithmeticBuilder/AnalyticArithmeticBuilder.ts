@@ -79,7 +79,10 @@ export class AnalyticArithmeticBuilder extends Builder {
   };
 
   protected buildAnalyticValues = async (fetchOptions: FetchOptions) => {
+    console.log('indicators: fetchAnalytics is in progress ');
     const analytics = await this.fetchAnalytics(fetchOptions);
+    console.log('indicators: fetchAnalytics is done ');
+
     const clusters = this.buildAnalyticClusters(analytics);
     return this.buildAnalyticValuesFromClusters(clusters);
   };
@@ -87,8 +90,13 @@ export class AnalyticArithmeticBuilder extends Builder {
   private getVariables = () => Object.keys(this.config.aggregation);
 
   private fetchAnalytics = async (fetchOptions: FetchOptions) => {
+    console.log('indicators: parameterAnalytics is in progress ');
     const formulaAnalytics = await this.fetchFormulaAnalytics(fetchOptions);
+    console.log('indicators: formulaAnalytics is done ');
+    console.log('indicators: parameterAnalytics is in progress ');
     const parameterAnalytics = await this.fetchParameterAnalytics(fetchOptions);
+    console.log('indicators: parameterAnalytics is done ');
+
     return [...formulaAnalytics, ...parameterAnalytics];
   };
 

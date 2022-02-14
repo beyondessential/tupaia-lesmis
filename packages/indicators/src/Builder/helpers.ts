@@ -27,20 +27,23 @@ export const fetchAnalytics = async (
   aggregationLisByElement: Record<string, Aggregation[]>,
   fetchOptions: FetchOptions,
 ): Promise<Analytic[]> => {
+  console.log('indicator: fetchAnalytics with aggregatorList is in progress');
   // A different aggregationList may be applied for each data element,
   // but only one aggregationList can be provided in an aggregator call
   // Group data elements per aggregationList to minimise aggregator calls
   const aggregationJsonToElements = groupKeysByValueJson(aggregationLisByElement);
-
-  const analytics: Analytic[] = [];
+  console.log('indicator: aggregationJsonToElements is done');
+  let analytics: Analytic[] = [];
   await Promise.all(
     Object.entries(aggregationJsonToElements).map(async ([aggregationJson, elements]) => {
       const aggregations = JSON.parse(aggregationJson);
       const { results } = await aggregator.fetchAnalytics(elements, fetchOptions, { aggregations });
-      analytics.push(...results);
+      console.log('indicator: one fetchAnalytics with aggregatorList is done');
+      analytics = [...analytics, ...results];
+      console.log('indicator: one fetchAnalytics with aggregatorList is added');
     }),
   );
-
+  console.log('indicator: fetchAnalytics with aggregatorList is done');
   return analytics;
 };
 
