@@ -24,6 +24,14 @@ exports.up = async function (db) {
   `);
 
   await db.runSql(`
+    DELETE FROM answer
+    WHERE question_id IN (
+     SELECT id FROM question WHERE type='Instruction'
+     AND code='LRF21'
+    );
+  `);
+
+  await db.runSql(`
     UPDATE survey_response
     SET end_time = end_time + interval '1 second'
     WHERE id IN (
