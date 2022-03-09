@@ -9,10 +9,18 @@ import moment from 'moment';
 import { getSortByKey } from '@tupaia/utils';
 import { DataLakeAnalyticsFetchQuery, AnalyticsFetchOptions } from './DataLakeAnalyticsFetchQuery';
 import { DataLakeEventsFetchQuery, Event, EventsFetchOptions } from './DataLakeEventsFetchQuery';
-import { validateEventOptions, validateAnalyticsOptions } from './validation';
+import {
+  validateEventOptions,
+  validateAnalyticsOptions,
+  validateDataElementCodesFetchingOptions,
+} from './validation';
 import { sanitizeAnalyticsTableValue } from './sanitizeAnalyticsTableValue';
 import { sanitiseFetchDataOptions } from './sanitiseFetchDataOptions';
 import { DataLakeDatabase } from './DataLakeDatabase';
+import {
+  DataElementCodesFetchOptions,
+  DataLakeDataElementCodesFetchQuery,
+} from './DataLakeDateElementCodesFetchQuery';
 
 const EVENT_DATE_FORMAT = 'YYYY-MM-DDTHH:mm:ss';
 
@@ -70,6 +78,18 @@ export class DataLakeApi {
         value: sanitizeAnalyticsTableValue(value, type),
       })),
       numAggregationsProcessed,
+    };
+  }
+
+  async fetchDataElementCodes(optionsInput: Record<string, any>) {
+    await validateDataElementCodesFetchingOptions(optionsInput);
+    const options = sanitiseFetchDataOptions(optionsInput as DataElementCodesFetchOptions);
+    const { dataElementCodes } = await new DataLakeDataElementCodesFetchQuery(
+      getDatabase(),
+      options,
+    ).fetch();
+    return {
+      dataElementCodes: dataElementCodes.map(({ dataElementCode }) => dataElementCode),
     };
   }
 }

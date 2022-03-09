@@ -19,6 +19,7 @@ import {
 
 import { createMeditrakSyncQueue } from './database';
 import * as modelClasses from './database/models';
+import { startSyncWithDataLake } from './datalake';
 import { startSyncWithDhis } from './dhis';
 import { startSyncWithMs1 } from './ms1';
 import { startSyncWithKoBo } from './kobo';
@@ -83,6 +84,11 @@ startSyncWithKoBo(models);
  * Regularly sync actions that have happened on meditrak with the social feed.
  */
 startFeedScraper(models);
+
+/**
+ * Regularly sync data from Data Lake
+ */
+startSyncWithDataLake(models);
 
 /**
  * If running via PM2, run migrations then notify that we are ready

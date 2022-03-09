@@ -44,3 +44,11 @@ export const validateAnalyticsOptions = async (options: Record<string, any>) => 
   const validator = new ObjectValidator({ ...COMMON_OPTIONS, ...ANALYTIC_OPTIONS });
   return validator.validate(options);
 };
+
+export const validateDataElementCodesFetchingOptions = async (options: Record<string, any>) => {
+  if (!options) {
+    throw new Error('Please provide options when fetching data element codes');
+  }
+  const validator = new ObjectValidator({ startDate: [constructIsEmptyOr(takesDateForm)] });
+  return validator.validate(options);
+};
