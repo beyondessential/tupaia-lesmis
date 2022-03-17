@@ -10,6 +10,7 @@ import { Row } from '../../types';
 import { TransformParser } from '../parser';
 import { buildWhere } from './where';
 import { mapStringToStringValidator } from './transformValidators';
+import { validateEvaluatedColumnNames } from './helpers';
 
 type InsertColumnsParams = {
   columns: { [key: string]: string };
@@ -31,7 +32,13 @@ const insertColumns = (rows: Row[], params: InsertColumnsParams, context: Contex
     }
     const newRow: Row = { ...row };
     Object.entries(params.columns).forEach(([key, expression]) => {
-      newRow[parser.evaluate(key)] = parser.evaluate(expression);
+      const evaluatedKey = parser.evaluate(key);
+      const columnNames = validateEvaluatedColumnNames(evaluatedKey);
+      columnNames.forEach((columnName: string) => {
+        parser.setColumnName(columnName);
+        newRow[columnName] = parser.evaluate(expression);
+        parser.setColumnName(undefined);
+      });
     });
 
     parser.next();

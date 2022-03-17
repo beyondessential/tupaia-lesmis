@@ -4,6 +4,7 @@
  */
 
 import { TransformParser } from '../../../../reportBuilder/transform/parser';
+import { OrderedSet } from '../../../../reportBuilder/transform/parser/customTypes';
 
 describe('functions', () => {
   describe('basic', () => {
@@ -138,7 +139,7 @@ describe('functions', () => {
     describe('orgUnitAttribute()', () => {
       const context = {
         orgUnits: [
-          { id: '1234', code: 'FJ', name: 'Fiji', attributes: { x: 1 }},
+          { id: '1234', code: 'FJ', name: 'Fiji', attributes: { x: 1 } },
           { id: '5678', code: 'TO', name: 'Tonga', attributes: { y: 2 } },
         ],
       };
@@ -293,6 +294,34 @@ describe('functions', () => {
 
       it('throws an error if there is one string as an argument', () =>
         expect(() => new TransformParser().evaluate("=mean(3,6,'cat')")).toThrow());
+    });
+
+    describe('range', () => {
+      const table = [
+        { col1: 'cat', col2: 'dog', col3: 'emu' },
+        { col1: 'fish', col2: 'goat', col3: 'turkey' },
+        { col1: 'llama', col2: 'monkey', col3: 'moose' },
+      ];
+
+      it('throws error when incorrect index order given', () =>
+        expect(() => new TransformParser(table).evaluate('= 3:1')).toThrow());
+
+      it('throws error when incorrect column order given', () =>
+        expect(() => new TransformParser(table).evaluate("= 'col3':'col1'")).toThrow());
+
+      it('throws error when unknown column given', () =>
+        expect(() => new TransformParser(table).evaluate("= 'col1':'duck'")).toThrow());
+
+      it('returns table indexes in numeric range', () =>
+        expect(new TransformParser(table).evaluate('= 1:3')).toEqual(new OrderedSet([1, 2, 3])));
+
+      it('returns table indexes in numeric range that exceeds bounds', () =>
+        expect(new TransformParser(table).evaluate('= -1:5')).toEqual(new OrderedSet([1, 2, 3])));
+
+      it('returns table columns in string range', () =>
+        expect(new TransformParser(table).evaluate("= 'col1':'col3'")).toEqual(
+          new OrderedSet(['col1', 'col2', 'col3']),
+        ));
     });
   });
 });

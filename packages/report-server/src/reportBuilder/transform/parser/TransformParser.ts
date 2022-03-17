@@ -39,6 +39,7 @@ type Lookups = {
   allPrevious: RowLookup;
   index: number; // one-based index, this.currentRow + 1
   table: DataFrame;
+  columnName: string | undefined;
   columnNames: OrderedSet<string>;
 };
 
@@ -67,6 +68,7 @@ export class TransformParser extends ExpressionParser {
       allPrevious: {},
       index: this.currentRow + 1,
       table: this.table,
+      columnName: undefined,
       columnNames: new OrderedSet(this.table.columnNames),
     };
 
@@ -98,6 +100,11 @@ export class TransformParser extends ExpressionParser {
 
   public evaluate(input: unknown) {
     return TransformParser.isExpression(input) ? super.evaluate(input) : input;
+  }
+
+  public setColumnName(columnName: string | undefined) {
+    this.lookups.columnName = columnName;
+    this.set('@columnName', this.lookups.columnName);
   }
 
   public next() {

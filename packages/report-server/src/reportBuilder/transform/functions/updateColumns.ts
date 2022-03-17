@@ -13,7 +13,7 @@ import {
   mapStringToStringValidator,
   starSingleOrMultipleColumnsValidator,
 } from './transformValidators';
-import { getColumnMatcher } from './helpers';
+import { getColumnMatcher, validateEvaluatedColumnNames } from './helpers';
 
 type UpdateColumnsParams = {
   insert: { [key: string]: string };
@@ -38,7 +38,13 @@ const updateColumns = (rows: Row[], params: UpdateColumnsParams, context: Contex
     }
     const newRow: Row = {};
     Object.entries(params.insert).forEach(([key, expression]) => {
-      newRow[parser.evaluate(key)] = parser.evaluate(expression);
+      const evaluatedKey = parser.evaluate(key);
+      const columnNames = validateEvaluatedColumnNames(evaluatedKey);
+      columnNames.forEach((columnName: string) => {
+        parser.setColumnName(columnName);
+        newRow[columnName] = parser.evaluate(expression);
+        parser.setColumnName(undefined);
+      });
     });
 
     Object.entries(row).forEach(([field, value]) => {

@@ -9,7 +9,7 @@ export class OrderedSet<T> extends Set<T> {
   // private readonly values: Set<T>;
 
   constructor(values: T[] | OrderedSet<T>) {
-    super(Array.isArray(values) ? values : values.arrayValues());
+    super(Array.isArray(values) ? values : Array.from(values));
   }
 
   public union(newSet: OrderedSet<T>) {
@@ -26,10 +26,6 @@ export class OrderedSet<T> extends Set<T> {
       clone.delete(item);
     });
     return new OrderedSet(Array.of(...clone));
-  }
-
-  public arrayValues() {
-    return Array.of(...this);
   }
 }
 
@@ -52,5 +48,3 @@ export const createOrderedSetType = {
     return OrderedSet;
   },
 };
-
-// import the new data type and function

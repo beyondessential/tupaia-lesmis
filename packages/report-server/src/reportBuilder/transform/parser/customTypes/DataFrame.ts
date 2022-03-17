@@ -4,7 +4,9 @@
  */
 
 import { OrderedSet } from './OrderedSet';
-import { FieldValue, Row } from '../../../types';
+import { Row } from '../../../types';
+import { DataFrameRow } from './DataFrameRow';
+import { DataFrameColumn } from './DataFrameColumn';
 
 export class DataFrame {
   public isDataFrame = true;
@@ -35,7 +37,7 @@ export class DataFrame {
   }
 
   public rows(indexes: number[] | OrderedSet<number>) {
-    const arrayIndexes = Array.isArray(indexes) ? indexes : indexes.arrayValues();
+    const arrayIndexes = Array.isArray(indexes) ? indexes : Array.from(indexes);
     arrayIndexes.forEach(index => {
       if (index < 1 || index > this.length) {
         throw new Error(`Index (${index}) out of length of DataFrame`);
@@ -56,7 +58,7 @@ export class DataFrame {
   }
 
   public columns(names: string[] | OrderedSet<string>) {
-    const arrayNames = Array.isArray(names) ? names : names.arrayValues();
+    const arrayNames = Array.isArray(names) ? names : Array.from(names);
     arrayNames.forEach(name => {
       if (!this.columnNames.includes(name)) {
         throw new Error(`Column name (${name}) not in DataFrame`);
@@ -73,45 +75,6 @@ export class DataFrame {
   }
 }
 
-export class DataFrameRow {
-  private readonly columns: string[];
-
-  private readonly row: Row;
-
-  constructor(row: Row) {
-    this.row = row;
-
-    const columnSet = new Set<string>(Object.keys(row));
-    this.columns = Array.from(columnSet);
-  }
-
-  public column(name: string) {
-    return this.row[name];
-  }
-}
-
-export class DataFrameColumn {
-  private readonly name: string;
-
-  private readonly values: FieldValue[];
-
-  private readonly length: number;
-
-  constructor(name: string, values: FieldValue[]) {
-    this.name = name;
-    this.values = values;
-    this.length = values.length;
-  }
-
-  public row(index: number) {
-    if (index < 1 || index > this.length) {
-      throw new Error(`Index (${index}) out of length of DataFrame`);
-    }
-    return this.values[index - 1];
-  }
-}
-
-// factory function which defines a new data type CustomValue
 export const createDataFrameType = {
   name: 'DataFrame',
   dependencies: ['typed'],
@@ -130,5 +93,3 @@ export const createDataFrameType = {
     return DataFrame;
   },
 };
-
-// import the new data type and function

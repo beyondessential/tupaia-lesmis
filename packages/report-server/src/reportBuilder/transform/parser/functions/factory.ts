@@ -1,4 +1,10 @@
-import { DataFrame, OrderedSet } from '../customTypes';
+/**
+ * Tupaia
+ * Copyright (c) 2017 - 2022 Beyond Essential Systems Pty Ltd
+ */
+
+import { Matrix } from 'mathjs';
+import { DataFrame, DataFrameColumn, DataFrameRow, OrderedSet } from '../customTypes';
 
 const enforceIsNumber = (value: unknown) => {
   if (typeof value !== 'number') {
@@ -16,20 +22,20 @@ const sumArray = (arr: unknown[]) =>
         .reduce((total, item) => total + item, 0);
 
 export const sum = {
-  dependencies: ['typed', 'DataFrame'],
+  dependencies: ['typed', 'DataFrame', 'DataFrameRow', 'DataFrameColumn'],
   func: ({ typed }: { typed: any }) =>
     typed('sum', {
-      '...': function (args: unknown[]) {
-        return this(args); // 'this' is bound by mathjs to allow recursive function calls to other typed function implementations
+      '...': (args: unknown[]) => {
+        return sumArray(args); // 'this' is bound by mathjs to allow recursive function calls to other typed function implementations
       },
       number: (num: number) => num,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       undefined: (undef: undefined) => undefined,
       Array: sumArray,
-      DataFrame: (df: DataFrame) => {
-        console.log('summing dataframe');
-        sumArray(df.cells());
-      },
+      Matrix: (matrix: Matrix) => sumArray(matrix.toArray()),
+      DataFrame: (df: DataFrame) => sumArray(df.cells()),
+      DataFrameRow: (dfr: DataFrameRow) => sumArray(dfr.cells()),
+      DataFrameColumn: (dfc: DataFrameColumn) => sumArray(dfc.cells()),
     }),
 };
 
@@ -38,8 +44,9 @@ export const subtract = {
   func: ({ typed }: { typed: any }) =>
     typed('subtract', {
       'number,number': (num1: number, num2: number) => num1 - num2,
-      'OrderedSet,OrderedSet': (set1: OrderedSet<any>, set2: OrderedSet<any>) =>
+      'OrderedSet,OrderedSet': (set1: OrderedSet<unknown>, set2: OrderedSet<unknown>) =>
         set1.difference(set2),
-      'OrderedSet,any': (set: OrderedSet<any>, val: any) => set.delete(val),
+      'OrderedSet,any': (set: OrderedSet<unknown>, val: unknown) =>
+        set.difference(new OrderedSet([val])),
     }),
 };
