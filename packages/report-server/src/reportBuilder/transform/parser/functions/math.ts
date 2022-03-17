@@ -55,20 +55,14 @@ export const mean = typed('mean', {
   Array: calculateMean,
 });
 
-export const sum = ({ typed: customTyped }) =>
+export const sum = ({ typed: customTyped }: { typed: any }) =>
   customTyped('sum', {
     '...': function (args: unknown[]) {
       return sumArray(args); // 'this' is bound by mathjs to allow recursive function calls to other typed function implementations
     },
     number: (num: number) => num,
     undefined: (undef: undefined) => undefined,
-    Array: (arr: unknown[]) =>
-      arr.every(item => item === undefined)
-        ? undefined
-        : arr
-            .filter(item => item !== undefined)
-            .map(enforceIsNumber)
-            .reduce((total, item) => total + item, 0),
+    Array: sumArray,
     DataFrame: (df: DataFrame) => sumArray(df.cells()),
   });
 
@@ -120,7 +114,7 @@ export const sum = ({ typed: customTyped }) =>
 
 export const range = {
   dependencies: ['getCurrentTable', 'OrderedSet'],
-  func: ({ getCurrentTable, OrderedSet }) =>
+  func: ({ getCurrentTable, OrderedSet }: { getCurrentTable: any; OrderedSet: any }) =>
     typed('range', {
       'number,number': (num1: number, num2: number) => {
         console.log('doing number number range');
@@ -154,7 +148,7 @@ export const range = {
 
 export const subtract = {
   dependencies: ['typed', 'OrderedSet'],
-  func: ({ typed: customTyped }) =>
+  func: ({ typed: customTyped, getCurrentTable }: { typed: any; getCurrentTable: any }) =>
     customTyped('range', {
       'number,number': (num1: number, num2: number) => {
         console.log('doing number number range');

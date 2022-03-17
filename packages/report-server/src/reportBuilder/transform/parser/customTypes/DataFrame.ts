@@ -115,7 +115,7 @@ export class DataFrameColumn {
 export const createDataFrameType = {
   name: 'DataFrame',
   dependencies: ['typed'],
-  creator: ({ typed }) => {
+  creator: ({ typed }: { typed: any }) => {
     // create a new data type
 
     // define a new data type with typed-function
@@ -123,7 +123,7 @@ export const createDataFrameType = {
       name: 'DataFrame',
       test: (x: unknown) => {
         // test whether x is of type DataFrame
-        return x && x.isDataFrame === true;
+        return x && typeof x === 'object' && 'isDataFrame' in x;
       },
     });
 

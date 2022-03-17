@@ -177,7 +177,7 @@ export class ExpressionParser {
    * Custom types to be imported
    * @protected
    * This can be overridden in child classes to import new functions.
-   * @returns {Record<string, (...args: any[]) => any>} functions
+   * @returns {((...args: any[]) => any)[]} functions
    */
   getCustomTypes() {
     return [];

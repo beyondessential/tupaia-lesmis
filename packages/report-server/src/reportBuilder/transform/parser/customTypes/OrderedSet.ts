@@ -3,17 +3,17 @@
  * Copyright (c) 2017 - 2021 Beyond Essential Systems Pty Ltd
  */
 
-export class OrderedSet<T> {
+export class OrderedSet<T> extends Set<T> {
   public isOrderedSet = true;
 
-  private readonly values: Set<T>;
+  // private readonly values: Set<T>;
 
   constructor(values: T[] | OrderedSet<T>) {
-    this.values = Array.isArray(values) ? new Set(values) : new Set(values.arrayValues());
+    super(Array.isArray(values) ? values : values.arrayValues());
   }
 
   public union(newSet: OrderedSet<T>) {
-    const clone = new Set(this.values);
+    const clone = new Set(this);
     newSet.forEach(item => {
       clone.add(item);
     });
@@ -21,25 +21,15 @@ export class OrderedSet<T> {
   }
 
   public difference(newSet: OrderedSet<T>) {
-    const clone = new Set(this.values);
+    const clone = new Set(this);
     newSet.forEach(item => {
       clone.delete(item);
     });
     return new OrderedSet(Array.of(...clone));
   }
 
-  public delete(value: T) {
-    const clone = new Set(this.values);
-    clone.delete(value);
-    return new OrderedSet(Array.of(...clone));
-  }
-
   public arrayValues() {
-    return Array.of(...this.values);
-  }
-
-  public [Symbol.iterator]() {
-    return this.values.values();
+    return Array.of(...this);
   }
 }
 
@@ -47,7 +37,7 @@ export class OrderedSet<T> {
 export const createOrderedSetType = {
   name: 'OrderedSet',
   dependencies: ['typed'],
-  creator: ({ typed }) => {
+  creator: ({ typed }: { typed: any }) => {
     // create a new data type
 
     // define a new data type with typed-function
@@ -55,7 +45,7 @@ export const createOrderedSetType = {
       name: 'OrderedSet',
       test: (x: unknown) => {
         // test whether x is of type DataFrame
-        return x && x.isOrderedSet === true;
+        return x && typeof x === 'object' && 'isOrderedSet' in x;
       },
     });
 
