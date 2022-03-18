@@ -47,6 +47,14 @@ export const mean = typed('mean', {
   Array: calculateMean,
 });
 
+export const equal = typed('equal', {
+  'any, any': (val1: unknown, val2: unknown) => val1 === val2,
+});
+
+export const unequal = typed('unequal', {
+  'any, any': (val1: unknown, val2: unknown) => val1 !== val2,
+});
+
 export const range = {
   dependencies: ['getCurrentTable', 'OrderedSet'],
   func: ({

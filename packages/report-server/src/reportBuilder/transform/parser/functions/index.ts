@@ -17,8 +17,7 @@ import {
   periodToDisplayString,
   formatAsFractionAndPercentage,
 } from './utils';
-
-import { add, divide, range, mean } from './math';
+import { add, divide, equal, mean, unequal, range } from './math';
 import { sum, subtract } from './factory';
 
 /**
@@ -68,8 +67,8 @@ export const functionExtensions = {
  * Functions to override existing mathjs functions
  */
 export const functionOverrides = {
-  // sum,
-  // range,
+  equal,
+  unequal,
 };
 
 /**
