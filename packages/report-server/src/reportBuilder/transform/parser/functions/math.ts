@@ -6,6 +6,7 @@
  */
 
 import { typed, mean as mathjsMean } from 'mathjs';
+import { DataFrame, OrderedSet } from '../customTypes';
 
 export const divide = typed('divide', {
   'number, undefined': (num: number, undef: undefined) => undefined,
@@ -48,23 +49,29 @@ export const mean = typed('mean', {
 
 export const range = {
   dependencies: ['getCurrentTable', 'OrderedSet'],
-  func: ({ getCurrentTable, OrderedSet }: { getCurrentTable: any; OrderedSet: any }) =>
+  func: ({
+    getCurrentTable,
+    OrderedSet: OrderedSetConstructor,
+  }: {
+    getCurrentTable: () => DataFrame;
+    OrderedSet: new <T>(arr: T[]) => OrderedSet<T>;
+  }) =>
     typed('range', {
       'number,number': (num1: number, num2: number) => {
         if (num1 > num2) {
           throw new Error(`Invalid range: ${num1} is larger than ${num2}`);
         }
         const start = Math.max(1, num1);
-        const end = Math.min(getCurrentTable().length, num2);
+        const end = Math.min(getCurrentTable().rowCount(), num2);
         const rangeArray = new Array(end + 1 - start).fill(0).map((_, index) => start + index);
-        return new OrderedSet(rangeArray);
+        return new OrderedSetConstructor(rangeArray);
       },
       'string,string': (name1: string, name2: string) => {
-        const start = getCurrentTable().columnNames.indexOf(name1);
+        const start = getCurrentTable().columnNames.asArray().indexOf(name1);
         if (start < 0) {
           throw new Error(`Invalid range: Cannot find column (${name1})`);
         }
-        const end = getCurrentTable().columnNames.indexOf(name2);
+        const end = getCurrentTable().columnNames.asArray().indexOf(name2);
         if (end < 0) {
           throw new Error(`Invalid range: Cannot find column (${name2})`);
         }
@@ -73,8 +80,8 @@ export const range = {
         }
         const rangeArray = new Array(end + 1 - start)
           .fill(0)
-          .map((_, index) => getCurrentTable().columnNames[start + index]);
-        return new OrderedSet(rangeArray);
+          .map((_, index) => getCurrentTable().columnNames.asArray()[start + index]);
+        return new OrderedSetConstructor(rangeArray);
       },
     }),
 };

@@ -3,8 +3,8 @@
  * Copyright (c) 2017 - 2021 Beyond Essential Systems Pty Ltd
  */
 
-import { Row } from '../../types';
+import { DataFrame } from '../../transform/parser/customTypes';
 
 export const buildDefault = () => {
-  return (rows: Row[]) => rows;
+  return (df: DataFrame) => df.rawRows();
 };

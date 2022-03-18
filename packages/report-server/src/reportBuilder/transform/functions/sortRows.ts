@@ -9,6 +9,7 @@ import { yupTsUtils } from '@tupaia/tsutils';
 import { TransformParser } from '../parser';
 import { Row } from '../../types';
 import { starSingleOrMultipleColumnsValidator } from './transformValidators';
+import { DataFrame } from '../parser/customTypes';
 
 type SortParams = {
   by: string | string[];
@@ -76,16 +77,19 @@ const getCustomRowSortFunction = (expression: string, direction: 'asc' | 'desc')
   };
 };
 
-const sortRows = (rows: Row[], params: SortParams): Row[] => {
+const sortRows = (df: DataFrame, params: SortParams) => {
   const { by, direction } = params;
+  const rows = df.rawRows();
   if (typeof by === 'string' && TransformParser.isExpression(by)) {
     const firstDirection = Array.isArray(direction) ? direction[0] : direction;
-    return rows.sort(getCustomRowSortFunction(by, firstDirection));
+    const sortedRows = rows.sort(getCustomRowSortFunction(by, firstDirection));
+    return new DataFrame(sortedRows, df.columnNames);
   }
 
   const arrayBy = typeof by === 'string' ? [by] : by;
   const arrayDirection = typeof direction === 'string' ? [direction] : direction;
-  return orderBy(rows, arrayBy, arrayDirection);
+  const sortedRows = orderBy(rows, arrayBy, arrayDirection);
+  return new DataFrame(sortedRows, df.columnNames);
 };
 
 const buildParams = (params: unknown): SortParams => {
@@ -105,5 +109,5 @@ const buildParams = (params: unknown): SortParams => {
 
 export const buildSortRows = (params: unknown) => {
   const builtSortParams = buildParams(params);
-  return (rows: Row[]) => sortRows(rows, builtSortParams);
+  return (df: DataFrame) => sortRows(df, builtSortParams);
 };

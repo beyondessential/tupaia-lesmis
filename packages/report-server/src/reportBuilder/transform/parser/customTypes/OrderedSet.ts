@@ -3,46 +3,62 @@
  * Copyright (c) 2017 - 2021 Beyond Essential Systems Pty Ltd
  */
 
-export class OrderedSet<T> extends Set<T> {
+export class OrderedSet<T> {
   public isOrderedSet = true;
 
-  // private readonly values: Set<T>;
+  private readonly set: Set<T>;
+
+  public static checkIsOrderedSet(input: unknown) {
+    return input && typeof input === 'object' && 'isOrderedSet' in input;
+  }
 
   constructor(values: T[] | OrderedSet<T>) {
-    super(Array.isArray(values) ? values : Array.from(values));
+    this.set = new Set(Array.isArray(values) ? values : Array.from(values.set));
+  }
+
+  public add(item: T) {
+    return this.set.add(item);
+  }
+
+  public has(item: T) {
+    return this.set.has(item);
+  }
+
+  public delete(item: T) {
+    return this.set.delete(item);
   }
 
   public union(newSet: OrderedSet<T>) {
-    const clone = new Set(this);
-    newSet.forEach(item => {
-      clone.add(item);
-    });
-    return new OrderedSet(Array.of(...clone));
+    const clone = new OrderedSet<T>([]);
+    this.set.forEach(item => clone.add(item));
+    newSet.set.forEach(item => clone.add(item));
+    return clone;
   }
 
   public difference(newSet: OrderedSet<T>) {
-    const clone = new Set(this);
-    newSet.forEach(item => {
-      clone.delete(item);
+    const clone = new OrderedSet<T>([]);
+    this.set.forEach(value => {
+      if (!newSet.has(value)) clone.add(value);
     });
-    return new OrderedSet(Array.of(...clone));
+    return clone;
+  }
+
+  public asArray() {
+    return Array.from(this.set);
+  }
+
+  public [Symbol.iterator]() {
+    return this.set.values();
   }
 }
 
-// factory function which defines a new data type CustomValue
 export const createOrderedSetType = {
   name: 'OrderedSet',
   dependencies: ['typed'],
   creator: ({ typed }: { typed: any }) => {
-    // create a new data type
-
-    // define a new data type with typed-function
     typed.addType({
       name: 'OrderedSet',
-      test: (x: unknown) => {
-        // test whether x is of type DataFrame
-        return x && typeof x === 'object' && 'isOrderedSet' in x;
-      },
+      test: OrderedSet.checkIsOrderedSet,
     });
 
     return OrderedSet;

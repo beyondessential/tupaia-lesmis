@@ -5,15 +5,16 @@
 
 import { yup } from '@tupaia/utils';
 
-import { Row } from '../types';
 import { Context } from '../context';
 import { transformBuilders } from './functions';
 import { aliases } from './aliases';
+import { DataFrame } from './parser/customTypes';
+import { Row } from '../types';
 
 type BuiltTransformParams = {
   title?: string;
   name: string;
-  apply: (rows: Row[]) => Row[];
+  apply: (df: DataFrame) => DataFrame;
 };
 
 const transformParamsValidator = yup.lazy((value: unknown) => {
@@ -36,18 +37,18 @@ const transformParamsValidator = yup.lazy((value: unknown) => {
 
 const paramsValidator = yup.array().required();
 
-const transform = (rows: Row[], transformSteps: BuiltTransformParams[]): Row[] => {
-  let transformedRows: Row[] = rows;
+const transform = (rowsOrDf: Row[] | DataFrame, transformSteps: BuiltTransformParams[]) => {
+  let df = DataFrame.checkIsDataFrame(rowsOrDf) ? rowsOrDf : new DataFrame(rowsOrDf);
   transformSteps.forEach((transformStep: BuiltTransformParams, index: number) => {
     try {
-      transformedRows = transformStep.apply(transformedRows);
+      df = transformStep.apply(df);
     } catch (e) {
       const titlePart = transformStep.title ? ` (${transformStep.title})` : '';
       const errorMessagePrefix = `Error in transform[${index + 1}]${titlePart}: `;
       throw new Error(`${errorMessagePrefix}${(e as Error).message}`);
     }
   });
-  return transformedRows;
+  return df;
 };
 
 const buildParams = (params: unknown, context: Context): BuiltTransformParams => {
@@ -77,5 +78,5 @@ export const buildTransform = (params: unknown, context: Context = {}) => {
   const validatedParams = paramsValidator.validateSync(params);
 
   const builtParams = validatedParams.map(param => buildParams(param, context));
-  return (rows: Row[]) => transform(rows, builtParams);
+  return (rowsOrDf: Row[] | DataFrame) => transform(rowsOrDf, builtParams);
 };

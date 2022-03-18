@@ -29,6 +29,8 @@ export const validateEvaluatedColumnNames = (input: unknown) => {
     throw new Error('Column name expression resolved to null');
   }
 
-  const arrayOfColumnNames = isIterable(input) ? Array.from(input) : [input];
+  const arrayOfColumnNames = isIterable(input)
+    ? Array.from(input).filter(name => name !== undefined)
+    : [input];
   return columnNameValidator.validateSync(arrayOfColumnNames);
 };

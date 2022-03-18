@@ -5,6 +5,7 @@
 
 import { ReportServerAggregator } from '../../../aggregator';
 import { buildOutput } from '../../../reportBuilder/output';
+import { DataFrame } from '../../../reportBuilder/transform/parser/customTypes';
 import {
   MULTIPLE_TRANSFORMED_DATA,
   MULTIPLE_TRANSFORMED_DATA_WITH_CATEGORIES,
@@ -15,7 +16,7 @@ describe('matrix', () => {
   let reportServerAggregator: ReportServerAggregator; // matrix doesn't need aggregator to generate data
 
   describe('columns', () => {
-    it("throw error when columns is not '*' or string array", async () => {
+    it("throw error when columns is not '*' or string array", () => {
       const output = buildOutput(
         {
           type: 'matrix',
@@ -26,12 +27,9 @@ describe('matrix', () => {
         {},
         reportServerAggregator,
       );
-
-      const outputFn = async () => {
-        await output([]);
-      };
-
-      await expect(outputFn()).rejects.toThrow("columns must be either '*' or an array");
+      expect(() => {
+        output(new DataFrame());
+      }).toThrow("columns must be either '*' or an array");
     });
 
     it('defaults to all columns if no columns are unspecified', async () => {
@@ -88,8 +86,9 @@ describe('matrix', () => {
         {},
         reportServerAggregator,
       );
-      const result = await output(MULTIPLE_TRANSFORMED_DATA_WITH_CATEGORIES);
-      expect(result).toEqual(expectedData);
+      expect(output(new DataFrame(MULTIPLE_TRANSFORMED_DATA_WITH_CATEGORIES))).toEqual(
+        expectedData,
+      );
     });
 
     it("treats '*' as all columns", async () => {
@@ -147,8 +146,9 @@ describe('matrix', () => {
         {},
         reportServerAggregator,
       );
-      const result = await output(MULTIPLE_TRANSFORMED_DATA_WITH_CATEGORIES);
-      expect(result).toEqual(expectedData);
+      expect(output(new DataFrame(MULTIPLE_TRANSFORMED_DATA_WITH_CATEGORIES))).toEqual(
+        expectedData,
+      );
     });
 
     it('can include just specified columns', async () => {
@@ -185,8 +185,9 @@ describe('matrix', () => {
         {},
         reportServerAggregator,
       );
-      const result = await output(MULTIPLE_TRANSFORMED_DATA_FOR_SPECIFIED_COLUMNS);
-      expect(result).toEqual(expectedData);
+      expect(output(new DataFrame(MULTIPLE_TRANSFORMED_DATA_FOR_SPECIFIED_COLUMNS))).toEqual(
+        expectedData,
+      );
     });
 
     it('can include dynamic and specified columns', async () => {
@@ -239,13 +240,14 @@ describe('matrix', () => {
         {},
         reportServerAggregator,
       );
-      const result = await output(MULTIPLE_TRANSFORMED_DATA_FOR_SPECIFIED_COLUMNS);
-      expect(result).toEqual(expectedData);
+      expect(output(new DataFrame(MULTIPLE_TRANSFORMED_DATA_FOR_SPECIFIED_COLUMNS))).toEqual(
+        expectedData,
+      );
     });
   });
 
   describe('categoryField', () => {
-    it('throws error if categoryField matches any columns', async () => {
+    it('throws error if categoryField matches any columns', () => {
       const output = buildOutput(
         {
           type: 'matrix',
@@ -256,14 +258,14 @@ describe('matrix', () => {
         {},
         reportServerAggregator,
       );
-      await expect(async () => {
-        await output([]);
-      }).rejects.toThrow(
+      expect(() => {
+        output(new DataFrame());
+      }).toThrow(
         'categoryField cannot be one of: [InfrastructureType,Laos,Tonga] they are already specified as columns',
       );
     });
 
-    it('throws error if categoryField matches rowField', async () => {
+    it('throws error if categoryField matches rowField', () => {
       const output = buildOutput(
         {
           type: 'matrix',
@@ -273,11 +275,9 @@ describe('matrix', () => {
         {},
         reportServerAggregator,
       );
-      await expect(async () => {
-        await output([]);
-      }).rejects.toThrow(
-        'rowField cannot be: FacilityType, it is already specified as categoryField',
-      );
+      expect(() => {
+        output(new DataFrame());
+      }).toThrow('rowField cannot be: FacilityType, it is already specified as categoryField');
     });
 
     it('categoryField is not required', async () => {
@@ -323,8 +323,7 @@ describe('matrix', () => {
         {},
         reportServerAggregator,
       );
-      const result = await output(MULTIPLE_TRANSFORMED_DATA);
-      expect(result).toEqual(expectedData);
+      expect(output(new DataFrame(MULTIPLE_TRANSFORMED_DATA))).toEqual(expectedData);
     });
 
     it('categorizes rows by categoryField', async () => {
@@ -382,13 +381,14 @@ describe('matrix', () => {
         {},
         reportServerAggregator,
       );
-      const result = await output(MULTIPLE_TRANSFORMED_DATA_WITH_CATEGORIES);
-      expect(result).toEqual(expectedData);
+      expect(output(new DataFrame(MULTIPLE_TRANSFORMED_DATA_WITH_CATEGORIES))).toEqual(
+        expectedData,
+      );
     });
   });
 
   describe('rowField', () => {
-    it('throws error if rowField matches any columns', async () => {
+    it('throws error if rowField matches any columns', () => {
       const output = buildOutput(
         {
           type: 'matrix',
@@ -399,14 +399,14 @@ describe('matrix', () => {
         {},
         reportServerAggregator,
       );
-      await expect(async () => {
-        await output([]);
-      }).rejects.toThrow(
+      expect(() => {
+        output(new DataFrame());
+      }).toThrow(
         'rowField cannot be one of: [FacilityType,Laos,Tonga] they are already specified as columns',
       );
     });
 
-    it('throws error if rowField matches categoryField', async () => {
+    it('throws error if rowField matches categoryField', () => {
       const output = buildOutput(
         {
           type: 'matrix',
@@ -416,14 +416,12 @@ describe('matrix', () => {
         {},
         reportServerAggregator,
       );
-      await expect(async () => {
-        await output([]);
-      }).rejects.toThrow(
-        'rowField cannot be: FacilityType, it is already specified as categoryField',
-      );
+      expect(() => {
+        output(new DataFrame());
+      }).toThrow('rowField cannot be: FacilityType, it is already specified as categoryField');
     });
 
-    it('throws error if rowField not provided ', async () => {
+    it('throws error if rowField not provided ', () => {
       const output = buildOutput(
         {
           type: 'matrix',
@@ -432,9 +430,9 @@ describe('matrix', () => {
         {},
         reportServerAggregator,
       );
-      await expect(async () => {
-        await output([]);
-      }).rejects.toThrow('rowField is a required field');
+      expect(() => {
+        output(new DataFrame());
+      }).toThrow('rowField is a required field');
     });
 
     it('names rows by rowField', async () => {
@@ -488,8 +486,9 @@ describe('matrix', () => {
         {},
         reportServerAggregator,
       );
-      const result = await output(MULTIPLE_TRANSFORMED_DATA_WITH_CATEGORIES);
-      expect(result).toEqual(expectedData);
+      expect(output(new DataFrame(MULTIPLE_TRANSFORMED_DATA_WITH_CATEGORIES))).toEqual(
+        expectedData,
+      );
     });
   });
 });

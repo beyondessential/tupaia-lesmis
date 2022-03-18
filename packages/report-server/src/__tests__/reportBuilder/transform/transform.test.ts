@@ -42,7 +42,7 @@ describe('transform', () => {
         exclude: '*',
       },
     ]);
-    expect(transform(MULTIPLE_ANALYTICS)).toEqual([{ Total: 11 }]);
+    expect(transform(MULTIPLE_ANALYTICS)).toEqualDataFrameOf([{ Total: 11 }]);
   });
 
   it('supports title and description in transforms', () => {
@@ -72,6 +72,6 @@ describe('transform', () => {
         exclude: '*',
       },
     ]);
-    expect(transform(MULTIPLE_ANALYTICS)).toEqual([{ Total: 11 }]);
+    expect(transform(MULTIPLE_ANALYTICS)).toEqualDataFrameOf([{ Total: 11 }]);
   });
 });

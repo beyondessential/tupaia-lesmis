@@ -7,7 +7,7 @@ import { buildTransform } from '../../../../reportBuilder/transform';
 
 const TABLE = [
   { name: 'Bob', afr_cases: 3, ili_cases: 12, dia_cases: 23 },
-  { name: 'Cat', afr_cases: 0, ili_cases: 2, dia_cases: 34 },
+  { name: 'Cat', afr_cases: 0, dia_cases: 34 },
   { name: 'Gill', afr_cases: 4, ili_cases: 7, dia_cases: 13 },
 ];
 
@@ -21,9 +21,9 @@ describe('dataFrame', () => {
         },
       },
     ]);
-    expect(transform(TABLE)).toStrictEqual([
+    expect(transform(TABLE)).toEqualDataFrameOf([
       { name: 'Bob', afr_cases: 3, ili_cases: 12, dia_cases: 23, total_cases: 38 },
-      { name: 'Cat', afr_cases: 0, ili_cases: 2, dia_cases: 34, total_cases: 36 },
+      { name: 'Cat', afr_cases: 0, dia_cases: 34, total_cases: 34 },
       { name: 'Gill', afr_cases: 4, ili_cases: 7, dia_cases: 13, total_cases: 24 },
     ]);
   });
@@ -36,14 +36,14 @@ describe('dataFrame', () => {
           name: 'Total',
           "= @columnNames - 'name'": '= sum(@table.column(@columnName))',
         },
-        where: '= @index == length(@table)',
+        where: '= @index == @table.rowCount()',
       },
     ]);
-    expect(transform(TABLE)).toStrictEqual([
+    expect(transform(TABLE)).toEqualDataFrameOf([
       { name: 'Bob', afr_cases: 3, ili_cases: 12, dia_cases: 23 },
-      { name: 'Cat', afr_cases: 0, ili_cases: 2, dia_cases: 34 },
+      { name: 'Cat', afr_cases: 0, dia_cases: 34 },
       { name: 'Gill', afr_cases: 4, ili_cases: 7, dia_cases: 13 },
-      { name: 'Total', afr_cases: 7, ili_cases: 21, dia_cases: 70 },
+      { name: 'Total', afr_cases: 7, ili_cases: 19, dia_cases: 70 },
     ]);
   });
 
@@ -55,14 +55,14 @@ describe('dataFrame', () => {
           name: 'Grand Total',
           grand_total: "= sum(@table.columns(@columnNames - 'name'))",
         },
-        where: '= @index == length(@table)',
+        where: '= @index == @table.rowCount()',
       },
     ]);
-    expect(transform(TABLE)).toStrictEqual([
+    expect(transform(TABLE)).toEqualDataFrameOf([
       { name: 'Bob', afr_cases: 3, ili_cases: 12, dia_cases: 23 },
-      { name: 'Cat', afr_cases: 0, ili_cases: 2, dia_cases: 34 },
+      { name: 'Cat', afr_cases: 0, dia_cases: 34 },
       { name: 'Gill', afr_cases: 4, ili_cases: 7, dia_cases: 13 },
-      { name: 'Grand Total', grand_total: 98 },
+      { name: 'Grand Total', grand_total: 96 },
     ]);
   });
 });

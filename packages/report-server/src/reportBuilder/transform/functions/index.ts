@@ -3,9 +3,6 @@
  * Copyright (c) 2017 - 2020 Beyond Essential Systems Pty Ltd
  */
 
-import { Context } from '../../context';
-import { Row } from '../../types';
-
 import {
   buildInsertColumns,
   paramsValidator as insertColumnsParamsValidator,
@@ -27,9 +24,7 @@ import {
   paramsValidator as gatherColumnsParamsValidator,
 } from './gatherColumns';
 
-type TransformBuilder = (params: unknown, context: Context) => (rows: Row[]) => Row[];
-
-export const transformBuilders: Record<string, TransformBuilder> = {
+export const transformBuilders = {
   insertColumns: buildInsertColumns,
   excludeColumns: buildExcludeColumns,
   updateColumns: buildUpdateColumns,

@@ -27,7 +27,7 @@ export class DataFrameColumn {
   }
 
   public rows(indexes: number[] | OrderedSet<number>) {
-    const arrayIndexes = Array.isArray(indexes) ? indexes : Array.from(indexes);
+    const arrayIndexes = Array.isArray(indexes) ? indexes : indexes.asArray();
     arrayIndexes.forEach(index => {
       if (index < 1 || index > this.length) {
         throw new Error(`Index (${index}) out of length of DataFrame`);

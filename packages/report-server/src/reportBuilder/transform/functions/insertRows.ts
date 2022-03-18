@@ -12,6 +12,7 @@ import { TransformParser } from '../parser';
 import { buildWhere } from './where';
 import { mapStringToStringValidator } from './transformValidators';
 import { validateEvaluatedColumnNames } from './helpers';
+import { DataFrame } from '../parser/customTypes';
 
 type InsertParams = {
   columns: { [key: string]: string };
@@ -38,10 +39,11 @@ export const paramsValidator = yup.object().shape({
   }, [positionValidator]),
 });
 
-const insertRows = (rows: Row[], params: InsertParams, context: Context): Row[] => {
-  const returnArray = [...rows];
-  const parser = new TransformParser(rows, context);
-  const rowsToInsert = returnArray.map(() => {
+const insertRows = (df: DataFrame, params: InsertParams, context: Context) => {
+  const rows = [...df];
+  const parser = new TransformParser(df, context);
+  const newDf = new DataFrame(df);
+  const rowsToInsert = rows.map(() => {
     const shouldInsertNewRow = params.where(parser);
     if (!shouldInsertNewRow) {
       parser.next();
@@ -64,11 +66,11 @@ const insertRows = (rows: Row[], params: InsertParams, context: Context): Row[] 
   let insertCount = 0;
   rowsToInsert.forEach((newRow, index) => {
     if (newRow !== undefined) {
-      returnArray.splice(params.positioner(index, insertCount), 0, newRow);
+      newDf.insertRow(newRow, params.positioner(index, insertCount));
       insertCount++;
     }
   });
-  return returnArray;
+  return newDf;
 };
 
 const buildParams = (params: unknown): InsertParams => {
@@ -89,5 +91,5 @@ const buildParams = (params: unknown): InsertParams => {
 
 export const buildInsertRows = (params: unknown, context: Context) => {
   const builtParams = buildParams(params);
-  return (rows: Row[]) => insertRows(rows, builtParams, context);
+  return (df: DataFrame) => insertRows(df, builtParams, context);
 };

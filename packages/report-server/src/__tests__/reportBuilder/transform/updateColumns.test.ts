@@ -13,7 +13,7 @@ describe('updateColumns', () => {
         transform: 'updateColumns',
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqual([{ ...SINGLE_ANALYTIC[0] }]);
+    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([{ ...SINGLE_ANALYTIC[0] }]);
   });
 
   it('can insert basic values', () => {
@@ -27,7 +27,7 @@ describe('updateColumns', () => {
         },
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqual([
+    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([
       { ...SINGLE_ANALYTIC[0], number: 1, string: 'Hi', boolean: false },
     ]);
   });
@@ -41,7 +41,9 @@ describe('updateColumns', () => {
         },
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqual([{ ...SINGLE_ANALYTIC[0], dataElementValue: 4 }]);
+    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([
+      { ...SINGLE_ANALYTIC[0], dataElementValue: 4 },
+    ]);
   });
 
   it('can use a value from the row as a column name', () => {
@@ -53,7 +55,7 @@ describe('updateColumns', () => {
         },
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqual([{ ...SINGLE_ANALYTIC[0], BCD1: 4 }]);
+    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([{ ...SINGLE_ANALYTIC[0], BCD1: 4 }]);
   });
 
   it('can execute functions', () => {
@@ -65,7 +67,9 @@ describe('updateColumns', () => {
         },
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqual([{ ...SINGLE_ANALYTIC[0], period: '1st Jan 2020' }]);
+    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([
+      { ...SINGLE_ANALYTIC[0], period: '1st Jan 2020' },
+    ]);
   });
 
   it('can include all remaining fields', () => {
@@ -78,7 +82,7 @@ describe('updateColumns', () => {
         include: '*',
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqual([
+    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([
       { period: '1st Jan 2020', organisationUnit: 'TO', dataElement: 'BCD1', value: 4 },
     ]);
   });
@@ -93,7 +97,7 @@ describe('updateColumns', () => {
         include: ['organisationUnit', 'value'],
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqual([
+    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([
       { period: '1st Jan 2020', organisationUnit: 'TO', value: 4 },
     ]);
   });
@@ -108,7 +112,7 @@ describe('updateColumns', () => {
         exclude: '*',
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqual([{ period: '1st Jan 2020' }]);
+    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([{ period: '1st Jan 2020' }]);
   });
 
   it('can exclude selected remaining fields', () => {
@@ -121,7 +125,9 @@ describe('updateColumns', () => {
         exclude: ['organisationUnit', 'value'],
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqual([{ period: '1st Jan 2020', dataElement: 'BCD1' }]);
+    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([
+      { period: '1st Jan 2020', dataElement: 'BCD1' },
+    ]);
   });
 
   it('can perform the update on all rows', () => {
@@ -135,7 +141,7 @@ describe('updateColumns', () => {
         include: ['organisationUnit'],
       },
     ]);
-    expect(transform(MULTIPLE_ANALYTICS)).toEqual([
+    expect(transform(MULTIPLE_ANALYTICS)).toEqualDataFrameOf([
       { period: '1st Jan 2020', organisationUnit: 'TO', BCD1: 4 },
       { period: '2nd Jan 2020', organisationUnit: 'TO', BCD1: 2 },
       { period: '3rd Jan 2020', organisationUnit: 'TO', BCD1: 5 },
@@ -153,19 +159,19 @@ describe('updateColumns', () => {
         include: ['period', 'organisationUnit'],
       },
     ]);
-    expect(transform(MERGEABLE_ANALYTICS)).toEqual([
+    expect(transform(MERGEABLE_ANALYTICS)).toEqualDataFrameOf([
       { period: '20200101', organisationUnit: 'TO', newVal: 8 },
       { period: '20200102', organisationUnit: 'TO', newVal: 4 },
       { period: '20200103', organisationUnit: 'TO', newVal: 10 },
-      { period: '20200101', organisationUnit: 'TO', BCD2: 11 },
-      { period: '20200102', organisationUnit: 'TO', BCD2: 1 },
-      { period: '20200103', organisationUnit: 'TO', BCD2: 0 },
+      { period: '20200101', organisationUnit: 'TO' },
+      { period: '20200102', organisationUnit: 'TO' },
+      { period: '20200103', organisationUnit: 'TO' },
       { period: '20200101', organisationUnit: 'PG', newVal: 14 },
       { period: '20200102', organisationUnit: 'PG', newVal: 16 },
       { period: '20200103', organisationUnit: 'PG', newVal: 4 },
-      { period: '20200101', organisationUnit: 'PG', BCD2: 13 },
-      { period: '20200102', organisationUnit: 'PG', BCD2: 99 },
-      { period: '20200103', organisationUnit: 'PG', BCD2: -1 },
+      { period: '20200101', organisationUnit: 'PG' },
+      { period: '20200102', organisationUnit: 'PG' },
+      { period: '20200103', organisationUnit: 'PG' },
     ]);
   });
 });

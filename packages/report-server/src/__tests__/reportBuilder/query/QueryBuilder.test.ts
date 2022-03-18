@@ -5,6 +5,7 @@
 
 /* eslint-disable jest/no-conditional-expect */
 
+// eslint-disable-next-line import/no-extraneous-dependencies
 import MockDate from 'mockdate';
 
 import { AccessPolicy } from '@tupaia/access-policy';

@@ -6,7 +6,7 @@
 import { ExpressionParser } from '@tupaia/expression-parser';
 
 import { Context } from '../../context';
-import { Row, FieldValue } from '../../types';
+import { Row } from '../../types';
 import {
   customFunctions,
   contextFunctions,
@@ -16,10 +16,6 @@ import {
 } from './functions';
 import { typeCreators, DataFrame, OrderedSet } from './customTypes';
 import { TransformScope } from './TransformScope';
-
-type RowLookup = {
-  [key: string]: FieldValue[];
-};
 
 /**
  * Lookups object for rows within the transform data
@@ -32,11 +28,6 @@ type RowLookup = {
  * '@current.BCD1 + sum(@allPrevious.BCD1)' => 21
  */
 type Lookups = {
-  current: Row;
-  previous: Row;
-  next: Row;
-  all: RowLookup;
-  allPrevious: RowLookup;
   index: number; // one-based index, this.currentRow + 1
   table: DataFrame;
   columnName: string | undefined;
@@ -46,43 +37,28 @@ type Lookups = {
 export class TransformParser extends ExpressionParser {
   private static readonly EXPRESSION_PREFIX = '=';
 
-  private currentRow = 0;
-  private rows: Row[];
-
   private table: DataFrame;
-
   private lookups: Lookups;
   // eslint-disable-next-line react/static-property-placement
   private context?: Context;
 
-  public constructor(rows: Row[] = [], context?: Context) {
+  public constructor(table: DataFrame = new DataFrame(), context?: Context) {
     super(new TransformScope());
 
-    this.rows = rows;
-    this.table = new DataFrame(this.rows);
+    this.table = table;
     this.lookups = {
-      current: {},
-      previous: {},
-      next: {},
-      all: {},
-      allPrevious: {},
-      index: this.currentRow + 1,
+      index: 1,
       table: this.table,
       columnName: undefined,
-      columnNames: new OrderedSet(this.table.columnNames),
+      columnNames: this.table.columnNames,
     };
 
-    if (rows.length > 0) {
-      this.lookups.current = this.rows[this.currentRow];
-      this.lookups.next = this.rows[this.currentRow + 1] || {};
-      this.rows.forEach(row => addRowToLookup(row, this.lookups.all));
-      addRowToLookup(this.lookups.current, this.lookups.allPrevious);
-      this.addRowToScope(this.lookups.current);
+    if (table.rowCount() > 0) {
+      this.addRowToScope(this.table.row(this.lookups.index).raw());
 
       Object.entries(this.lookups).forEach(([lookupName, lookup]) => {
         this.set(`@${lookupName}`, lookup);
       });
-      this.set('where', this.whereFunction); // no '@' prefix for where
     }
 
     this.context = context;
@@ -108,24 +84,15 @@ export class TransformParser extends ExpressionParser {
   }
 
   public next() {
-    this.removeRowFromScope(this.lookups.current);
+    this.removeRowFromScope(this.table.row(this.lookups.index).raw());
+    this.lookups.index += 1;
 
-    this.currentRow++;
-
-    if (this.currentRow >= this.rows.length) {
+    if (this.lookups.index > this.table.rowCount()) {
       return;
     }
 
-    this.lookups.previous = this.rows[this.currentRow - 1];
-    this.lookups.next = this.rows[this.currentRow + 1] || {};
-    this.lookups.current = this.rows[this.currentRow];
-    this.lookups.index = this.currentRow + 1;
-    this.set('@previous', this.lookups.previous);
-    this.set('@next', this.lookups.next);
-    this.set('@current', this.lookups.current);
     this.set('@index', this.lookups.index);
-    addRowToLookup(this.lookups.current, this.lookups.allPrevious);
-    this.addRowToScope(this.lookups.current);
+    this.addRowToScope(this.table.row(this.lookups.index).raw());
   }
 
   public addRowToScope = (row: Row) => {
@@ -140,15 +107,6 @@ export class TransformParser extends ExpressionParser {
     Object.keys(row).forEach(field => {
       this.delete(`$${field}`);
     });
-  };
-
-  private whereFunction = (check: (row: Row) => boolean) => {
-    const whereData = {};
-    const filteredRows = this.rows.filter(rowInFilter => check(rowInFilter));
-    filteredRows.forEach(row => {
-      addRowToLookup(row, whereData);
-    });
-    return whereData;
   };
 
   protected getCustomTypes() {
@@ -210,15 +168,3 @@ export class TransformParser extends ExpressionParser {
     );
   }
 }
-
-const addRowToLookup = (row: Row, lookup: RowLookup) => {
-  Object.entries(row).forEach(([field, value]) => {
-    if (value !== undefined && value !== null) {
-      if (!(field in lookup)) {
-        // eslint-disable-next-line no-param-reassign
-        lookup[field] = [];
-      }
-      lookup[field].push(value);
-    }
-  });
-};

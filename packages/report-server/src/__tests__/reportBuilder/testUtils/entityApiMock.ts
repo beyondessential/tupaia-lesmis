@@ -74,6 +74,7 @@ export const entityApiMock = (
 
       const ancestorEntityCodes = ancestorEntities.map(e => e.code);
       return ancestorEntityCodes.reduce((obj: Record<string, any[]>, ancestor) => {
+        // eslint-disable-next-line no-param-reassign
         obj[ancestor] = getDescendantsOfEntities(hierarchyName, [ancestor], descendantQueryOptions);
         return obj;
       }, {});

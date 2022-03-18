@@ -4,6 +4,7 @@
  */
 
 import { Row } from '../../types';
+import { DataFrame } from '../parser/customTypes';
 
 /**
  * Inserts a new column with a value that is the calculation of the percentage of 1s out of 1s and 0s in a row.
@@ -71,9 +72,13 @@ const getSummaryRow = (rows: Row[], columnsToSummarise: string[]) => {
   return Object.fromEntries(arrayOfColumns);
 };
 
-export const insertSummaryRowAndColumn = () => (rows: Row[]) => {
+export const insertSummaryRowAndColumn = () => (df: DataFrame) => {
+  const rows = df.rawRows();
+  const newDf = df.truncate();
   const columnsToSummarise = detectColumnsToSummarise(rows);
   const rowsWithSummaryColumn = rows.map(row => addSummaryColumn(row, columnsToSummarise));
   const summaryRow = getSummaryRow(rows, columnsToSummarise);
-  return [...rowsWithSummaryColumn, summaryRow];
+  rowsWithSummaryColumn.forEach(row => newDf.insertRow(row));
+  newDf.insertRow(summaryRow);
+  return newDf;
 };

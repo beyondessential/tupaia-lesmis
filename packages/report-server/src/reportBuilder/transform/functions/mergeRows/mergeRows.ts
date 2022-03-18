@@ -14,6 +14,7 @@ import { Row, FieldValue } from '../../../types';
 import { buildCreateGroupKey } from './createGroupKey';
 import { buildGetMergeStrategy } from './getMergeStrategy';
 import { starSingleOrMultipleColumnsValidator } from '../transformValidators';
+import { DataFrame, OrderedSet } from '../../parser/customTypes';
 
 type MergeRowsParams = {
   createGroupKey: (row: Row) => string;
@@ -64,9 +65,10 @@ type Group = {
   [fieldKey: string]: FieldValue[];
 };
 
-const groupRows = (rows: Row[], params: MergeRowsParams, context: Context) => {
+const groupRows = (df: DataFrame, params: MergeRowsParams, context: Context) => {
   const groupsByKey: Record<string, Group> = {};
-  const parser = new TransformParser(rows, context);
+  const parser = new TransformParser(df, context);
+  const rows = df.rawRows();
   const ungroupedRows: Row[] = []; // Rows that don't match the 'where' clause are left ungrouped
 
   rows.forEach((row: Row) => {
@@ -114,10 +116,14 @@ const mergeGroups = (groups: Group[], params: MergeRowsParams): Row[] => {
   });
 };
 
-const mergeRows = (rows: Row[], params: MergeRowsParams, context: Context): Row[] => {
-  const { groups, ungroupedRows } = groupRows(rows, params, context);
+const mergeRows = (df: DataFrame, params: MergeRowsParams, context: Context) => {
+  const { groups, ungroupedRows } = groupRows(df, params, context);
   const mergedRows = mergeGroups(groups, params);
-  return mergedRows.concat(ungroupedRows);
+  const allRows = mergedRows.concat(ungroupedRows);
+  const columnNames = df.columnNames
+    .asArray()
+    .filter(columnName => params.getMergeStrategy(columnName) !== 'exclude');
+  return new DataFrame(allRows, new OrderedSet(columnNames));
 };
 
 const buildParams = (params: unknown): MergeRowsParams => {
@@ -134,5 +140,5 @@ const buildParams = (params: unknown): MergeRowsParams => {
 
 export const buildMergeRows = (params: unknown, context: Context) => {
   const builtParams = buildParams(params);
-  return (rows: Row[]) => mergeRows(rows, builtParams, context);
+  return (df: DataFrame) => mergeRows(df, builtParams, context);
 };

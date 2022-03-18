@@ -6,11 +6,12 @@
 import { yup } from '@tupaia/utils';
 
 import { Context } from '../../context';
-import { Row } from '../../types';
+import { FieldValue } from '../../types';
 import { TransformParser } from '../parser';
 import { buildWhere } from './where';
 import { mapStringToStringValidator } from './transformValidators';
 import { validateEvaluatedColumnNames } from './helpers';
+import { DataFrame } from '../parser/customTypes';
 
 type InsertColumnsParams = {
   columns: { [key: string]: string };
@@ -22,28 +23,34 @@ export const paramsValidator = yup.object().shape({
   where: yup.string(),
 });
 
-const insertColumns = (rows: Row[], params: InsertColumnsParams, context: Context): Row[] => {
-  const parser = new TransformParser(rows, context);
-  return rows.map(row => {
-    const returnNewRow = params.where(parser);
-    if (!returnNewRow) {
-      parser.next();
-      return row;
-    }
-    const newRow: Row = { ...row };
+const insertColumns = (df: DataFrame, params: InsertColumnsParams, context: Context) => {
+  const parser = new TransformParser(df, context);
+  const newDf = new DataFrame(df);
+  const newColumns: Record<string, FieldValue[]> = {};
+  [...df].forEach((_, index) => {
+    const skipRow = !params.where(parser);
     Object.entries(params.columns).forEach(([key, expression]) => {
       const evaluatedKey = parser.evaluate(key);
       const columnNames = validateEvaluatedColumnNames(evaluatedKey);
       columnNames.forEach((columnName: string) => {
+        const columnData = newColumns[columnName] || new Array(df.rowCount()).fill(undefined);
+        newColumns[columnName] = columnData;
+        if (skipRow) {
+          return;
+        }
+
         parser.setColumnName(columnName);
-        newRow[columnName] = parser.evaluate(expression);
+        columnData[index] = parser.evaluate(expression);
         parser.setColumnName(undefined);
       });
     });
 
     parser.next();
-    return newRow;
   });
+  Object.entries(newColumns).forEach(([columnName, columnData]) =>
+    newDf.insertColumn(columnName, columnData),
+  );
+  return newDf;
 };
 
 const buildParams = (params: unknown): InsertColumnsParams => {
@@ -63,5 +70,5 @@ const buildParams = (params: unknown): InsertColumnsParams => {
 
 export const buildInsertColumns = (params: unknown, context: Context) => {
   const builtParams = buildParams(params);
-  return (rows: Row[]) => insertColumns(rows, builtParams, context);
+  return (df: DataFrame) => insertColumns(df, builtParams, context);
 };

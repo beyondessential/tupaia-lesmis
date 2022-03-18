@@ -8,14 +8,17 @@ import { OrderedSet } from './OrderedSet';
 
 export class DataFrameRow {
   public isDataFrameRow = true;
-  public readonly columnNames: string[];
+  public readonly columnNames: OrderedSet<string>;
 
   private readonly row: Row;
 
-  constructor(row: Row) {
-    this.row = row;
+  public static checkIsDataFrameRow(input: unknown): input is DataFrameRow {
+    return typeof input === 'object' && input !== null && 'isDataFrameRow' in input;
+  }
 
-    this.columnNames = Array.from(new Set(Object.keys(row)));
+  constructor(row: Row, columnNames?: OrderedSet<string>) {
+    this.row = row;
+    this.columnNames = columnNames || new OrderedSet(Object.keys(row));
   }
 
   public column(name: string) {
@@ -23,14 +26,21 @@ export class DataFrameRow {
   }
 
   public columns(names: string[] | OrderedSet<string>) {
-    const arrayNames = Array.isArray(names) ? names : Array.from(names);
+    const arrayNames = Array.isArray(names) ? names : names.asArray();
     arrayNames.forEach(name => {
-      if (!this.columnNames.includes(name)) {
+      if (!this.columnNames.has(name)) {
         throw new Error(`Column name (${name}) not in DataFrame`);
       }
     });
 
-    return new DataFrameRow(Object.fromEntries(arrayNames.map(name => [name, this.row[name]])));
+    return new DataFrameRow(
+      Object.fromEntries(arrayNames.map(name => [name, this.row[name]])),
+      this.columnNames,
+    );
+  }
+
+  public raw() {
+    return this.row;
   }
 
   public cells() {
@@ -42,15 +52,9 @@ export const createDataFrameRowType = {
   name: 'DataFrameRow',
   dependencies: ['typed'],
   creator: ({ typed }: { typed: any }) => {
-    // create a new data type
-
-    // define a new data type with typed-function
     typed.addType({
       name: 'DataFrameRow',
-      test: (x: unknown) => {
-        // test whether x is of type DataFrame
-        return x && typeof x === 'object' && 'isDataFrameRow' in x;
-      },
+      test: DataFrameRow.checkIsDataFrameRow,
     });
 
     return DataFrameRow;

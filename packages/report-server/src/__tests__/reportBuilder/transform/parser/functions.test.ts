@@ -4,7 +4,7 @@
  */
 
 import { TransformParser } from '../../../../reportBuilder/transform/parser';
-import { OrderedSet } from '../../../../reportBuilder/transform/parser/customTypes';
+import { DataFrame, OrderedSet } from '../../../../reportBuilder/transform/parser/customTypes';
 
 describe('functions', () => {
   describe('basic', () => {
@@ -297,11 +297,11 @@ describe('functions', () => {
     });
 
     describe('range', () => {
-      const table = [
+      const table = new DataFrame([
         { col1: 'cat', col2: 'dog', col3: 'emu' },
         { col1: 'fish', col2: 'goat', col3: 'turkey' },
         { col1: 'llama', col2: 'monkey', col3: 'moose' },
-      ];
+      ]);
 
       it('throws error when incorrect index order given', () =>
         expect(() => new TransformParser(table).evaluate('= 3:1')).toThrow());

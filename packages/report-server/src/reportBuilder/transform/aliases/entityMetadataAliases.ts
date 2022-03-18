@@ -4,7 +4,7 @@
  */
 
 import { Context } from '../../context';
-import { Row } from '../../types';
+import { DataFrame } from '../parser/customTypes';
 
 /**
  * [
@@ -18,7 +18,7 @@ import { Row } from '../../types';
  * ]
  */
 export const insertNumberOfFacilitiesColumn = {
-  transform: (context: Context) => (rows: Row[]) => {
+  transform: (context: Context) => (df: DataFrame) => {
     const { facilityCountByOrgUnit } = context;
 
     if (facilityCountByOrgUnit === undefined) {
@@ -27,7 +27,8 @@ export const insertNumberOfFacilitiesColumn = {
       );
     }
 
-    return rows.map(row => {
+    const newDf = df.truncate();
+    df.rawRows().forEach(row => {
       const { organisationUnit, ...restOfRow } = row;
 
       if (typeof organisationUnit !== 'string') {
@@ -36,12 +37,14 @@ export const insertNumberOfFacilitiesColumn = {
         );
       }
 
-      return {
+      newDf.insertRow({
         numberOfFacilities: facilityCountByOrgUnit[organisationUnit],
         organisationUnit,
         ...restOfRow,
-      };
+      });
     });
+
+    return newDf;
   },
   dependencies: ['facilityCountByOrgUnit'],
 };

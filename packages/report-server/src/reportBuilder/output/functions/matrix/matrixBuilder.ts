@@ -1,5 +1,5 @@
 import pick from 'lodash.pick';
-
+import { DataFrame } from '../../../transform/parser/customTypes';
 import { Row } from '../../../types';
 import { MatrixParams, Matrix } from './types';
 
@@ -11,12 +11,13 @@ const CATEGORY_FIELD_KEY = 'categoryId';
 const NON_COLUMNS_KEYS = [CATEGORY_FIELD_KEY, ROW_FIELD_KEY];
 
 export class MatrixBuilder {
-  private rows: Row[];
+  private df: DataFrame;
+
   private matrixData: Matrix;
   private params: MatrixParams;
 
-  public constructor(rows: Row[], params: MatrixParams) {
-    this.rows = rows;
+  public constructor(df: DataFrame, params: MatrixParams) {
+    this.df = df;
     this.params = params;
     this.matrixData = { columns: [], rows: [] };
   }
@@ -41,7 +42,7 @@ export class MatrixBuilder {
 
     const getRemainingFieldsFromRows = (includeFields: string[], excludeFields: string[]) => {
       const columns = new Set<string>();
-      this.rows.forEach(row => {
+      this.df.rawRows().forEach(row => {
         Object.keys(row).forEach(key => {
           if (!excludeFields.includes(key) && !includeFields.includes(key)) {
             columns.add(key);
@@ -66,11 +67,15 @@ export class MatrixBuilder {
     const rows: Row[] = [];
     const { rowField, categoryField } = this.params.rows;
 
-    this.rows.forEach(row => {
+    this.df.rawRows().forEach(row => {
       let newRows: Row;
       if (categoryField) {
         const { [rowField]: rowFieldData, [categoryField]: categoryId, ...restOfRow } = row;
-        newRows = { [ROW_FIELD_KEY]: rowFieldData, [CATEGORY_FIELD_KEY]: categoryId, ...restOfRow };
+        newRows = {
+          [ROW_FIELD_KEY]: rowFieldData,
+          [CATEGORY_FIELD_KEY]: categoryId,
+          ...restOfRow,
+        };
       } else {
         const { [rowField]: rowFieldData, ...restOfRow } = row;
         newRows = { [ROW_FIELD_KEY]: rowFieldData, ...restOfRow };

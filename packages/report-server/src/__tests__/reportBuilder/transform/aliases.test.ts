@@ -17,7 +17,7 @@ import { buildTransform } from '../../../reportBuilder/transform';
 describe('aliases', () => {
   it('keyValueByDataElementName', () => {
     const transform = buildTransform(['keyValueByDataElementName']);
-    expect(transform(MULTIPLE_ANALYTICS)).toEqual([
+    expect(transform(MULTIPLE_ANALYTICS)).toEqualDataFrameOf([
       { period: '20200101', organisationUnit: 'TO', BCD1: 4 },
       { period: '20200102', organisationUnit: 'TO', BCD1: 2 },
       { period: '20200103', organisationUnit: 'TO', BCD1: 5 },
@@ -26,25 +26,28 @@ describe('aliases', () => {
 
   it('keyValueByOrgUnit', () => {
     const transform = buildTransform(['keyValueByOrgUnit']);
-    expect(transform(MULTIPLE_ANALYTICS)).toEqual([
-      { period: '20200101', TO: 4, dataElement: 'BCD1' },
-      { period: '20200102', TO: 2, dataElement: 'BCD1' },
-      { period: '20200103', TO: 5, dataElement: 'BCD1' },
+    expect(transform(MULTIPLE_ANALYTICS)).toEqualDataFrameOf([
+      { period: '20200101', dataElement: 'BCD1', TO: 4 },
+      { period: '20200102', dataElement: 'BCD1', TO: 2 },
+      { period: '20200103', dataElement: 'BCD1', TO: 5 },
     ]);
   });
 
   it('keyValueByPeriod', () => {
     const transform = buildTransform(['keyValueByPeriod']);
-    expect(transform(MULTIPLE_ANALYTICS)).toEqual([
-      { '20200101': 4, organisationUnit: 'TO', dataElement: 'BCD1' },
-      { '20200102': 2, organisationUnit: 'TO', dataElement: 'BCD1' },
-      { '20200103': 5, organisationUnit: 'TO', dataElement: 'BCD1' },
-    ]);
+    expect(transform(MULTIPLE_ANALYTICS)).toEqualDataFrameOf({
+      rows: [
+        { organisationUnit: 'TO', dataElement: 'BCD1', '20200101': 4 },
+        { organisationUnit: 'TO', dataElement: 'BCD1', '20200102': 2 },
+        { organisationUnit: 'TO', dataElement: 'BCD1', '20200103': 5 },
+      ],
+      columns: ['organisationUnit', 'dataElement', '20200101', '20200102', '20200103'],
+    });
   });
 
   it('mostRecentValuePerOrgUnit', () => {
     const transform = buildTransform(['mostRecentValuePerOrgUnit']);
-    expect(transform(MERGEABLE_ANALYTICS)).toEqual([
+    expect(transform(MERGEABLE_ANALYTICS)).toEqualDataFrameOf([
       { period: '20200103', organisationUnit: 'TO', BCD1: 5, BCD2: 0 },
       { period: '20200103', organisationUnit: 'PG', BCD1: 2, BCD2: -1 },
     ]);
@@ -52,7 +55,7 @@ describe('aliases', () => {
 
   it('firstValuePerPeriodPerOrgUnit', () => {
     const transform = buildTransform(['firstValuePerPeriodPerOrgUnit']);
-    expect(transform(MULTIPLE_MERGEABLE_ANALYTICS)).toEqual([
+    expect(transform(MULTIPLE_MERGEABLE_ANALYTICS)).toEqualDataFrameOf([
       { period: '20200101', organisationUnit: 'TO', BCD1: 4, BCD2: 11 },
       { period: '20200102', organisationUnit: 'TO', BCD1: 2, BCD2: 1 },
       { period: '20200103', organisationUnit: 'TO', BCD1: 5, BCD2: 0 },
@@ -64,7 +67,7 @@ describe('aliases', () => {
 
   it('lastValuePerPeriodPerOrgUnit', () => {
     const transform = buildTransform(['lastValuePerPeriodPerOrgUnit']);
-    expect(transform(MULTIPLE_MERGEABLE_ANALYTICS)).toEqual([
+    expect(transform(MULTIPLE_MERGEABLE_ANALYTICS)).toEqualDataFrameOf([
       { period: '20200101', organisationUnit: 'TO', BCD1: 7, BCD2: 4 },
       { period: '20200102', organisationUnit: 'TO', BCD1: 12, BCD2: 18 },
       { period: '20200103', organisationUnit: 'TO', BCD1: 23, BCD2: 9 },
@@ -76,33 +79,44 @@ describe('aliases', () => {
 
   it('convertPeriodToWeek', () => {
     const transform = buildTransform(['convertPeriodToWeek']);
-    expect(transform(SINGLE_ANALYTIC)).toEqual([{ ...SINGLE_ANALYTIC[0], period: '2020W01' }]);
+    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([
+      { ...SINGLE_ANALYTIC[0], period: '2020W01' },
+    ]);
   });
 
   it('convertEventDateToWeek', () => {
     const transform = buildTransform(['convertEventDateToWeek']);
-    expect(transform(SINGLE_EVENT)).toEqual([{ ...SINGLE_EVENT[0], period: '2020W01' }]);
+    expect(transform(SINGLE_EVENT)).toEqualDataFrameOf([{ ...SINGLE_EVENT[0], period: '2020W01' }]);
   });
 
   it('insertNumberOfFacilitiesColumn', () => {
     const transform = buildTransform(['insertNumberOfFacilitiesColumn'], {
       facilityCountByOrgUnit: { TO: 14 },
     });
-    expect(transform(SINGLE_ANALYTIC)).toEqual([{ ...SINGLE_ANALYTIC[0], numberOfFacilities: 14 }]);
+    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([
+      { ...SINGLE_ANALYTIC[0], numberOfFacilities: 14 },
+    ]);
   });
 });
 
 describe('insertSummaryRowAndColumn', () => {
   it('inserts a summary row and summary column', () => {
     const transform = buildTransform(['insertSummaryRowAndColumn']);
-    expect(transform(TRANSFORMED_SUMMARY_BINARY)).toEqual([
-      { summaryColumn: '75.0%', dataElement: 'Male condoms', TO: 'N', FJ: 'N', NR: 'Y', KI: 'N' },
-      { summaryColumn: '25.0%', dataElement: 'Female condoms', TO: 'N', FJ: 'Y', NR: 'Y', KI: 'Y' },
+    expect(transform(TRANSFORMED_SUMMARY_BINARY)).toEqualDataFrameOf([
+      { dataElement: 'Male condoms', TO: 'N', FJ: 'N', NR: 'Y', KI: 'N', summaryColumn: '75.0%' },
       {
-        summaryColumn: '0.0%',
+        dataElement: 'Female condoms',
+        TO: 'N',
+        FJ: 'Y',
+        NR: 'Y',
+        KI: 'Y',
+        summaryColumn: '25.0%',
+      },
+      {
         dataElement: 'Injectable contraceptives',
         TO: 'Y',
         FJ: 'Y',
+        summaryColumn: '0.0%',
       },
       { TO: '66.7%', FJ: '33.3%', NR: '0.0%', KI: '50.0%' },
     ]);
@@ -110,14 +124,28 @@ describe('insertSummaryRowAndColumn', () => {
 
   it('only summarises columns that have only Y | N | undefined values', () => {
     const transform = buildTransform(['insertSummaryRowAndColumn']);
-    expect(transform(TRANSFORMED_SUMMARY_VARIOUS)).toEqual([
-      { summaryColumn: '66.7%', dataElement: 'Male condoms', TO: 'Yes', FJ: 'N', NR: 'Y', KI: 'N' },
-      { summaryColumn: '0.0%', dataElement: 'Female condoms', TO: 'N', FJ: 'Y', NR: 'Y', KI: 'Y' },
+    expect(transform(TRANSFORMED_SUMMARY_VARIOUS)).toEqualDataFrameOf([
       {
+        dataElement: 'Male condoms',
+        TO: 'Yes',
+        FJ: 'N',
+        NR: 'Y',
+        KI: 'N',
+        summaryColumn: '66.7%',
+      },
+      {
+        dataElement: 'Female condoms',
+        TO: 'N',
+        FJ: 'Y',
+        NR: 'Y',
+        KI: 'Y',
         summaryColumn: '0.0%',
+      },
+      {
         dataElement: 'Injectable contraceptives',
         TO: 'Y',
         FJ: 'Y',
+        summaryColumn: '0.0%',
       },
       { FJ: '33.3%', NR: '0.0%', KI: '50.0%' },
     ]);

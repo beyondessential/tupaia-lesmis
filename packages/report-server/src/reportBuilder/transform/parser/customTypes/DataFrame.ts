@@ -4,51 +4,94 @@
  */
 
 import { OrderedSet } from './OrderedSet';
-import { Row } from '../../../types';
+import { FieldValue, Row } from '../../../types';
 import { DataFrameRow } from './DataFrameRow';
 import { DataFrameColumn } from './DataFrameColumn';
 
 export class DataFrame {
   public isDataFrame = true;
-
-  public readonly columnNames: string[];
-
+  public readonly columnNames: OrderedSet<string>;
   private readonly rowData: Row[];
 
-  public length: number;
+  public static checkIsDataFrame(input: unknown): input is DataFrame {
+    return typeof input === 'object' && input !== null && 'isDataFrame' in input;
+  }
 
-  constructor(rows: Row[]) {
-    this.rowData = rows;
+  constructor(rowsOrDf: Row[] | DataFrameRow[] | DataFrame = [], columnNames?: OrderedSet<string>) {
+    if (DataFrame.checkIsDataFrame(rowsOrDf)) {
+      this.rowData = rowsOrDf.rowData.map(row => ({ ...row }));
+      this.columnNames = new OrderedSet(rowsOrDf.columnNames);
+      return;
+    }
 
-    const columnSet = new Set<string>();
-    this.rowData.forEach(row => {
-      Object.keys(row).forEach(col => columnSet.add(col));
-    });
+    this.rowData = rowsOrDf.map((row: Row | DataFrameRow) =>
+      DataFrameRow.checkIsDataFrameRow(row) ? { ...row.raw() } : { ...row },
+    );
+    this.columnNames =
+      columnNames || new OrderedSet(this.rowData.map(row => Object.keys(row)).flat());
+  }
 
-    this.columnNames = Array.from(columnSet);
-    this.length = this.rowData.length;
+  public rowCount() {
+    return this.rowData.length;
+  }
+
+  public truncate() {
+    return new DataFrame([], this.columnNames);
+  }
+
+  public insertRow(row: Row, position?: number) {
+    if (position !== undefined) {
+      this.rowData.splice(position, 0, row);
+    } else {
+      this.rowData.push(row);
+    }
+    Object.keys(row).forEach(columnName => this.columnNames.add(columnName));
   }
 
   public row(index: number) {
-    if (index < 1 || index > this.length) {
+    if (index < 1 || index > this.rowCount()) {
       throw new Error(`Index (${index}) out of length of DataFrame`);
     }
-    return new DataFrameRow(this.rowData[index - 1]);
+    return new DataFrameRow(this.rowData[index - 1], this.columnNames);
   }
 
   public rows(indexes: number[] | OrderedSet<number>) {
-    const arrayIndexes = Array.isArray(indexes) ? indexes : Array.from(indexes);
+    const arrayIndexes = Array.isArray(indexes) ? indexes : indexes.asArray();
     arrayIndexes.forEach(index => {
-      if (index < 1 || index > this.length) {
+      if (index < 1 || index > this.rowCount()) {
         throw new Error(`Index (${index}) out of length of DataFrame`);
       }
     });
 
-    return new DataFrame(arrayIndexes.map(index => this.rowData[index - 1]));
+    return new DataFrame(arrayIndexes.map(index => this.rowData[index - 1], this.columnNames));
+  }
+
+  public rawRows() {
+    return this.rowData;
+  }
+
+  public insertColumn(name: string, values: FieldValue[]) {
+    this.columnNames.add(name);
+    values.forEach((value, index) => {
+      if (index < this.rowCount()) {
+        this.rowData[index][name] = value;
+      } else {
+        const newRow = { [name]: value };
+        this.rowData.push(newRow);
+      }
+    });
+  }
+
+  public dropColumn(name: string) {
+    this.columnNames.delete(name);
+    this.rowData.forEach(row => {
+      // eslint-disable-next-line no-param-reassign
+      delete row[name];
+    });
   }
 
   public column(name: string) {
-    if (!this.columnNames.includes(name)) {
+    if (!this.columnNames.has(name)) {
       throw new Error(`Column name (${name}) not in DataFrame`);
     }
     return new DataFrameColumn(
@@ -58,9 +101,9 @@ export class DataFrame {
   }
 
   public columns(names: string[] | OrderedSet<string>) {
-    const arrayNames = Array.isArray(names) ? names : Array.from(names);
+    const arrayNames = Array.isArray(names) ? names : names.asArray();
     arrayNames.forEach(name => {
-      if (!this.columnNames.includes(name)) {
+      if (!this.columnNames.has(name)) {
         throw new Error(`Column name (${name}) not in DataFrame`);
       }
     });
@@ -73,21 +116,24 @@ export class DataFrame {
   public cells() {
     return this.rowData.map(row => Object.values(row)).flat();
   }
+
+  public [Symbol.iterator]() {
+    let index = -1;
+    const data = this.rowData.map(row => new DataFrameRow(row, this.columnNames));
+
+    return {
+      next: () => ({ value: data[++index], done: !(index in data) }),
+    };
+  }
 }
 
 export const createDataFrameType = {
   name: 'DataFrame',
   dependencies: ['typed'],
   creator: ({ typed }: { typed: any }) => {
-    // create a new data type
-
-    // define a new data type with typed-function
     typed.addType({
       name: 'DataFrame',
-      test: (x: unknown) => {
-        // test whether x is of type DataFrame
-        return x && typeof x === 'object' && 'isDataFrame' in x;
-      },
+      test: DataFrame.checkIsDataFrame,
     });
 
     return DataFrame;

@@ -14,7 +14,7 @@ describe('excludeColumns', () => {
         columns: '*',
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqual([{}]);
+    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([{}]);
   });
 
   it('can exclude selected fields', () => {
@@ -24,7 +24,7 @@ describe('excludeColumns', () => {
         columns: ['organisationUnit', 'value'],
       },
     ]);
-    expect(transform(MULTIPLE_ANALYTICS)).toEqual([
+    expect(transform(MULTIPLE_ANALYTICS)).toEqualDataFrameOf([
       { period: '20200101', dataElement: 'BCD1' },
       { period: '20200102', dataElement: 'BCD1' },
       { period: '20200103', dataElement: 'BCD1' },
