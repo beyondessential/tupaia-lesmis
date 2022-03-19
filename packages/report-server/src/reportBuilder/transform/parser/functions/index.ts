@@ -18,7 +18,7 @@ import {
   formatAsFractionAndPercentage,
 } from './utils';
 import { add, divide, equal, unequal } from './math';
-import { sum, subtract, range, mean, last } from './factory';
+import { orderedSet, bitOr, sum, subtract, range, mean, last } from './factory';
 
 /**
  * Custom functions to be imported into mathjs
@@ -74,7 +74,9 @@ export const functionOverrides = {
  * Functions to override existing mathjs functions
  */
 export const factoryFunctions = {
+  orderedSet,
   sum,
+  bitOr,
   subtract,
   range,
   mean,

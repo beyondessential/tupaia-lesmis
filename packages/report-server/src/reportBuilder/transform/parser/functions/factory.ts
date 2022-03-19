@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 /**
  * Tupaia
  * Copyright (c) 2017 - 2022 Beyond Essential Systems Pty Ltd
  */
 
-import { Matrix, typed, mean as mathjsMean, sum as mathjsSum } from 'mathjs';
+import { Matrix, typed, mean as mathjsMean, sum as mathjsSum, bitOr as mathjsBitOr } from 'mathjs';
 import { FieldValue } from '../../../types';
 import { DataFrame, DataFrameColumn, DataFrameRow, OrderedSet } from '../customTypes';
 
@@ -18,6 +20,22 @@ const sumArray = (arr: unknown[]) =>
   arr.every(item => item === undefined)
     ? undefined
     : mathjsSum(arr.filter(item => item !== undefined).map(enforceIsNumber));
+
+export const orderedSet = {
+  dependencies: ['typed', 'OrderedSet'],
+  func: ({
+    typed: customTyped,
+    OrderedSet: OrderedSetConstructor,
+  }: {
+    typed: any;
+    OrderedSet: new <T>(arr: T[]) => OrderedSet<T>;
+  }) =>
+    customTyped('orderedSet', {
+      Matrix: (matrix: Matrix) => new OrderedSetConstructor(matrix.toArray().flat()),
+      Array: (array: unknown[]) => new OrderedSetConstructor(array),
+      '...': (args: unknown[]) => new OrderedSetConstructor(args),
+    }),
+};
 
 export const sum = {
   dependencies: ['typed', 'DataFrame', 'DataFrameRow', 'DataFrameColumn'],
@@ -34,6 +52,22 @@ export const sum = {
       DataFrame: (df: DataFrame) => sumArray(df.cells()),
       DataFrameRow: (dfr: DataFrameRow) => sumArray(dfr.cells()),
       DataFrameColumn: (dfc: DataFrameColumn) => sumArray(dfc.cells()),
+    }),
+};
+
+export const bitOr = {
+  dependencies: ['typed', 'OrderedSet'],
+  func: ({ typed: customTyped }: { typed: any }) =>
+    customTyped('bitOr', {
+      'OrderedSet,OrderedSet': (set1: OrderedSet<unknown>, set2: OrderedSet<unknown>) =>
+        set1.union(set2),
+      'OrderedSet,Matrix': (set: OrderedSet<unknown>, matrix: Matrix) =>
+        set.union(new OrderedSet(matrix.toArray().flat())),
+      'OrderedSet,Array': (set: OrderedSet<unknown>, array: unknown[]) =>
+        set.union(new OrderedSet(array)),
+      'OrderedSet,any': (set: OrderedSet<unknown>, val: unknown) =>
+        set.union(new OrderedSet([val])),
+      'number,number': (num1: number, num2: number) => mathjsBitOr(num1, num2),
     }),
 };
 

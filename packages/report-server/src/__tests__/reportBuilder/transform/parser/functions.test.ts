@@ -227,6 +227,25 @@ describe('functions', () => {
         ));
     });
 
+    describe('subtract', () => {
+      it('returns the difference if two sets are subtracted', () =>
+        expect(
+          new TransformParser().evaluate(
+            "= orderedSet('cat','dog','cow') - orderedSet('dog','cow')",
+          ),
+        ).toEqual(new OrderedSet(['cat'])));
+
+      it('returns the difference if an array is subtracted from a set', () =>
+        expect(
+          new TransformParser().evaluate("= orderedSet('cat','dog','cow') - ['cat','cow']"),
+        ).toEqual(new OrderedSet(['dog'])));
+
+      it('returns the difference if an item is subtracted from a set', () =>
+        expect(new TransformParser().evaluate("= orderedSet('cat','dog', 'cow') - 'cow'")).toEqual(
+          new OrderedSet(['cat', 'dog']),
+        ));
+    });
+
     describe('divide', () => {
       it('returns undefined if second number is undefined', () =>
         expect(new TransformParser().evaluate('=1 / undefined')).toBe(undefined));
@@ -296,6 +315,23 @@ describe('functions', () => {
         expect(() => new TransformParser().evaluate("=mean(3,6,'cat')")).toThrow());
     });
 
+    describe('bitOr', () => {
+      it('returns the union if two sets are bitOr-ed', () =>
+        expect(
+          new TransformParser().evaluate("= orderedSet('cat','dog') | orderedSet('dog','cow')"),
+        ).toEqual(new OrderedSet(['cat', 'dog', 'cow'])));
+
+      it('returns the union if an array is bitOr-ed to a set', () =>
+        expect(new TransformParser().evaluate("= orderedSet('cat','dog') | ['cat','cow']")).toEqual(
+          new OrderedSet(['cat', 'dog', 'cow']),
+        ));
+
+      it('returns the union if an item is bitOr-ed to a set', () =>
+        expect(new TransformParser().evaluate("= orderedSet('cat','dog') | 'cow'")).toEqual(
+          new OrderedSet(['cat', 'dog', 'cow']),
+        ));
+    });
+
     describe('range', () => {
       const table = new DataFrame([
         { col1: 'cat', col2: 'dog', col3: 'emu' },
@@ -321,6 +357,20 @@ describe('functions', () => {
       it('returns table columns in string range', () =>
         expect(new TransformParser(table).evaluate("= 'col1':'col3'")).toEqual(
           new OrderedSet(['col1', 'col2', 'col3']),
+        ));
+    });
+  });
+
+  describe('constructors', () => {
+    describe('orderedSet', () => {
+      it('constructs an orderedSet from an array', () =>
+        expect(new TransformParser().evaluate("= orderedSet(['cat','dog'])")).toEqual(
+          new OrderedSet(['cat', 'dog']),
+        ));
+
+      it('constructs an orderedSet from all args', () =>
+        expect(new TransformParser().evaluate("= orderedSet('cat', 'dog')")).toEqual(
+          new OrderedSet(['cat', 'dog']),
         ));
     });
   });
