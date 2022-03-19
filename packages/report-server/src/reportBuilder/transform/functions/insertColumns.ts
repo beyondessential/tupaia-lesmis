@@ -6,11 +6,10 @@
 import { yup } from '@tupaia/utils';
 
 import { Context } from '../../context';
-import { FieldValue } from '../../types';
 import { TransformParser } from '../parser';
 import { buildWhere } from './where';
 import { mapStringToStringValidator } from './transformValidators';
-import { validateEvaluatedColumnNames } from './helpers';
+import { buildNewColumns } from './helpers';
 import { DataFrame } from '../parser/customTypes';
 
 type InsertColumnsParams = {
@@ -25,30 +24,10 @@ export const paramsValidator = yup.object().shape({
 
 const insertColumns = (df: DataFrame, params: InsertColumnsParams, context: Context) => {
   const parser = new TransformParser(df, context);
+  const newColumns = buildNewColumns(df, parser, params.columns, params.where);
   const newDf = new DataFrame(df);
-  const newColumns: Record<string, FieldValue[]> = {};
-  [...df].forEach((_, index) => {
-    const skipRow = !params.where(parser);
-    Object.entries(params.columns).forEach(([key, expression]) => {
-      const evaluatedKey = parser.evaluate(key);
-      const columnNames = validateEvaluatedColumnNames(evaluatedKey);
-      columnNames.forEach((columnName: string) => {
-        const columnData = newColumns[columnName] || new Array(df.rowCount()).fill(undefined);
-        newColumns[columnName] = columnData;
-        if (skipRow) {
-          return;
-        }
-
-        parser.setColumnName(columnName);
-        columnData[index] = parser.evaluate(expression);
-        parser.setColumnName(undefined);
-      });
-    });
-
-    parser.next();
-  });
   Object.entries(newColumns).forEach(([columnName, columnData]) =>
-    newDf.insertColumn(columnName, columnData),
+    newDf.upsertColumn(columnName, columnData),
   );
   return newDf;
 };

@@ -108,4 +108,30 @@ describe('insertColumns', () => {
       columns: ['period', 'organisationUnit', 'BCD1', 'BCD2', 'newVal'],
     });
   });
+
+  it('existing values are preserved if not in where', () => {
+    const transform = buildTransform([
+      {
+        transform: 'insertColumns',
+        where: "= $organisationUnit == 'TO'",
+        columns: {
+          organisationUnit: 'Tonga',
+        },
+      },
+    ]);
+    expect(transform(MERGEABLE_ANALYTICS)).toEqualDataFrameOf([
+      { ...MERGEABLE_ANALYTICS[0], organisationUnit: 'Tonga' },
+      { ...MERGEABLE_ANALYTICS[1], organisationUnit: 'Tonga' },
+      { ...MERGEABLE_ANALYTICS[2], organisationUnit: 'Tonga' },
+      { ...MERGEABLE_ANALYTICS[3], organisationUnit: 'Tonga' },
+      { ...MERGEABLE_ANALYTICS[4], organisationUnit: 'Tonga' },
+      { ...MERGEABLE_ANALYTICS[5], organisationUnit: 'Tonga' },
+      { ...MERGEABLE_ANALYTICS[6] },
+      { ...MERGEABLE_ANALYTICS[7] },
+      { ...MERGEABLE_ANALYTICS[8] },
+      { ...MERGEABLE_ANALYTICS[9] },
+      { ...MERGEABLE_ANALYTICS[10] },
+      { ...MERGEABLE_ANALYTICS[11] },
+    ]);
+  });
 });

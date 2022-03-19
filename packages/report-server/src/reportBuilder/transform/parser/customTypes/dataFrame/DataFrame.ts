@@ -9,6 +9,8 @@ import { DataFrameRow } from './DataFrameRow';
 import { DataFrameColumn } from './DataFrameColumn';
 
 export class DataFrame {
+  public static SKIP_UPSERT_CHAR = '###SKIP###'; // Used to flag if a cell should be skipped when editing
+
   public isDataFrame = true;
   public readonly columnNames: OrderedSet<string>;
   private readonly rowData: Row[];
@@ -83,15 +85,30 @@ export class DataFrame {
     );
   }
 
-  public insertColumn(name: string, values: FieldValue[]) {
-    this.columnNames.add(name);
+  public upsertColumn(name: string, values: FieldValue[]) {
+    if (values.length !== this.rowCount()) {
+      throw new Error(
+        `Error upserting column, incorrect column length (required: ${this.rowCount()}, but got: ${
+          values.length
+        }`,
+      );
+    }
+    const isExistingColumn = this.columnNames.has(name);
+    if (!isExistingColumn) {
+      this.columnNames.add(name);
+    }
+
     values.forEach((value, index) => {
-      if (index < this.rowCount()) {
-        this.rowData[index][name] = value;
-      } else {
-        const newRow = { [name]: value };
-        this.rowData.push(newRow);
+      if (value === DataFrame.SKIP_UPSERT_CHAR) {
+        if (isExistingColumn) {
+          return; // Skip editing cell to keep existing value
+        }
+
+        this.rowData[index][name] = undefined; // Set as undefined if inserting column
+        return;
       }
+
+      this.rowData[index][name] = value;
     });
   }
 

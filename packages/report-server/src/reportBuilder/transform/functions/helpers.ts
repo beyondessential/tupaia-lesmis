@@ -4,6 +4,9 @@
  */
 
 import { yup } from '@tupaia/utils';
+import { FieldValue } from '../../types';
+import { TransformParser } from '../parser';
+import { DataFrame } from '../parser/customTypes';
 
 export const getColumnMatcher = (columnsToMatch: '*' | string | string[]) => {
   if (columnsToMatch === '*') {
@@ -33,4 +36,37 @@ export const validateEvaluatedColumnNames = (input: unknown) => {
     ? Array.from(input).filter(name => name !== undefined)
     : [input];
   return columnNameValidator.validateSync(arrayOfColumnNames);
+};
+
+export const buildNewColumns = (
+  df: DataFrame,
+  parser: TransformParser,
+  columnExpressions: Record<string, string>,
+  where?: (parser: TransformParser) => boolean,
+) => {
+  const newColumns: Record<string, FieldValue[]> = {};
+
+  [...df].forEach((_, index) => {
+    const skipRow = where && !where(parser);
+    Object.entries(columnExpressions).forEach(([key, expression]) => {
+      const evaluatedKey = parser.evaluate(key);
+      const columnNames = validateEvaluatedColumnNames(evaluatedKey);
+      columnNames.forEach((columnName: string) => {
+        const columnData =
+          newColumns[columnName] || new Array(df.rowCount()).fill(DataFrame.SKIP_UPSERT_CHAR);
+        newColumns[columnName] = columnData;
+        if (skipRow) {
+          return;
+        }
+
+        parser.setColumnName(columnName);
+        columnData[index] = parser.evaluate(expression);
+        parser.setColumnName(undefined);
+      });
+    });
+
+    parser.next();
+  });
+
+  return newColumns;
 };

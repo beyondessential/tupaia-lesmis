@@ -13,7 +13,7 @@ import {
   mapStringToStringValidator,
   starSingleOrMultipleColumnsValidator,
 } from './transformValidators';
-import { getColumnMatcher, validateEvaluatedColumnNames } from './helpers';
+import { getColumnMatcher, buildNewColumns } from './helpers';
 import { DataFrame } from '../parser/customTypes';
 
 type UpdateColumnsParams = {
@@ -31,31 +31,10 @@ export const paramsValidator = yup.object().shape({
 
 const updateColumns = (df: DataFrame, params: UpdateColumnsParams, context: Context) => {
   const parser = new TransformParser(df, context);
-  const newColumns: Record<string, FieldValue[]> = {};
-  [...df].forEach((_, index) => {
-    const skipRow = !params.where(parser);
-    Object.entries(params.insert).forEach(([key, expression]) => {
-      const evaluatedKey = parser.evaluate(key);
-      const columnNames = validateEvaluatedColumnNames(evaluatedKey);
-      columnNames.forEach((columnName: string) => {
-        const columnData = newColumns[columnName] || new Array(df.rowCount()).fill(undefined);
-        newColumns[columnName] = columnData;
-        if (skipRow) {
-          return;
-        }
-
-        parser.setColumnName(columnName);
-        columnData[index] = parser.evaluate(expression);
-        parser.setColumnName(undefined);
-      });
-    });
-
-    parser.next();
-  });
-
+  const newColumns = buildNewColumns(df, parser, params.insert, params.where);
   const newDf = new DataFrame(df);
   Object.entries(newColumns).forEach(([columnName, columnData]) =>
-    newDf.insertColumn(columnName, columnData),
+    newDf.upsertColumn(columnName, columnData),
   );
 
   const newColumnNames = Object.keys(newColumns);
