@@ -122,10 +122,10 @@ export const EXCLUDEABLE_ANALYTICS = [
 ];
 
 export const PARSABLE_ANALYTICS = [
-  { period: '20200101', organisationUnit: 'TO', BCD1: 4 },
-  { period: '20200102', organisationUnit: 'TO', BCD1: 2 },
-  { period: '20200103', organisationUnit: 'TO', BCD1: 5 },
-  { period: '20200101', organisationUnit: 'PG', BCD1: 7 },
-  { period: '20200102', organisationUnit: 'PG', BCD1: 8 },
-  { period: '20200103', organisationUnit: 'PG', BCD1: 2 },
+  { period: '20200101', organisationUnit: 'TO', BCD1: 4, BCD2: 1, BCD3: 9 },
+  { period: '20200102', organisationUnit: 'TO', BCD1: 2, BCD2: 2, BCD3: 3 },
+  { period: '20200103', organisationUnit: 'TO', BCD1: 5, BCD2: 5, BCD3: 7 },
+  { period: '20200101', organisationUnit: 'PG', BCD1: 7, BCD2: 4, BCD3: 2 },
+  { period: '20200102', organisationUnit: 'PG', BCD1: 8, BCD2: 2, BCD3: 1 },
+  { period: '20200103', organisationUnit: 'PG', BCD1: 2, BCD2: 6, BCD3: 7 },
 ];

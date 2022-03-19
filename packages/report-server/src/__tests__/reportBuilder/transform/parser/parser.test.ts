@@ -7,22 +7,24 @@ import { PARSABLE_ANALYTICS } from '../transform.fixtures';
 import { buildTransform } from '../../../../reportBuilder/transform';
 
 describe('parser', () => {
-  // TODO: Fix next/current and where
-  it.skip('can do lookups', () => {
+  it('can do lookups', () => {
     const transform = buildTransform([
       {
         transform: 'updateColumns',
         insert: {
           variable: '=$BCD1',
-          current: "=@table.row(@index).column('BCD1')",
+          current: "=@row(@index).column('BCD1')",
           index: '=@index',
-          previous: "=@table.row(@index - 1).column('BCD1')",
-          next: "=@table.row(@index + 1).column('BCD1')",
-          lastAll: "=last(@table.column('BCD1').cells())",
-          sumAllPrevious: "=sum(@table.rows(1:@index).column('BCD1'))",
+          previous: "=@index > 1 ? @row(@index - 1).column('BCD1') : undefined",
+          next: "=@index < @rowCount ? @row(@index + 1).column('BCD1') : undefined",
+          lastOfColumn: "=last(@column('BCD1'))",
+          sumAllPreviousOfColumn: "=sum(@rows(1:@index).column('BCD1'))",
+          sumSetOfColumns: "=sum(@row(@index).columns('BCD1':'BCD3'))",
+          sumExcludingSetOfColumns:
+            "=sum(@row(@index).columns(@columnNames - ['period', 'organisationUnit', 'BCD1']))",
           sumWhereMatchingOrgUnit:
-            '=sum(where(f(@otherRow) = eq($organisationUnit, @otherRow.organisationUnit)).BCD1)',
-          tableLength: '=@table.rowCount()',
+            "=sum(@rows(f(row) = $organisationUnit == row.column('organisationUnit')).column('BCD1'))",
+          tableLength: '=@rowCount',
         },
         exclude: '*',
       },
@@ -32,9 +34,12 @@ describe('parser', () => {
         variable: 4,
         current: 4,
         index: 1,
+        previous: undefined,
         next: 2,
-        lastAll: 2,
-        sumAllPrevious: 4,
+        lastOfColumn: 2,
+        sumAllPreviousOfColumn: 4,
+        sumSetOfColumns: 14,
+        sumExcludingSetOfColumns: 10,
         sumWhereMatchingOrgUnit: 11,
         tableLength: 6,
       },
@@ -44,8 +49,10 @@ describe('parser', () => {
         index: 2,
         previous: 4,
         next: 5,
-        lastAll: 2,
-        sumAllPrevious: 6,
+        lastOfColumn: 2,
+        sumAllPreviousOfColumn: 6,
+        sumSetOfColumns: 7,
+        sumExcludingSetOfColumns: 5,
         sumWhereMatchingOrgUnit: 11,
         tableLength: 6,
       },
@@ -55,8 +62,10 @@ describe('parser', () => {
         index: 3,
         previous: 2,
         next: 7,
-        lastAll: 2,
-        sumAllPrevious: 11,
+        lastOfColumn: 2,
+        sumAllPreviousOfColumn: 11,
+        sumSetOfColumns: 17,
+        sumExcludingSetOfColumns: 12,
         sumWhereMatchingOrgUnit: 11,
         tableLength: 6,
       },
@@ -66,8 +75,10 @@ describe('parser', () => {
         index: 4,
         previous: 5,
         next: 8,
-        lastAll: 2,
-        sumAllPrevious: 18,
+        lastOfColumn: 2,
+        sumAllPreviousOfColumn: 18,
+        sumSetOfColumns: 13,
+        sumExcludingSetOfColumns: 6,
         sumWhereMatchingOrgUnit: 17,
         tableLength: 6,
       },
@@ -77,8 +88,10 @@ describe('parser', () => {
         index: 5,
         previous: 7,
         next: 2,
-        lastAll: 2,
-        sumAllPrevious: 26,
+        lastOfColumn: 2,
+        sumAllPreviousOfColumn: 26,
+        sumSetOfColumns: 11,
+        sumExcludingSetOfColumns: 3,
         sumWhereMatchingOrgUnit: 17,
         tableLength: 6,
       },
@@ -87,8 +100,11 @@ describe('parser', () => {
         current: 2,
         index: 6,
         previous: 8,
-        lastAll: 2,
-        sumAllPrevious: 28,
+        next: undefined,
+        lastOfColumn: 2,
+        sumAllPreviousOfColumn: 28,
+        sumSetOfColumns: 15,
+        sumExcludingSetOfColumns: 13,
         sumWhereMatchingOrgUnit: 17,
         tableLength: 6,
       },
@@ -96,41 +112,19 @@ describe('parser', () => {
   });
 
   describe('in transforms', () => {
-    // TODO: Fix exclude outside of where
-    it.skip('mergeRows supports parser lookups on where', () => {
-      const transform = buildTransform([
-        {
-          transform: 'mergeRows',
-          using: {
-            organisationUnit: 'exclude',
-            period: 'exclude',
-            '*': 'sum',
-          },
-          where: "=eq($organisationUnit, 'TO')",
-        },
-      ]);
-      expect(transform(PARSABLE_ANALYTICS)).toEqualDataFrameOf([
-        { BCD1: 11 },
-        { period: '20200101', organisationUnit: 'PG', BCD1: 7 },
-        { period: '20200102', organisationUnit: 'PG', BCD1: 8 },
-        { period: '20200103', organisationUnit: 'PG', BCD1: 2 },
-      ]);
-    });
-
-    // TODO: Fix broken test
-    it.skip('excludeRows supports parser lookups on where', () => {
+    it('excludeRows supports parser lookups on where', () => {
       const transform = buildTransform([
         {
           transform: 'excludeRows',
           where:
-            '=$BCD1 <= mean(where(f(@otherRow) = eq($organisationUnit, @otherRow.organisationUnit)).BCD1)',
+            "=$BCD1 <= mean(@rows(f(row) = $organisationUnit == row.column('organisationUnit')).column('BCD1'))",
         },
       ]);
       expect(transform(PARSABLE_ANALYTICS)).toEqualDataFrameOf([
-        { period: '20200101', organisationUnit: 'TO', BCD1: 4 },
-        { period: '20200103', organisationUnit: 'TO', BCD1: 5 },
-        { period: '20200101', organisationUnit: 'PG', BCD1: 7 },
-        { period: '20200102', organisationUnit: 'PG', BCD1: 8 },
+        { period: '20200101', organisationUnit: 'TO', BCD1: 4, BCD2: 1, BCD3: 9 },
+        { period: '20200103', organisationUnit: 'TO', BCD1: 5, BCD2: 5, BCD3: 7 },
+        { period: '20200101', organisationUnit: 'PG', BCD1: 7, BCD2: 4, BCD3: 2 },
+        { period: '20200102', organisationUnit: 'PG', BCD1: 8, BCD2: 2, BCD3: 1 },
       ]);
     });
 
@@ -141,7 +135,7 @@ describe('parser', () => {
           insert: {
             '=$organisationUnit': '=$BCD1',
           },
-          exclude: ['organisationUnit', 'BCD1'],
+          exclude: ['organisationUnit', 'BCD1', 'BCD2', 'BCD3'],
         },
       ]);
       expect(transform(PARSABLE_ANALYTICS)).toEqualDataFrameOf([
@@ -162,12 +156,12 @@ describe('parser', () => {
         },
       ]);
       expect(transform(PARSABLE_ANALYTICS)).toEqualDataFrameOf([
-        { period: '20200102', organisationUnit: 'TO', BCD1: 2 },
-        { period: '20200103', organisationUnit: 'PG', BCD1: 2 },
-        { period: '20200101', organisationUnit: 'TO', BCD1: 4 },
-        { period: '20200103', organisationUnit: 'TO', BCD1: 5 },
-        { period: '20200101', organisationUnit: 'PG', BCD1: 7 },
-        { period: '20200102', organisationUnit: 'PG', BCD1: 8 },
+        { period: '20200102', organisationUnit: 'TO', BCD1: 2, BCD2: 2, BCD3: 3 },
+        { period: '20200103', organisationUnit: 'PG', BCD1: 2, BCD2: 6, BCD3: 7 },
+        { period: '20200101', organisationUnit: 'TO', BCD1: 4, BCD2: 1, BCD3: 9 },
+        { period: '20200103', organisationUnit: 'TO', BCD1: 5, BCD2: 5, BCD3: 7 },
+        { period: '20200101', organisationUnit: 'PG', BCD1: 7, BCD2: 4, BCD3: 2 },
+        { period: '20200102', organisationUnit: 'PG', BCD1: 8, BCD2: 2, BCD3: 1 },
       ]);
     });
   });

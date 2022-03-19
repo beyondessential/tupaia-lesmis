@@ -104,7 +104,7 @@ describe('insertRows', () => {
     const transform = buildTransform([
       {
         transform: 'insertRows',
-        where: '=eq(@index, @table.rowCount())',
+        where: '=@index == @rowCount',
         columns: {
           number: '=1',
           string: 'Hi',
@@ -210,9 +210,9 @@ describe('insertRows', () => {
     const transform = buildTransform([
       {
         transform: 'insertRows',
-        where: '=eq(@index, @table.rowCount())',
+        where: '=eq(@index, @rowCount)',
         columns: {
-          Total: "=sum(@table.column('value'))",
+          Total: "=sum(@column('value'))",
         },
       },
     ]);
@@ -224,17 +224,17 @@ describe('insertRows', () => {
     ]);
   });
 
-  // TODO: Fix where
-  it.skip('compare adjacent rows to insert between', () => {
+  it('compare adjacent rows to insert between', () => {
     const transform = buildTransform([
       {
         transform: 'insertRows',
-        where: "=not(eq($organisationUnit, @table.row(@index + 1).column('organisationUnit')))",
+        where:
+          "=@index == @rowCount ? true : $organisationUnit != @row(@index + 1).column('organisationUnit')",
         columns: {
           Total_BCD1:
-            '=sum(where(f(@otherRow) = equalText(@otherRow.organisationUnit, $organisationUnit)).BCD1)',
+            "=sum(@rows(f(row) = row.column('organisationUnit') == $organisationUnit).column('BCD1'))",
           Total_BCD2:
-            '=sum(where(f(@otherRow) = equalText(@otherRow.organisationUnit, $organisationUnit)).BCD2)',
+            "=sum(@rows(f(row) = row.column('organisationUnit') == $organisationUnit).column('BCD2'))",
         },
       },
     ]);

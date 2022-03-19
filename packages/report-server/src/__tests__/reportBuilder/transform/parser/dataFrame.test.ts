@@ -17,7 +17,7 @@ describe('dataFrame', () => {
       {
         transform: 'insertColumns',
         columns: {
-          total_cases: "= sum(@table.row(@index).columns(@columnNames - 'name'))",
+          total_cases: "= sum(@row(@index).columns(@columnNames - 'name'))",
         },
       },
     ]);
@@ -34,9 +34,9 @@ describe('dataFrame', () => {
         transform: 'insertRows',
         columns: {
           name: 'Total',
-          "= @columnNames - 'name'": '= sum(@table.column(@columnName))',
+          "= @columnNames - 'name'": '= sum(@column(@columnName))',
         },
-        where: '= @index == @table.rowCount()',
+        where: '= @index == @rowCount',
       },
     ]);
     expect(transform(TABLE)).toEqualDataFrameOf([
@@ -53,9 +53,9 @@ describe('dataFrame', () => {
         transform: 'insertRows',
         columns: {
           name: 'Grand Total',
-          grand_total: "= sum(@table.columns(@columnNames - 'name'))",
+          grand_total: "= sum(@columns(@columnNames - 'name'))",
         },
-        where: '= @index == @table.rowCount()',
+        where: '= @index == @rowCount',
       },
     ]);
     expect(transform(TABLE)).toEqualDataFrameOf([

@@ -49,7 +49,7 @@ const average = (values: FieldValue[]): number | undefined => {
 };
 
 const count = (values: FieldValue[]): number => {
-  return values.length;
+  return values.filter(isNotUndefined).length;
 };
 
 // helper of max() and min(), e.g.: customSort([1, 2, 3, null]) = [null, 1, 2, 3]

@@ -3,8 +3,8 @@
  * Copyright (c) 2017 - 2022 Beyond Essential Systems Pty Ltd
  */
 
-import { FieldValue } from '../../../types';
-import { OrderedSet } from './OrderedSet';
+import { FieldValue } from '../../../../types';
+import { OrderedSet } from '../OrderedSet';
 
 export class DataFrameColumn {
   public isDataFrameColumn = true;
@@ -13,15 +13,19 @@ export class DataFrameColumn {
 
   private readonly values: FieldValue[];
 
+  public static checkIsDataFrameColumn(input: unknown): input is DataFrameColumn {
+    return typeof input === 'object' && input !== null && 'isDataFrameColumn' in input;
+  }
+
   constructor(name: string, values: FieldValue[]) {
     this.name = name;
-    this.values = values;
+    this.values = [...values];
     this.length = values.length;
   }
 
   public row(index: number) {
     if (index < 1 || index > this.length) {
-      throw new Error(`Index (${index}) out of length of DataFrame`);
+      throw new Error(`Index (${index}) out of column (${this.name})`);
     }
     return this.values[index - 1];
   }
@@ -30,7 +34,7 @@ export class DataFrameColumn {
     const arrayIndexes = Array.isArray(indexes) ? indexes : indexes.asArray();
     arrayIndexes.forEach(index => {
       if (index < 1 || index > this.length) {
-        throw new Error(`Index (${index}) out of length of DataFrame`);
+        throw new Error(`Index (${index}) out of column (${this.name})`);
       }
     });
 
@@ -49,15 +53,9 @@ export const createDataFrameColumnType = {
   name: 'DataFrameColumn',
   dependencies: ['typed'],
   creator: ({ typed }: { typed: any }) => {
-    // create a new data type
-
-    // define a new data type with typed-function
     typed.addType({
       name: 'DataFrameColumn',
-      test: (x: unknown) => {
-        // test whether x is of type DataFrame
-        return x && typeof x === 'object' && 'isDataFrameColumn' in x;
-      },
+      test: DataFrameColumn.checkIsDataFrameColumn,
     });
 
     return DataFrameColumn;

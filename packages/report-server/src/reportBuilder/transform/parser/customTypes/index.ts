@@ -3,14 +3,14 @@
  * Copyright (c) 2017 - 2021 Beyond Essential Systems Pty Ltd
  */
 
-import { createDataFrameType } from './DataFrame';
-import { createDataFrameRowType } from './DataFrameRow';
-import { createDataFrameColumnType } from './DataFrameColumn';
+import {
+  createDataFrameType,
+  createDataFrameRowType,
+  createDataFrameColumnType,
+} from './dataFrame';
 import { createOrderedSetType } from './OrderedSet';
 
-export { DataFrame } from './DataFrame';
-export { DataFrameRow } from './DataFrameRow';
-export { DataFrameColumn } from './DataFrameColumn';
+export { DataFrame, DataFrameRow, DataFrameColumn } from './dataFrame';
 export { OrderedSet } from './OrderedSet';
 
 export const typeCreators = {

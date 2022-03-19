@@ -31,7 +31,6 @@ export const paramsValidator = yup.object().shape({
 
 const updateColumns = (df: DataFrame, params: UpdateColumnsParams, context: Context) => {
   const parser = new TransformParser(df, context);
-  const newDf = new DataFrame(df);
   const newColumns: Record<string, FieldValue[]> = {};
   [...df].forEach((_, index) => {
     const skipRow = !params.where(parser);
@@ -54,6 +53,7 @@ const updateColumns = (df: DataFrame, params: UpdateColumnsParams, context: Cont
     parser.next();
   });
 
+  const newDf = new DataFrame(df);
   Object.entries(newColumns).forEach(([columnName, columnData]) =>
     newDf.insertColumn(columnName, columnData),
   );

@@ -43,9 +43,13 @@ export class MatrixBuilder {
     const getRemainingFieldsFromRows = (includeFields: string[], excludeFields: string[]) => {
       const columns = new Set<string>();
       this.df.rawRows().forEach(row => {
-        Object.keys(row).forEach(key => {
-          if (!excludeFields.includes(key) && !includeFields.includes(key)) {
-            columns.add(key);
+        Object.entries(row).forEach(([columnName, value]) => {
+          if (
+            !excludeFields.includes(columnName) &&
+            !includeFields.includes(columnName) &&
+            value !== undefined
+          ) {
+            columns.add(columnName);
           }
         });
       });
@@ -97,7 +101,10 @@ export class MatrixBuilder {
 
     this.matrixData.rows.forEach(row => {
       const columnsDataFields = pick(row, includeFields);
-      if (Object.keys(columnsDataFields).length !== 0) {
+      if (
+        Object.keys(columnsDataFields).length > 0 &&
+        Object.values(columnsDataFields).some(value => value !== undefined)
+      ) {
         const otherFields = pick(row, NON_COLUMNS_KEYS);
         newRows.push({ ...otherFields, ...columnsDataFields });
       }

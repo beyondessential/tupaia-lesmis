@@ -3,7 +3,7 @@
  * Copyright (c) 2017 - 2020 Beyond Essential Systems Pty Ltd
  */
 
-import { value, last, eq, notEq, exists, notExists, gt, length, any, all } from './basic';
+import { value, eq, notEq, exists, notExists, gt, length, any, all } from './basic';
 import {
   orgUnitCodeToName,
   dataElementCodeToName,
@@ -17,15 +17,14 @@ import {
   periodToDisplayString,
   formatAsFractionAndPercentage,
 } from './utils';
-import { add, divide, equal, mean, unequal, range } from './math';
-import { sum, subtract } from './factory';
+import { add, divide, equal, unequal } from './math';
+import { sum, subtract, range, mean, last } from './factory';
 
 /**
  * Custom functions to be imported into mathjs
  */
 export const customFunctions = {
   value,
-  last,
   eq,
   notEq,
   gt,
@@ -76,7 +75,8 @@ export const functionOverrides = {
  */
 export const factoryFunctions = {
   sum,
-  mean,
-  range,
   subtract,
+  range,
+  mean,
+  last,
 };

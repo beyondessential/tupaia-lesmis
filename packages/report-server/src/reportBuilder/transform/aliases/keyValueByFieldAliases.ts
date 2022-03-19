@@ -3,14 +3,14 @@
  * Copyright (c) 2017 - 2020 Beyond Essential Systems Pty Ltd
  */
 
-import { DataFrame } from '../parser/customTypes';
+import { DataFrame, OrderedSet } from '../parser/customTypes';
 
 /**
  * { period: '20200101', organisationUnit: 'TO', dataElement: 'CH01', value: 7 }
  *  => { period: '20200101', organisationUnit: 'TO', CH01: 7 }
  */
 export const keyValueByDataElementName = () => (df: DataFrame) => {
-  const newColumns = df.columnNames;
+  const newColumns = new OrderedSet(df.columnNames);
   newColumns.delete('dataElement');
   newColumns.delete('value');
   const newDf = new DataFrame([], newColumns);
@@ -26,7 +26,7 @@ export const keyValueByDataElementName = () => (df: DataFrame) => {
  *  => { period: '20200101', TO: 7, dataElement: 'CH01' }
  */
 export const keyValueByOrgUnit = () => (df: DataFrame) => {
-  const newColumns = df.columnNames;
+  const newColumns = new OrderedSet(df.columnNames);
   newColumns.delete('organisationUnit');
   newColumns.delete('value');
   const newDf = new DataFrame([], newColumns);
@@ -42,7 +42,7 @@ export const keyValueByOrgUnit = () => (df: DataFrame) => {
  *  => { 20200101: 7, organisationUnit: 'TO', dataElement: 'CH01' }
  */
 export const keyValueByPeriod = () => (df: DataFrame) => {
-  const newColumns = df.columnNames;
+  const newColumns = new OrderedSet(df.columnNames);
   newColumns.delete('period');
   newColumns.delete('value');
   const newDf = new DataFrame([], newColumns);

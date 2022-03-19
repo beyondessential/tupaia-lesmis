@@ -14,24 +14,21 @@ import {
   functionOverrides,
   factoryFunctions,
 } from './functions';
-import { typeCreators, DataFrame, OrderedSet } from './customTypes';
+import { typeCreators, DataFrame, OrderedSet, DataFrameRow, DataFrameColumn } from './customTypes';
 import { TransformScope } from './TransformScope';
 
 /**
- * Lookups object for rows within the transform data
- *
- * eg. if rows = [{BCD1: 5}, {BCD1: 8}, {BCD1: 4}], and currentRow = 1
- * '@current.BCD1' => 8
- * '@all.BCD1' => [5, 8, 4]
- * '@allPrevious.BCD1' => [5, 8]
- * 'where(f(@otherRow) = @otherRow.BCD1 < @current.BCD1).BCD1' => [5, 4]
- * '@current.BCD1 + sum(@allPrevious.BCD1)' => 21
+ * Lookup variables and functions for usage when writing expression
  */
 type Lookups = {
-  index: number; // one-based index, this.currentRow + 1
-  table: DataFrame;
-  columnName: string | undefined;
-  columnNames: OrderedSet<string>;
+  index: number; // one-based index of the current row being parsed
+  rowCount: number; // total rows in table
+  columnName: string | undefined; // current column being operated on
+  columnNames: OrderedSet<string>; // all columns in the table
+  row: DataFrame['row']; // selector for an individual row
+  rows: DataFrame['rows']; // selector for an multiple rows
+  column: DataFrame['column']; // selector for an individual column
+  columns: DataFrame['columns']; // selector for multiple columns
 };
 
 export class TransformParser extends ExpressionParser {
@@ -48,12 +45,18 @@ export class TransformParser extends ExpressionParser {
     this.table = table;
     this.lookups = {
       index: 1,
-      table: this.table,
+      rowCount: this.table.rowCount(),
       columnName: undefined,
       columnNames: this.table.columnNames,
+      row: (index: number) => this.table.row(index),
+      rows: (matcher: number[] | OrderedSet<number> | ((row: DataFrameRow) => boolean)) =>
+        this.table.rows(matcher),
+      column: (name: string) => this.table.column(name),
+      columns: (matcher: string[] | OrderedSet<string> | ((column: DataFrameColumn) => boolean)) =>
+        this.table.columns(matcher),
     };
 
-    if (table.rowCount() > 0) {
+    if (this.table.rowCount() > 0) {
       this.addRowToScope(this.table.row(this.lookups.index).raw());
 
       Object.entries(this.lookups).forEach(([lookupName, lookup]) => {

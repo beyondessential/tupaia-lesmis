@@ -19,7 +19,7 @@ const detectColumnsToSummarise = (rows: Row[]) => {
   const { columnsWithOnlyYorN: columnsToSummarise } = rows.reduce(
     ({ columnsWithOnlyYorN, columnsWithOtherValues }, row) => {
       Object.entries(row).forEach(([column, value]) => {
-        if (columnsWithOtherValues.has(column)) {
+        if (columnsWithOtherValues.has(column) || value === undefined) {
           /* do nothing */
         } else if (value === 'Y' || value === 'N') {
           columnsWithOnlyYorN.add(column);

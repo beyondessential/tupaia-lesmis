@@ -6,10 +6,7 @@
 import { yup } from '@tupaia/utils';
 import { yupTsUtils } from '@tupaia/tsutils';
 
-import { Context } from '../../../context';
-import { TransformParser } from '../../parser';
 import { mergeStrategies } from './mergeStrategies';
-import { buildWhere } from '../where';
 import { Row, FieldValue } from '../../../types';
 import { buildCreateGroupKey } from './createGroupKey';
 import { buildGetMergeStrategy } from './getMergeStrategy';
@@ -19,7 +16,6 @@ import { DataFrame, OrderedSet } from '../../parser/customTypes';
 type MergeRowsParams = {
   createGroupKey: (row: Row) => string;
   getMergeStrategy: (field: string) => keyof typeof mergeStrategies;
-  where: (parser: TransformParser) => boolean;
 };
 
 const optionalMergeStrategyNameValidator = yup
@@ -65,24 +61,16 @@ type Group = {
   [fieldKey: string]: FieldValue[];
 };
 
-const groupRows = (df: DataFrame, params: MergeRowsParams, context: Context) => {
+const groupRows = (df: DataFrame, params: MergeRowsParams) => {
   const groupsByKey: Record<string, Group> = {};
-  const parser = new TransformParser(df, context);
   const rows = df.rawRows();
-  const ungroupedRows: Row[] = []; // Rows that don't match the 'where' clause are left ungrouped
 
   rows.forEach((row: Row) => {
-    if (!params.where(parser)) {
-      ungroupedRows.push(row);
-      parser.next();
-      return;
-    }
     const groupKey = params.createGroupKey(row);
     addRowToGroup(groupsByKey, groupKey, row); // mutates groupsByKey
-    parser.next();
   });
 
-  return { groups: Object.values(groupsByKey), ungroupedRows };
+  return Object.values(groupsByKey);
 };
 
 const addRowToGroup = (groupsByKey: Record<string, Group>, groupKey: string, row: Row) => {
@@ -116,14 +104,13 @@ const mergeGroups = (groups: Group[], params: MergeRowsParams): Row[] => {
   });
 };
 
-const mergeRows = (df: DataFrame, params: MergeRowsParams, context: Context) => {
-  const { groups, ungroupedRows } = groupRows(df, params, context);
+const mergeRows = (df: DataFrame, params: MergeRowsParams) => {
+  const groups = groupRows(df, params);
   const mergedRows = mergeGroups(groups, params);
-  const allRows = mergedRows.concat(ungroupedRows);
   const columnNames = df.columnNames
     .asArray()
     .filter(columnName => params.getMergeStrategy(columnName) !== 'exclude');
-  return new DataFrame(allRows, new OrderedSet(columnNames));
+  return new DataFrame(mergedRows, new OrderedSet(columnNames));
 };
 
 const buildParams = (params: unknown): MergeRowsParams => {
@@ -134,11 +121,10 @@ const buildParams = (params: unknown): MergeRowsParams => {
   return {
     createGroupKey: buildCreateGroupKey(groupBy),
     getMergeStrategy: buildGetMergeStrategy(groupBy, using),
-    where: buildWhere(params),
   };
 };
 
-export const buildMergeRows = (params: unknown, context: Context) => {
+export const buildMergeRows = (params: unknown) => {
   const builtParams = buildParams(params);
-  return (df: DataFrame) => mergeRows(df, builtParams, context);
+  return (df: DataFrame) => mergeRows(df, builtParams);
 };

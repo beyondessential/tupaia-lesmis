@@ -9,18 +9,6 @@ export const value = (valueGiven: FieldValue): FieldValue => {
   return valueGiven;
 };
 
-export const last = (values: FieldValue[]): FieldValue => {
-  if (!Array.isArray(values)) {
-    throw new Error(`Function 'last' expected an array, but got: ${values}`);
-  }
-
-  if (values.length < 1) {
-    return undefined;
-  }
-
-  return values[values.length - 1];
-};
-
 export const eq = (val1: any, val2: any): boolean => {
   return val1 === val2;
 };
