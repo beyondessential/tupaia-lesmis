@@ -27,7 +27,7 @@ export const insertNumberOfFacilitiesColumn = {
       );
     }
 
-    const newDf = df.truncate();
+    const newDf = new DataFrame([], df.columnNames);
     df.rawRows().forEach(row => {
       const { organisationUnit, ...restOfRow } = row;
 

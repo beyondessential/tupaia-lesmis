@@ -38,10 +38,6 @@ export class DataFrame {
     return this.rowData.length;
   }
 
-  public truncate() {
-    return new DataFrame([], this.columnNames);
-  }
-
   public insertRow(row: Row, position?: number) {
     if (position !== undefined) {
       this.rowData.splice(position, 0, row);

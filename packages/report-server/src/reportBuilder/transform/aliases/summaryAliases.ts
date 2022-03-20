@@ -74,7 +74,7 @@ const getSummaryRow = (rows: Row[], columnsToSummarise: string[]) => {
 
 export const insertSummaryRowAndColumn = () => (df: DataFrame) => {
   const rows = df.rawRows();
-  const newDf = df.truncate();
+  const newDf = new DataFrame([], df.columnNames);
   const columnsToSummarise = detectColumnsToSummarise(rows);
   const rowsWithSummaryColumn = rows.map(row => addSummaryColumn(row, columnsToSummarise));
   const summaryRow = getSummaryRow(rows, columnsToSummarise);

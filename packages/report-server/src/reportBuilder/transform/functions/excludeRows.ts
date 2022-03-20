@@ -19,17 +19,14 @@ export const paramsValidator = yup.object().shape({
 
 const excludeRows = (df: DataFrame, params: ExcludeRowsParams, context: Context) => {
   const parser = new TransformParser(df, context);
-  const newDf = df.truncate();
 
-  df.rawRows().forEach(row => {
-    const filterResult = !params.where(parser);
+  const newRows = df.rawRows().filter(() => {
+    const keepRow = !params.where(parser);
     parser.next();
-    if (filterResult) {
-      newDf.insertRow(row);
-    }
+    return keepRow;
   });
 
-  return newDf;
+  return new DataFrame(newRows, df.columnNames);
 };
 
 const buildParams = (params: unknown): ExcludeRowsParams => {
