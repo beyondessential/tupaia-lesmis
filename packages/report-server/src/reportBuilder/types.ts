@@ -5,6 +5,6 @@
 
 export type FieldValue = string | number | boolean | undefined | null;
 
-export interface Row {
+export interface RawRow {
   [field: string]: FieldValue;
 }

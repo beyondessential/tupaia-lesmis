@@ -10,10 +10,9 @@ import { buildContext, ReqContext } from './context';
 import { buildFetch, FetchResponse } from './fetch';
 import { buildTransform } from './transform';
 import { buildOutput } from './output';
-import { Row } from './types';
+import { RawRow } from './types';
 import { OutputType } from './output/functions/outputBuilders';
 import { QueryBuilder } from './query';
-import { Table } from './transform/parser/customTypes';
 
 export interface BuiltReport {
   results: OutputType;
@@ -22,7 +21,7 @@ export interface BuiltReport {
 export class ReportBuilder {
   private readonly reqContext: ReqContext;
   private config?: ReportConfig;
-  private testData?: Row[];
+  private testData?: RawRow[];
 
   public constructor(reqContext: ReqContext) {
     this.reqContext = reqContext;
@@ -33,7 +32,7 @@ export class ReportBuilder {
     return this;
   };
 
-  public setTestData = (testData: Row[]) => {
+  public setTestData = (testData: RawRow[]) => {
     this.testData = testData;
     return this;
   };

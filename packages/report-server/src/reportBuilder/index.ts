@@ -4,5 +4,5 @@
  */
 
 export { ReportBuilder, BuiltReport } from './reportBuilder';
-export { Row } from './types';
+export { RawRow } from './types';
 export { DateSpecs } from './query';

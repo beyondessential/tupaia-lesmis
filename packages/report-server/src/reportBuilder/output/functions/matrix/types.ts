@@ -1,4 +1,4 @@
-import { Row } from '../../../types';
+import { RawRow } from '../../../types';
 
 export type MatrixParams = {
   columns: { includeFields: string[]; excludeFields: string[] };
@@ -10,5 +10,5 @@ export type Matrix = {
     key: string;
     title: string;
   }[];
-  rows: Row[];
+  rows: RawRow[];
 };

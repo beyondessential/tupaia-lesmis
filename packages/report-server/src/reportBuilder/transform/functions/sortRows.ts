@@ -7,7 +7,7 @@ import { yup, orderBy } from '@tupaia/utils';
 import { yupTsUtils } from '@tupaia/tsutils';
 
 import { TransformParser } from '../parser';
-import { Row } from '../../types';
+import { RawRow } from '../../types';
 import { starSingleOrMultipleColumnsValidator } from './transformValidators';
 import { Table } from '../parser/customTypes';
 
@@ -40,7 +40,7 @@ export const paramsValidator = yup.object().shape({
 
 const getCustomRowSortFunction = (expression: string, direction: 'asc' | 'desc') => {
   const sortParser = new TransformParser();
-  return (row1: Row, row2: Row) => {
+  return (row1: RawRow, row2: RawRow) => {
     sortParser.set('@current', row1);
     sortParser.addRowToScope(row1);
     const row1Value = sortParser.evaluate(expression);

@@ -3,10 +3,10 @@
  * Copyright (c) 2017 - 2020 Beyond Essential Systems Pty Ltd
  */
 
-import { Row } from '../../../types';
+import { RawRow } from '../../../types';
 
 export const buildCreateGroupKey = (groupBy: undefined | string | string[]) => {
-  return (row: Row) => {
+  return (row: RawRow) => {
     if (groupBy === undefined) {
       return '*';
     }

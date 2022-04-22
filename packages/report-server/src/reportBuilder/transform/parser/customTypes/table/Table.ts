@@ -4,7 +4,7 @@
  */
 
 import { OrderedSet } from '../OrderedSet';
-import { FieldValue, Row } from '../../../../types';
+import { FieldValue, RawRow } from '../../../../types';
 import { TableRow } from './TableRow';
 import { TableColumn } from './TableColumn';
 
@@ -13,20 +13,23 @@ export class Table {
 
   public isTable = true;
   public readonly columnNames: OrderedSet<string>;
-  private readonly rowData: Row[];
+  private readonly rowData: RawRow[];
 
   public static checkIsTable(input: unknown): input is Table {
     return typeof input === 'object' && input !== null && 'isTable' in input;
   }
 
   public constructor(rowsOrDf?: Table);
-  public constructor(rowsOrDf?: Row[] | TableRow[], columnNames?: OrderedSet<string>);
-  public constructor(rowsOrDf: Row[] | TableRow[] | Table = [], columnNames?: OrderedSet<string>) {
+  public constructor(rowsOrDf?: RawRow[] | TableRow[], columnNames?: OrderedSet<string>);
+  public constructor(
+    rowsOrDf: RawRow[] | TableRow[] | Table = [],
+    columnNames?: OrderedSet<string>,
+  ) {
     if (Table.checkIsTable(rowsOrDf)) {
       this.rowData = rowsOrDf.rowData.map(row => ({ ...row }));
       this.columnNames = new OrderedSet(rowsOrDf.columnNames);
     } else {
-      this.rowData = rowsOrDf.map((row: Row | TableRow) =>
+      this.rowData = rowsOrDf.map((row: RawRow | TableRow) =>
         TableRow.checkIsTableRow(row) ? { ...row.raw() } : { ...row },
       );
       this.columnNames =
@@ -38,7 +41,7 @@ export class Table {
     return this.rowData.length;
   }
 
-  public insertRow(row: Row, position?: number) {
+  public insertRow(row: RawRow, position?: number) {
     if (position !== undefined) {
       this.rowData.splice(position, 0, row);
     } else {

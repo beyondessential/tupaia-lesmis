@@ -6,7 +6,6 @@
 import { yup } from '@tupaia/utils';
 import { Table } from '../../../transform/parser/customTypes';
 
-import { Row } from '../../../types';
 import { MatrixBuilder } from './matrixBuilder';
 import { Matrix, MatrixParams } from './types';
 

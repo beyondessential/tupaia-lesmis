@@ -3,7 +3,7 @@
  * Copyright (c) 2017 - 2020 Beyond Essential Systems Pty Ltd
  */
 
-import { Row } from '../../types';
+import { RawRow } from '../../types';
 import { Table } from '../parser/customTypes';
 
 /**
@@ -15,7 +15,7 @@ import { Table } from '../parser/customTypes';
  * { facilityNameA: '100%', facilityNameB: '50%', facilityNameC: '0%', facilityNameD: '100%'  }]
  */
 
-const detectColumnsToSummarise = (rows: Row[]) => {
+const detectColumnsToSummarise = (rows: RawRow[]) => {
   const { columnsWithOnlyYorN: columnsToSummarise } = rows.reduce(
     ({ columnsWithOnlyYorN, columnsWithOtherValues }, row) => {
       Object.entries(row).forEach(([column, value]) => {
@@ -40,7 +40,7 @@ const addPercentage = (numerator: number, denominator: number) => {
   return `${((numerator / denominator) * 100).toFixed(1)}%`;
 };
 
-const addSummaryColumn = (row: Row, columnsToSummarise: string[]) => {
+const addSummaryColumn = (row: RawRow, columnsToSummarise: string[]) => {
   const numerator = Object.entries(row).filter(
     ([key, value]) => columnsToSummarise.includes(key) && value === 'N',
   ).length;
@@ -53,10 +53,10 @@ const addSummaryColumn = (row: Row, columnsToSummarise: string[]) => {
   return updatedRow;
 };
 
-const getSummaryRow = (rows: Row[], columnsToSummarise: string[]) => {
+const getSummaryRow = (rows: RawRow[], columnsToSummarise: string[]) => {
   const arrayOfColumns = columnsToSummarise.map((column: string) => {
     const { numerator, denominator } = rows.reduce(
-      (accumulator: Record<string, number>, row: Row) => {
+      (accumulator: Record<string, number>, row: RawRow) => {
         if (row[column] === 'N') {
           accumulator.numerator += 1;
           accumulator.denominator += 1;

@@ -3,7 +3,7 @@
  * Copyright (c) 2017 - 2022 Beyond Essential Systems Pty Ltd
  */
 
-import { Row } from '../../../../types';
+import { RawRow } from '../../../../types';
 import { OrderedSet } from '../OrderedSet';
 
 export class TableRow {
@@ -11,13 +11,13 @@ export class TableRow {
   public readonly columnNames: OrderedSet<string>;
   public readonly index: number;
 
-  private readonly row: Row;
+  private readonly row: RawRow;
 
   public static checkIsTableRow(input: unknown): input is TableRow {
     return typeof input === 'object' && input !== null && 'isTableRow' in input;
   }
 
-  public constructor(row: Row, index: number, columnNames?: OrderedSet<string>) {
+  public constructor(row: RawRow, index: number, columnNames?: OrderedSet<string>) {
     this.row = { ...row };
     this.index = index;
     this.columnNames = columnNames ? new OrderedSet(columnNames) : new OrderedSet(Object.keys(row));

@@ -9,7 +9,7 @@ import { createAggregator } from '@tupaia/aggregator';
 import { Route } from '@tupaia/server-boilerplate';
 
 import { ReportServerAggregator } from '../aggregator';
-import { ReportBuilder, Row, BuiltReport } from '../reportBuilder';
+import { ReportBuilder, RawRow, BuiltReport } from '../reportBuilder';
 import { ReportRouteQuery, ReportRouteBody } from './types';
 import { parseOrgUnitCodes } from './parseOrgUnitCodes';
 
@@ -17,7 +17,7 @@ export type TestReportRequest = Request<
   Record<string, never>,
   BuiltReport,
   {
-    testData?: Row[];
+    testData?: RawRow[];
     testConfig: Record<string, unknown>;
   } & ReportRouteBody,
   ReportRouteQuery

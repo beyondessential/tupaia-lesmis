@@ -1,6 +1,6 @@
 import pick from 'lodash.pick';
 import { Table } from '../../../transform/parser/customTypes';
-import { Row } from '../../../types';
+import { RawRow } from '../../../types';
 import { MatrixParams, Matrix } from './types';
 
 /** TODO: currently we are using 'dataElement' as a key in rows to specify row field (name),
@@ -68,11 +68,11 @@ export class MatrixBuilder {
   }
 
   private buildRows() {
-    const rows: Row[] = [];
+    const rows: RawRow[] = [];
     const { rowField, categoryField } = this.params.rows;
 
     this.table.rawRows().forEach(row => {
-      let newRows: Row;
+      let newRows: RawRow;
       if (categoryField) {
         const { [rowField]: rowFieldData, [categoryField]: categoryId, ...restOfRow } = row;
         newRows = {
@@ -92,7 +92,7 @@ export class MatrixBuilder {
 
   private adjustRowsToUseIncludedColumns() {
     const { includeFields } = this.params.columns;
-    const newRows: Row[] = [];
+    const newRows: RawRow[] = [];
 
     if (includeFields.includes('*')) {
       // All fields are in the matrix, so no need to filter down rows
@@ -115,7 +115,7 @@ export class MatrixBuilder {
 
   private buildCategories() {
     const categories = new Set<string>();
-    const newRows: Row[] = [...this.matrixData.rows];
+    const newRows: RawRow[] = [...this.matrixData.rows];
 
     this.matrixData.rows.forEach(row => {
       const { categoryId } = row;
@@ -125,7 +125,7 @@ export class MatrixBuilder {
     });
     if (categories.size > 0) {
       const categoriesInArray = Array.from(categories);
-      const formattedCategories: Row[] = categoriesInArray.map(category => ({ category }));
+      const formattedCategories: RawRow[] = categoriesInArray.map(category => ({ category }));
       newRows.push(...formattedCategories);
     }
 

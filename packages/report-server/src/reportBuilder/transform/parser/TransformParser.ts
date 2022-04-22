@@ -6,7 +6,7 @@
 import { ExpressionParser } from '@tupaia/expression-parser';
 
 import { Context } from '../../context';
-import { Row } from '../../types';
+import { RawRow } from '../../types';
 import {
   customFunctions,
   contextFunctions,
@@ -98,7 +98,7 @@ export class TransformParser extends ExpressionParser {
     this.addRowToScope(this.table.row(this.lookups.index).raw());
   }
 
-  public addRowToScope = (row: Row) => {
+  public addRowToScope = (row: RawRow) => {
     Object.entries(row).forEach(([field, value]) => {
       if (value !== undefined && value !== null && !field.includes(' ')) {
         this.set(`$${field}`, value);
@@ -106,7 +106,7 @@ export class TransformParser extends ExpressionParser {
     });
   };
 
-  public removeRowFromScope = (row: Row) => {
+  public removeRowFromScope = (row: RawRow) => {
     Object.keys(row).forEach(field => {
       this.delete(`$${field}`);
     });

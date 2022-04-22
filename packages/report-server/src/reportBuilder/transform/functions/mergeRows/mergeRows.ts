@@ -7,14 +7,14 @@ import { yup } from '@tupaia/utils';
 import { yupTsUtils } from '@tupaia/tsutils';
 
 import { mergeStrategies } from './mergeStrategies';
-import { Row, FieldValue } from '../../../types';
+import { RawRow, FieldValue } from '../../../types';
 import { buildCreateGroupKey } from './createGroupKey';
 import { buildGetMergeStrategy } from './getMergeStrategy';
 import { starSingleOrMultipleColumnsValidator } from '../transformValidators';
 import { Table, OrderedSet } from '../../parser/customTypes';
 
 type MergeRowsParams = {
-  createGroupKey: (row: Row) => string;
+  createGroupKey: (row: RawRow) => string;
   getMergeStrategy: (field: string) => keyof typeof mergeStrategies;
 };
 
@@ -65,7 +65,7 @@ const groupRows = (table: Table, params: MergeRowsParams) => {
   const groupsByKey: Record<string, Group> = {};
   const rows = table.rawRows();
 
-  rows.forEach((row: Row) => {
+  rows.forEach((row: RawRow) => {
     const groupKey = params.createGroupKey(row);
     addRowToGroup(groupsByKey, groupKey, row); // mutates groupsByKey
   });
@@ -73,7 +73,7 @@ const groupRows = (table: Table, params: MergeRowsParams) => {
   return Object.values(groupsByKey);
 };
 
-const addRowToGroup = (groupsByKey: Record<string, Group>, groupKey: string, row: Row) => {
+const addRowToGroup = (groupsByKey: Record<string, Group>, groupKey: string, row: RawRow) => {
   if (!groupsByKey[groupKey]) {
     // eslint-disable-next-line no-param-reassign
     groupsByKey[groupKey] = {};
@@ -90,9 +90,9 @@ const addRowToGroup = (groupsByKey: Record<string, Group>, groupKey: string, row
   });
 };
 
-const mergeGroups = (groups: Group[], params: MergeRowsParams): Row[] => {
+const mergeGroups = (groups: Group[], params: MergeRowsParams): RawRow[] => {
   return groups.map(group => {
-    const mergedRow: Row = {};
+    const mergedRow: RawRow = {};
     Object.entries(group).forEach(([fieldKey, fieldValue]) => {
       const mergeStrategy = params.getMergeStrategy(fieldKey);
       const mergedValue = mergeStrategies[mergeStrategy](fieldValue);

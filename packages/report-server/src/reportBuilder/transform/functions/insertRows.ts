@@ -6,7 +6,7 @@
 import { yup } from '@tupaia/utils';
 import { yupTsUtils } from '@tupaia/tsutils';
 
-import { Row } from '../../types';
+import { RawRow } from '../../types';
 import { Context } from '../../context';
 import { TransformParser } from '../parser';
 import { buildWhere } from './where';
@@ -49,7 +49,7 @@ const insertRows = (table: Table, params: InsertParams, context: Context) => {
       parser.next();
       return undefined;
     }
-    const newRow: Row = {};
+    const newRow: RawRow = {};
     Object.entries(params.columns).forEach(([key, expression]) => {
       const evaluatedKey = parser.evaluate(key);
       const columnNames = validateEvaluatedColumnNames(evaluatedKey);

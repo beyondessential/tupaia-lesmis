@@ -9,7 +9,7 @@ import { Context } from '../context';
 import { transformBuilders } from './functions';
 import { aliases } from './aliases';
 import { Table } from './parser/customTypes';
-import { Row } from '../types';
+import { RawRow } from '../types';
 
 type BuiltTransformParams = {
   title?: string;
@@ -37,7 +37,7 @@ const transformParamsValidator = yup.lazy((value: unknown) => {
 
 const paramsValidator = yup.array().required();
 
-const transform = (rowsOrDf: Row[] | Table, transformSteps: BuiltTransformParams[]) => {
+const transform = (rowsOrDf: RawRow[] | Table, transformSteps: BuiltTransformParams[]) => {
   let table = Table.checkIsTable(rowsOrDf) ? rowsOrDf : new Table(rowsOrDf);
   transformSteps.forEach((transformStep: BuiltTransformParams, index: number) => {
     try {
@@ -78,5 +78,5 @@ export const buildTransform = (params: unknown, context: Context = {}) => {
   const validatedParams = paramsValidator.validateSync(params);
 
   const builtParams = validatedParams.map(param => buildParams(param, context));
-  return (rowsOrDf: Row[] | Table) => transform(rowsOrDf, builtParams);
+  return (rowsOrDf: RawRow[] | Table) => transform(rowsOrDf, builtParams);
 };

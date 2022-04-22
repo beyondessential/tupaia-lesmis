@@ -4,7 +4,7 @@
  */
 
 import { addCustomJestMatchers } from '@tupaia/utils';
-import { Row } from './src/reportBuilder';
+import { RawRow } from './src/reportBuilder';
 import { Table, OrderedSet } from './src/reportBuilder/transform/parser/customTypes';
 
 addCustomJestMatchers(expect, [
@@ -15,7 +15,7 @@ addCustomJestMatchers(expect, [
     matcher: (
       expectChain: any,
       received: Table,
-      [expected]: (Row[] | { rows: Row[]; columns: string[] })[],
+      [expected]: (RawRow[] | { rows: RawRow[]; columns: string[] })[],
     ) => {
       const expectedDf = Array.isArray(expected)
         ? new Table(expected)
