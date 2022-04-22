@@ -12,7 +12,9 @@ import {
   contextFunctions,
   functionExtensions,
   functionOverrides,
+  factoryFunctions,
 } from './functions';
+import { typeCreators } from './customTypes';
 import { TransformScope } from './TransformScope';
 
 type RowLookup = {
@@ -42,6 +44,9 @@ type Lookups = {
 export class TransformParser extends ExpressionParser {
   private static readonly EXPRESSION_PREFIX = '=';
 
+  private readonly rowCount: number;
+  private readonly columnNames: string[];
+
   private currentRow = 0;
   private rows: Row[];
   private lookups: Lookups;
@@ -50,6 +55,9 @@ export class TransformParser extends ExpressionParser {
 
   public constructor(rows: Row[] = [], context?: Context) {
     super(new TransformScope());
+
+    this.rowCount = rows.length;
+    this.columnNames = Array.from(new Set(rows.map(Object.keys).flat()));
 
     this.rows = rows;
     this.lookups = {
@@ -136,14 +144,22 @@ export class TransformParser extends ExpressionParser {
     return whereData;
   };
 
+  protected getCustomTypes() {
+    return [...this.buildTypeCreators()];
+  }
+
   protected getCustomFunctions() {
-    const { functions: factoryFunctions, dependencies } = this.buildFactoryFunctions();
+    const { functions: builtContextFunctions, dependencies } = this.buildContextFunctions();
+    const getRowCount = () => this.rowCount;
+    const getColumnNames = () => this.columnNames;
 
     return {
       ...super.getCustomFunctions(),
       ...customFunctions,
-      ...factoryFunctions,
+      ...builtContextFunctions,
       ...dependencies,
+      getRowCount,
+      getColumnNames,
     };
   }
 
@@ -152,10 +168,14 @@ export class TransformParser extends ExpressionParser {
   }
 
   protected getFunctionOverrides() {
-    return { ...super.getFunctionOverrides(), ...functionOverrides };
+    return {
+      ...super.getFunctionOverrides(),
+      ...functionOverrides,
+      ...this.buildFactoryFunctions(),
+    };
   }
 
-  private buildFactoryFunctions() {
+  private buildContextFunctions() {
     const dependencies = {
       getContext: () => this.context,
     };
@@ -168,6 +188,21 @@ export class TransformParser extends ExpressionParser {
     );
 
     return { functions, dependencies };
+  }
+
+  private buildFactoryFunctions() {
+    return Object.fromEntries(
+      Object.entries(factoryFunctions).map(([fnName, { func: fn, dependencies }]) => [
+        fnName,
+        this.factory(fnName, dependencies, fn),
+      ]),
+    );
+  }
+
+  private buildTypeCreators() {
+    return Object.entries(typeCreators).map(([typeName, { creator, dependencies }]) =>
+      this.factory(typeName, dependencies, creator),
+    );
   }
 }
 

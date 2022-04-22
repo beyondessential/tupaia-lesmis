@@ -4,6 +4,7 @@
  */
 
 import { TransformParser } from '../../../../reportBuilder/transform/parser';
+import { OrderedSet } from '../../../../reportBuilder/transform/parser/customTypes';
 
 describe('functions', () => {
   describe('basic', () => {
@@ -226,6 +227,25 @@ describe('functions', () => {
         ));
     });
 
+    describe('subtract', () => {
+      it('returns the difference if two sets are subtracted', () =>
+        expect(
+          new TransformParser().evaluate(
+            "= orderedSet('cat','dog','cow') - orderedSet('dog','cow')",
+          ),
+        ).toEqual(new OrderedSet(['cat'])));
+
+      it('returns the difference if an array is subtracted from a set', () =>
+        expect(
+          new TransformParser().evaluate("= orderedSet('cat','dog','cow') - ['cat','cow']"),
+        ).toEqual(new OrderedSet(['dog'])));
+
+      it('returns the difference if an item is subtracted from a set', () =>
+        expect(new TransformParser().evaluate("= orderedSet('cat','dog', 'cow') - 'cow'")).toEqual(
+          new OrderedSet(['cat', 'dog']),
+        ));
+    });
+
     describe('divide', () => {
       it('returns undefined if second number is undefined', () =>
         expect(new TransformParser().evaluate('=1 / undefined')).toBe(undefined));
@@ -293,6 +313,65 @@ describe('functions', () => {
 
       it('throws an error if there is one string as an argument', () =>
         expect(() => new TransformParser().evaluate("=mean(3,6,'cat')")).toThrow());
+    });
+
+    describe('bitOr', () => {
+      it('returns the union if two sets are bitOr-ed', () =>
+        expect(
+          new TransformParser().evaluate("= orderedSet('cat','dog') | orderedSet('dog','cow')"),
+        ).toEqual(new OrderedSet(['cat', 'dog', 'cow'])));
+
+      it('returns the union if an array is bitOr-ed to a set', () =>
+        expect(new TransformParser().evaluate("= orderedSet('cat','dog') | ['cat','cow']")).toEqual(
+          new OrderedSet(['cat', 'dog', 'cow']),
+        ));
+
+      it('returns the union if an item is bitOr-ed to a set', () =>
+        expect(new TransformParser().evaluate("= orderedSet('cat','dog') | 'cow'")).toEqual(
+          new OrderedSet(['cat', 'dog', 'cow']),
+        ));
+    });
+
+    describe('range', () => {
+      const table = [
+        { col1: 'cat', col2: 'dog', col3: 'emu' },
+        { col1: 'fish', col2: 'goat', col3: 'turkey' },
+        { col1: 'llama', col2: 'monkey', col3: 'moose' },
+      ];
+
+      it('throws error when incorrect index order given', () =>
+        expect(() => new TransformParser(table).evaluate('= 3:1')).toThrow());
+
+      it('throws error when incorrect column order given', () =>
+        expect(() => new TransformParser(table).evaluate("= 'col3':'col1'")).toThrow());
+
+      it('throws error when unknown column given', () =>
+        expect(() => new TransformParser(table).evaluate("= 'col1':'duck'")).toThrow());
+
+      it('returns table indexes in numeric range', () =>
+        expect(new TransformParser(table).evaluate('= 1:3')).toEqual(new OrderedSet([1, 2, 3])));
+
+      it('returns table indexes in numeric range that exceeds bounds', () =>
+        expect(new TransformParser(table).evaluate('= -1:5')).toEqual(new OrderedSet([1, 2, 3])));
+
+      it('returns table columns in string range', () =>
+        expect(new TransformParser(table).evaluate("= 'col1':'col3'")).toEqual(
+          new OrderedSet(['col1', 'col2', 'col3']),
+        ));
+    });
+  });
+
+  describe('constructors', () => {
+    describe('orderedSet', () => {
+      it('constructs an orderedSet from an array', () =>
+        expect(new TransformParser().evaluate("= orderedSet(['cat','dog'])")).toEqual(
+          new OrderedSet(['cat', 'dog']),
+        ));
+
+      it('constructs an orderedSet from all args', () =>
+        expect(new TransformParser().evaluate("= orderedSet('cat', 'dog')")).toEqual(
+          new OrderedSet(['cat', 'dog']),
+        ));
     });
   });
 });
