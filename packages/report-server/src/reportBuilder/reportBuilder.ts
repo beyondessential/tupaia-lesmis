@@ -13,7 +13,7 @@ import { buildOutput } from './output';
 import { Row } from './types';
 import { OutputType } from './output/functions/outputBuilders';
 import { QueryBuilder } from './query';
-import { DataFrame } from './transform/parser/customTypes';
+import { Table } from './transform/parser/customTypes';
 
 export interface BuiltReport {
   results: OutputType;

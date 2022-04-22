@@ -4,7 +4,7 @@
  */
 
 import { yup } from '@tupaia/utils';
-import { DataFrame } from '../transform/parser/customTypes';
+import { Table } from '../transform/parser/customTypes';
 
 import { ReportServerAggregator } from '../../aggregator';
 import { Row } from '../types';
@@ -23,7 +23,7 @@ const paramsValidator = yup.object().shape({
 });
 
 const output = (
-  df: DataFrame,
+  table: Table,
   params: OutputParams,
   outputContext: OutputContext,
   aggregator: ReportServerAggregator,
@@ -31,7 +31,7 @@ const output = (
   const { type, config } = params;
 
   const outputBuilder = outputBuilders[type](config, outputContext);
-  return outputBuilder(df, aggregator);
+  return outputBuilder(table, aggregator);
 };
 
 const buildParams = (params: unknown): OutputParams => {
@@ -46,5 +46,5 @@ export const buildOutput = (
   aggregator: ReportServerAggregator,
 ) => {
   const builtParams = buildParams(params);
-  return (df: DataFrame) => output(df, builtParams, outputContext, aggregator);
+  return (table: Table) => output(table, builtParams, outputContext, aggregator);
 };

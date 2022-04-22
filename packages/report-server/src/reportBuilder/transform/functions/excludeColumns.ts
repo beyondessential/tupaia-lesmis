@@ -6,7 +6,7 @@
 import { yup } from '@tupaia/utils';
 import { starSingleOrMultipleColumnsValidator } from './transformValidators';
 import { getColumnMatcher } from './helpers';
-import { DataFrame } from '../parser/customTypes';
+import { Table } from '../parser/customTypes';
 
 type ExcludeColumnsParams = {
   shouldIncludeColumn: (field: string) => boolean;
@@ -17,8 +17,8 @@ export const paramsValidator = yup.object().shape({
   where: yup.string(),
 });
 
-const excludeColumns = (df: DataFrame, params: ExcludeColumnsParams) => {
-  const newDf = new DataFrame(df);
+const excludeColumns = (table: Table, params: ExcludeColumnsParams) => {
+  const newDf = new Table(table);
   const columnsToDelete = newDf.columnNames
     .asArray()
     .filter(column => !params.shouldIncludeColumn(column));
@@ -40,5 +40,5 @@ const buildParams = (params: unknown): ExcludeColumnsParams => {
 
 export const buildExcludeColumns = (params: unknown) => {
   const builtParams = buildParams(params);
-  return (df: DataFrame) => excludeColumns(df, builtParams);
+  return (table: Table) => excludeColumns(table, builtParams);
 };

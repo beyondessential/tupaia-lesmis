@@ -5,29 +5,29 @@
 
 import { OrderedSet } from '../OrderedSet';
 import { FieldValue, Row } from '../../../../types';
-import { DataFrameRow } from './DataFrameRow';
-import { DataFrameColumn } from './DataFrameColumn';
+import { TableRow } from './TableRow';
+import { TableColumn } from './TableColumn';
 
-export class DataFrame {
+export class Table {
   public static SKIP_UPSERT_CHAR = '###SKIP###'; // Used to flag if a cell should be skipped when editing
 
-  public isDataFrame = true;
+  public isTable = true;
   public readonly columnNames: OrderedSet<string>;
   private readonly rowData: Row[];
 
-  public static checkIsDataFrame(input: unknown): input is DataFrame {
-    return typeof input === 'object' && input !== null && 'isDataFrame' in input;
+  public static checkIsTable(input: unknown): input is Table {
+    return typeof input === 'object' && input !== null && 'isTable' in input;
   }
 
-  constructor(rowsOrDf?: DataFrame);
-  constructor(rowsOrDf?: Row[] | DataFrameRow[], columnNames?: OrderedSet<string>);
-  constructor(rowsOrDf: Row[] | DataFrameRow[] | DataFrame = [], columnNames?: OrderedSet<string>) {
-    if (DataFrame.checkIsDataFrame(rowsOrDf)) {
+  public constructor(rowsOrDf?: Table);
+  public constructor(rowsOrDf?: Row[] | TableRow[], columnNames?: OrderedSet<string>);
+  public constructor(rowsOrDf: Row[] | TableRow[] | Table = [], columnNames?: OrderedSet<string>) {
+    if (Table.checkIsTable(rowsOrDf)) {
       this.rowData = rowsOrDf.rowData.map(row => ({ ...row }));
       this.columnNames = new OrderedSet(rowsOrDf.columnNames);
     } else {
-      this.rowData = rowsOrDf.map((row: Row | DataFrameRow) =>
-        DataFrameRow.checkIsDataFrameRow(row) ? { ...row.raw() } : { ...row },
+      this.rowData = rowsOrDf.map((row: Row | TableRow) =>
+        TableRow.checkIsTableRow(row) ? { ...row.raw() } : { ...row },
       );
       this.columnNames =
         columnNames || new OrderedSet(this.rowData.map(row => Object.keys(row)).flat());
@@ -49,14 +49,14 @@ export class DataFrame {
 
   public row(index: number) {
     if (index < 1 || index > this.rowCount()) {
-      throw new Error(`Index (${index}) out of length of DataFrame`);
+      throw new Error(`Index (${index}) out of length of Table`);
     }
-    return new DataFrameRow(this.rowData[index - 1], index, this.columnNames);
+    return new TableRow(this.rowData[index - 1], index, this.columnNames);
   }
 
-  public rows(matcher: number[] | OrderedSet<number> | ((row: DataFrameRow) => boolean)) {
+  public rows(matcher: number[] | OrderedSet<number> | ((row: TableRow) => boolean)) {
     if (typeof matcher === 'function') {
-      return new DataFrame(
+      return new Table(
         Array(this.rowCount())
           .fill(0)
           .map((_, i) => this.row(i + 1))
@@ -68,11 +68,11 @@ export class DataFrame {
     const arrayIndexes = Array.isArray(matcher) ? matcher : matcher.asArray();
     arrayIndexes.forEach(index => {
       if (index < 1 || index > this.rowCount()) {
-        throw new Error(`Index (${index}) out of length of DataFrame`);
+        throw new Error(`Index (${index}) out of length of Table`);
       }
     });
 
-    return new DataFrame(arrayIndexes.map(index => this.rowData[index - 1], this.columnNames));
+    return new Table(arrayIndexes.map(index => this.rowData[index - 1], this.columnNames));
   }
 
   public rawRows() {
@@ -95,7 +95,7 @@ export class DataFrame {
     }
 
     values.forEach((value, index) => {
-      if (value === DataFrame.SKIP_UPSERT_CHAR) {
+      if (value === Table.SKIP_UPSERT_CHAR) {
         if (isExistingColumn) {
           return; // Skip editing cell to keep existing value
         }
@@ -118,16 +118,16 @@ export class DataFrame {
 
   public column(name: string) {
     if (!this.columnNames.has(name)) {
-      throw new Error(`Column name (${name}) not in DataFrame`);
+      throw new Error(`Column name (${name}) not in Table`);
     }
-    return new DataFrameColumn(
+    return new TableColumn(
       name,
       this.rowData.map(row => row[name]),
     );
   }
 
   private getMatchingColumnNames(
-    matcher: string[] | OrderedSet<string> | ((column: DataFrameColumn) => boolean),
+    matcher: string[] | OrderedSet<string> | ((column: TableColumn) => boolean),
   ) {
     if (typeof matcher === 'function') {
       return this.columnNames
@@ -140,7 +140,7 @@ export class DataFrame {
     return Array.isArray(matcher) ? matcher : matcher.asArray();
   }
 
-  public columns(matcher: string[] | OrderedSet<string> | ((column: DataFrameColumn) => boolean)) {
+  public columns(matcher: string[] | OrderedSet<string> | ((column: TableColumn) => boolean)) {
     const arrayNames = this.getMatchingColumnNames(matcher);
     arrayNames.forEach(name => {
       if (!this.columnNames.has(name)) {
@@ -148,7 +148,7 @@ export class DataFrame {
       }
     });
 
-    return new DataFrame(
+    return new Table(
       this.rowData.map(row => Object.fromEntries(arrayNames.map(name => [name, row[name]]))),
     );
   }
@@ -159,7 +159,7 @@ export class DataFrame {
 
   public [Symbol.iterator]() {
     let index = -1;
-    const data = this.rowData.map((row, i) => new DataFrameRow(row, i + 1, this.columnNames));
+    const data = this.rowData.map((row, i) => new TableRow(row, i + 1, this.columnNames));
 
     return {
       next: () => ({ value: data[++index], done: !(index in data) }),
@@ -167,15 +167,15 @@ export class DataFrame {
   }
 }
 
-export const createDataFrameType = {
-  name: 'DataFrame',
+export const createTableType = {
+  name: 'Table',
   dependencies: ['typed'],
   creator: ({ typed }: { typed: any }) => {
     typed.addType({
-      name: 'DataFrame',
-      test: DataFrame.checkIsDataFrame,
+      name: 'Table',
+      test: Table.checkIsTable,
     });
 
-    return DataFrame;
+    return Table;
   },
 };

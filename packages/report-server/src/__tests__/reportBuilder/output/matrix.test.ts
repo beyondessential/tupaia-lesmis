@@ -5,7 +5,7 @@
 
 import { ReportServerAggregator } from '../../../aggregator';
 import { buildOutput } from '../../../reportBuilder/output';
-import { DataFrame } from '../../../reportBuilder/transform/parser/customTypes';
+import { Table } from '../../../reportBuilder/transform/parser/customTypes';
 import {
   MULTIPLE_TRANSFORMED_DATA,
   MULTIPLE_TRANSFORMED_DATA_WITH_CATEGORIES,
@@ -28,7 +28,7 @@ describe('matrix', () => {
         reportServerAggregator,
       );
       expect(() => {
-        output(new DataFrame());
+        output(new Table());
       }).toThrow("columns must be either '*' or an array");
     });
 
@@ -86,9 +86,7 @@ describe('matrix', () => {
         {},
         reportServerAggregator,
       );
-      expect(output(new DataFrame(MULTIPLE_TRANSFORMED_DATA_WITH_CATEGORIES))).toEqual(
-        expectedData,
-      );
+      expect(output(new Table(MULTIPLE_TRANSFORMED_DATA_WITH_CATEGORIES))).toEqual(expectedData);
     });
 
     it("treats '*' as all columns", async () => {
@@ -146,9 +144,7 @@ describe('matrix', () => {
         {},
         reportServerAggregator,
       );
-      expect(output(new DataFrame(MULTIPLE_TRANSFORMED_DATA_WITH_CATEGORIES))).toEqual(
-        expectedData,
-      );
+      expect(output(new Table(MULTIPLE_TRANSFORMED_DATA_WITH_CATEGORIES))).toEqual(expectedData);
     });
 
     it('can include just specified columns', async () => {
@@ -185,7 +181,7 @@ describe('matrix', () => {
         {},
         reportServerAggregator,
       );
-      expect(output(new DataFrame(MULTIPLE_TRANSFORMED_DATA_FOR_SPECIFIED_COLUMNS))).toEqual(
+      expect(output(new Table(MULTIPLE_TRANSFORMED_DATA_FOR_SPECIFIED_COLUMNS))).toEqual(
         expectedData,
       );
     });
@@ -240,7 +236,7 @@ describe('matrix', () => {
         {},
         reportServerAggregator,
       );
-      expect(output(new DataFrame(MULTIPLE_TRANSFORMED_DATA_FOR_SPECIFIED_COLUMNS))).toEqual(
+      expect(output(new Table(MULTIPLE_TRANSFORMED_DATA_FOR_SPECIFIED_COLUMNS))).toEqual(
         expectedData,
       );
     });
@@ -259,7 +255,7 @@ describe('matrix', () => {
         reportServerAggregator,
       );
       expect(() => {
-        output(new DataFrame());
+        output(new Table());
       }).toThrow(
         'categoryField cannot be one of: [InfrastructureType,Laos,Tonga] they are already specified as columns',
       );
@@ -276,7 +272,7 @@ describe('matrix', () => {
         reportServerAggregator,
       );
       expect(() => {
-        output(new DataFrame());
+        output(new Table());
       }).toThrow('rowField cannot be: FacilityType, it is already specified as categoryField');
     });
 
@@ -323,7 +319,7 @@ describe('matrix', () => {
         {},
         reportServerAggregator,
       );
-      expect(output(new DataFrame(MULTIPLE_TRANSFORMED_DATA))).toEqual(expectedData);
+      expect(output(new Table(MULTIPLE_TRANSFORMED_DATA))).toEqual(expectedData);
     });
 
     it('categorizes rows by categoryField', async () => {
@@ -381,9 +377,7 @@ describe('matrix', () => {
         {},
         reportServerAggregator,
       );
-      expect(output(new DataFrame(MULTIPLE_TRANSFORMED_DATA_WITH_CATEGORIES))).toEqual(
-        expectedData,
-      );
+      expect(output(new Table(MULTIPLE_TRANSFORMED_DATA_WITH_CATEGORIES))).toEqual(expectedData);
     });
   });
 
@@ -400,7 +394,7 @@ describe('matrix', () => {
         reportServerAggregator,
       );
       expect(() => {
-        output(new DataFrame());
+        output(new Table());
       }).toThrow(
         'rowField cannot be one of: [FacilityType,Laos,Tonga] they are already specified as columns',
       );
@@ -417,7 +411,7 @@ describe('matrix', () => {
         reportServerAggregator,
       );
       expect(() => {
-        output(new DataFrame());
+        output(new Table());
       }).toThrow('rowField cannot be: FacilityType, it is already specified as categoryField');
     });
 
@@ -431,7 +425,7 @@ describe('matrix', () => {
         reportServerAggregator,
       );
       expect(() => {
-        output(new DataFrame());
+        output(new Table());
       }).toThrow('rowField is a required field');
     });
 
@@ -486,9 +480,7 @@ describe('matrix', () => {
         {},
         reportServerAggregator,
       );
-      expect(output(new DataFrame(MULTIPLE_TRANSFORMED_DATA_WITH_CATEGORIES))).toEqual(
-        expectedData,
-      );
+      expect(output(new Table(MULTIPLE_TRANSFORMED_DATA_WITH_CATEGORIES))).toEqual(expectedData);
     });
   });
 });

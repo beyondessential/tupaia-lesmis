@@ -29,7 +29,7 @@ describe('parser', () => {
         exclude: '*',
       },
     ]);
-    expect(transform(PARSABLE_ANALYTICS)).toEqualDataFrameOf([
+    expect(transform(PARSABLE_ANALYTICS)).toEqualTableOf([
       {
         variable: 4,
         current: 4,
@@ -120,7 +120,7 @@ describe('parser', () => {
             "=$BCD1 <= mean(@rows(f(row) = $organisationUnit == row.column('organisationUnit')).column('BCD1'))",
         },
       ]);
-      expect(transform(PARSABLE_ANALYTICS)).toEqualDataFrameOf([
+      expect(transform(PARSABLE_ANALYTICS)).toEqualTableOf([
         { period: '20200101', organisationUnit: 'TO', BCD1: 4, BCD2: 1, BCD3: 9 },
         { period: '20200103', organisationUnit: 'TO', BCD1: 5, BCD2: 5, BCD3: 7 },
         { period: '20200101', organisationUnit: 'PG', BCD1: 7, BCD2: 4, BCD3: 2 },
@@ -138,7 +138,7 @@ describe('parser', () => {
           exclude: ['organisationUnit', 'BCD1', 'BCD2', 'BCD3'],
         },
       ]);
-      expect(transform(PARSABLE_ANALYTICS)).toEqualDataFrameOf([
+      expect(transform(PARSABLE_ANALYTICS)).toEqualTableOf([
         { period: '20200101', TO: 4 },
         { period: '20200102', TO: 2 },
         { period: '20200103', TO: 5 },
@@ -155,7 +155,7 @@ describe('parser', () => {
           by: '=$BCD1',
         },
       ]);
-      expect(transform(PARSABLE_ANALYTICS)).toEqualDataFrameOf([
+      expect(transform(PARSABLE_ANALYTICS)).toEqualTableOf([
         { period: '20200102', organisationUnit: 'TO', BCD1: 2, BCD2: 2, BCD3: 3 },
         { period: '20200103', organisationUnit: 'PG', BCD1: 2, BCD2: 6, BCD3: 7 },
         { period: '20200101', organisationUnit: 'TO', BCD1: 4, BCD2: 1, BCD3: 9 },

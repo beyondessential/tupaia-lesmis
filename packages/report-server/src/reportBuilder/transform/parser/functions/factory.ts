@@ -7,7 +7,7 @@
 
 import { Matrix, typed, mean as mathjsMean, sum as mathjsSum, bitOr as mathjsBitOr } from 'mathjs';
 import { FieldValue } from '../../../types';
-import { DataFrame, DataFrameColumn, DataFrameRow, OrderedSet } from '../customTypes';
+import { Table, TableColumn, TableRow, OrderedSet } from '../customTypes';
 
 const enforceIsNumber = (value: unknown) => {
   if (typeof value !== 'number') {
@@ -38,7 +38,7 @@ export const orderedSet = {
 };
 
 export const sum = {
-  dependencies: ['typed', 'DataFrame', 'DataFrameRow', 'DataFrameColumn'],
+  dependencies: ['typed', 'Table', 'TableRow', 'TableColumn'],
   func: ({ typed: customTyped }: { typed: any }) =>
     customTyped('sum', {
       '...': (args: unknown[]) => {
@@ -49,9 +49,9 @@ export const sum = {
       undefined: (undef: undefined) => undefined,
       Array: sumArray,
       Matrix: (matrix: Matrix) => sumArray(matrix.toArray()),
-      DataFrame: (df: DataFrame) => sumArray(df.cells()),
-      DataFrameRow: (dfr: DataFrameRow) => sumArray(dfr.cells()),
-      DataFrameColumn: (dfc: DataFrameColumn) => sumArray(dfc.cells()),
+      Table: (table: Table) => sumArray(table.cells()),
+      TableRow: (row: TableRow) => sumArray(row.cells()),
+      TableColumn: (col: TableColumn) => sumArray(col.cells()),
     }),
 };
 
@@ -93,7 +93,7 @@ export const range = {
     getCurrentTable,
     OrderedSet: OrderedSetConstructor,
   }: {
-    getCurrentTable: () => DataFrame;
+    getCurrentTable: () => Table;
     OrderedSet: new <T>(arr: T[]) => OrderedSet<T>;
   }) =>
     typed('range', {
@@ -127,12 +127,12 @@ export const range = {
 };
 
 export const mean = {
-  dependencies: ['typed', 'DataFrameRow', 'DataFrameColumn', 'DataFrameRow'],
+  dependencies: ['typed', 'Table', 'TableColumn', 'TableRow'],
   func: ({ typed: customTyped }: { typed: any }) =>
     customTyped('mean', {
-      DataFrame: (df: DataFrame) => mathjsMean(df.cells().map(enforceIsNumber)),
-      DataFrameRow: (dfr: DataFrameRow) => mathjsMean(dfr.cells().map(enforceIsNumber)),
-      DataFrameColumn: (dfr: DataFrameRow) => mathjsMean(dfr.cells().map(enforceIsNumber)),
+      Table: (table: Table) => mathjsMean(table.cells().map(enforceIsNumber)),
+      TableRow: (row: TableRow) => mathjsMean(row.cells().map(enforceIsNumber)),
+      TableColumn: (row: TableRow) => mathjsMean(row.cells().map(enforceIsNumber)),
       '...': (vals: any[]) => mathjsMean(vals),
     }),
 };
@@ -150,10 +150,10 @@ const lastItemInArray = (values: FieldValue[]): FieldValue => {
 };
 
 export const last = {
-  dependencies: ['typed', 'DataFrameColumn'],
+  dependencies: ['typed', 'TableColumn'],
   func: ({ typed: customTyped }: { typed: any }) =>
     customTyped('last', {
-      DataFrameColumn: (dfr: DataFrameRow) => lastItemInArray(dfr.cells()),
+      TableColumn: (row: TableRow) => lastItemInArray(row.cells()),
       Array: (vals: FieldValue[]) => lastItemInArray(vals),
     }),
 };

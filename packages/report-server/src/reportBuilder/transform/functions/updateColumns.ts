@@ -14,7 +14,7 @@ import {
   starSingleOrMultipleColumnsValidator,
 } from './transformValidators';
 import { getColumnMatcher, buildNewColumns } from './helpers';
-import { DataFrame } from '../parser/customTypes';
+import { Table } from '../parser/customTypes';
 
 type UpdateColumnsParams = {
   insert: { [key: string]: string };
@@ -29,16 +29,16 @@ export const paramsValidator = yup.object().shape({
   where: yup.string(),
 });
 
-const updateColumns = (df: DataFrame, params: UpdateColumnsParams, context: Context) => {
-  const parser = new TransformParser(df, context);
-  const newColumns = buildNewColumns(df, parser, params.insert, params.where);
-  const newDf = new DataFrame(df);
+const updateColumns = (table: Table, params: UpdateColumnsParams, context: Context) => {
+  const parser = new TransformParser(table, context);
+  const newColumns = buildNewColumns(table, parser, params.insert, params.where);
+  const newDf = new Table(table);
   Object.entries(newColumns).forEach(([columnName, columnData]) =>
     newDf.upsertColumn(columnName, columnData),
   );
 
   const newColumnNames = Object.keys(newColumns);
-  const columnsToDelete = df.columnNames
+  const columnsToDelete = table.columnNames
     .asArray()
     .filter(column => !newColumnNames.includes(column) && !params.shouldIncludeColumn(column));
   columnsToDelete.forEach(column => newDf.dropColumn(column));
@@ -69,5 +69,5 @@ const buildParams = (params: unknown): UpdateColumnsParams => {
 
 export const buildUpdateColumns = (params: unknown, context: Context) => {
   const builtParams = buildParams(params);
-  return (df: DataFrame) => updateColumns(df, builtParams, context);
+  return (table: Table) => updateColumns(table, builtParams, context);
 };

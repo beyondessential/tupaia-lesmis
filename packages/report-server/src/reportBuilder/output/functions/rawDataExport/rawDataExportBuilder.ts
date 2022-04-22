@@ -4,6 +4,7 @@
  */
 
 import { ReportServerAggregator } from '../../../../aggregator';
+import { Table } from '../../../transform/parser/customTypes';
 import { Row } from '../../../types';
 import { RawDataExportContext, RawDataExport } from './types';
 
@@ -15,12 +16,12 @@ export class RawDataExportBuilder {
   private aggregator: ReportServerAggregator;
 
   public constructor(
-    rows: Row[],
+    table: Table,
     params: unknown,
     outputContext: RawDataExportContext,
     aggregator: ReportServerAggregator,
   ) {
-    this.rows = rows;
+    this.rows = table.rawRows();
     this.params = params;
     this.outputContext = outputContext;
     this.aggregator = aggregator;

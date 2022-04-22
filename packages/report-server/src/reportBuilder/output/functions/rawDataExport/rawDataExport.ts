@@ -6,6 +6,7 @@
 import { yup } from '@tupaia/utils';
 
 import { ReportServerAggregator } from '../../../../aggregator';
+import { Table } from '../../../transform/parser/customTypes';
 import { Row } from '../../../types';
 import { OutputContext } from '../../types';
 import { RawDataExportBuilder } from './rawDataExportBuilder';
@@ -16,12 +17,12 @@ const contextValidator = yup.object().shape({
 });
 
 const rawDataExport = async (
-  rows: Row[],
+  table: Table,
   params: unknown,
   outputContext: RawDataExportContext,
   aggregator: ReportServerAggregator,
 ): Promise<RawDataExport> => {
-  return new RawDataExportBuilder(rows, params, outputContext, aggregator).build();
+  return new RawDataExportBuilder(table, params, outputContext, aggregator).build();
 };
 
 const buildParams = (params: unknown): unknown => {
@@ -37,6 +38,6 @@ export const buildRawDataExport = (params: unknown, outputContext: OutputContext
   const builtParams = buildParams(params);
   const builtOutputContext = buildContext(outputContext);
 
-  return (rows: Row[], aggregator: ReportServerAggregator) =>
-    rawDataExport(rows, builtParams, builtOutputContext, aggregator);
+  return (table: Table, aggregator: ReportServerAggregator) =>
+    rawDataExport(table, builtParams, builtOutputContext, aggregator);
 };

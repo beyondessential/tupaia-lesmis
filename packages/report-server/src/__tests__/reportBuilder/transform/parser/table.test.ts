@@ -11,7 +11,7 @@ const TABLE = [
   { name: 'Gill', afr_cases: 4, ili_cases: 7, dia_cases: 13 },
 ];
 
-describe('dataFrame', () => {
+describe('table', () => {
   it('can add a total column', () => {
     const transform = buildTransform([
       {
@@ -21,7 +21,7 @@ describe('dataFrame', () => {
         },
       },
     ]);
-    expect(transform(TABLE)).toEqualDataFrameOf([
+    expect(transform(TABLE)).toEqualTableOf([
       { name: 'Bob', afr_cases: 3, ili_cases: 12, dia_cases: 23, total_cases: 38 },
       { name: 'Cat', afr_cases: 0, dia_cases: 34, total_cases: 34 },
       { name: 'Gill', afr_cases: 4, ili_cases: 7, dia_cases: 13, total_cases: 24 },
@@ -39,7 +39,7 @@ describe('dataFrame', () => {
         where: '= @index == @rowCount',
       },
     ]);
-    expect(transform(TABLE)).toEqualDataFrameOf([
+    expect(transform(TABLE)).toEqualTableOf([
       { name: 'Bob', afr_cases: 3, ili_cases: 12, dia_cases: 23 },
       { name: 'Cat', afr_cases: 0, dia_cases: 34 },
       { name: 'Gill', afr_cases: 4, ili_cases: 7, dia_cases: 13 },
@@ -58,7 +58,7 @@ describe('dataFrame', () => {
         where: '= @index == @rowCount',
       },
     ]);
-    expect(transform(TABLE)).toEqualDataFrameOf([
+    expect(transform(TABLE)).toEqualTableOf([
       { name: 'Bob', afr_cases: 3, ili_cases: 12, dia_cases: 23 },
       { name: 'Cat', afr_cases: 0, dia_cases: 34 },
       { name: 'Gill', afr_cases: 4, ili_cases: 7, dia_cases: 13 },

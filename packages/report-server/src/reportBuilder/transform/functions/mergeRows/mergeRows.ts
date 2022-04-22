@@ -11,7 +11,7 @@ import { Row, FieldValue } from '../../../types';
 import { buildCreateGroupKey } from './createGroupKey';
 import { buildGetMergeStrategy } from './getMergeStrategy';
 import { starSingleOrMultipleColumnsValidator } from '../transformValidators';
-import { DataFrame, OrderedSet } from '../../parser/customTypes';
+import { Table, OrderedSet } from '../../parser/customTypes';
 
 type MergeRowsParams = {
   createGroupKey: (row: Row) => string;
@@ -61,9 +61,9 @@ type Group = {
   [fieldKey: string]: FieldValue[];
 };
 
-const groupRows = (df: DataFrame, params: MergeRowsParams) => {
+const groupRows = (table: Table, params: MergeRowsParams) => {
   const groupsByKey: Record<string, Group> = {};
-  const rows = df.rawRows();
+  const rows = table.rawRows();
 
   rows.forEach((row: Row) => {
     const groupKey = params.createGroupKey(row);
@@ -104,13 +104,13 @@ const mergeGroups = (groups: Group[], params: MergeRowsParams): Row[] => {
   });
 };
 
-const mergeRows = (df: DataFrame, params: MergeRowsParams) => {
-  const groups = groupRows(df, params);
+const mergeRows = (table: Table, params: MergeRowsParams) => {
+  const groups = groupRows(table, params);
   const mergedRows = mergeGroups(groups, params);
-  const columnNames = df.columnNames
+  const columnNames = table.columnNames
     .asArray()
     .filter(columnName => params.getMergeStrategy(columnName) !== 'exclude');
-  return new DataFrame(mergedRows, new OrderedSet(columnNames));
+  return new Table(mergedRows, new OrderedSet(columnNames));
 };
 
 const buildParams = (params: unknown): MergeRowsParams => {
@@ -126,5 +126,5 @@ const buildParams = (params: unknown): MergeRowsParams => {
 
 export const buildMergeRows = (params: unknown) => {
   const builtParams = buildParams(params);
-  return (df: DataFrame) => mergeRows(df, builtParams);
+  return (table: Table) => mergeRows(table, builtParams);
 };

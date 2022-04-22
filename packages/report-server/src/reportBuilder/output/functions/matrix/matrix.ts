@@ -4,7 +4,7 @@
  */
 
 import { yup } from '@tupaia/utils';
-import { DataFrame } from '../../../transform/parser/customTypes';
+import { Table } from '../../../transform/parser/customTypes';
 
 import { Row } from '../../../types';
 import { MatrixBuilder } from './matrixBuilder';
@@ -57,8 +57,8 @@ const paramsValidator = yup.object().shape(
   [['rowField', 'categoryField']],
 );
 
-const matrix = (df: DataFrame, params: MatrixParams): Matrix => {
-  return new MatrixBuilder(df, params).build();
+const matrix = (table: Table, params: MatrixParams): Matrix => {
+  return new MatrixBuilder(table, params).build();
 };
 
 const buildParams = (params: unknown): MatrixParams => {
@@ -77,5 +77,5 @@ const buildParams = (params: unknown): MatrixParams => {
 
 export const buildMatrix = (params: unknown) => {
   const builtParams = buildParams(params);
-  return (df: DataFrame) => matrix(df, builtParams);
+  return (table: Table) => matrix(table, builtParams);
 };

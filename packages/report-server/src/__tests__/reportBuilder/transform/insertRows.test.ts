@@ -19,7 +19,7 @@ describe('insertRows', () => {
         },
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([
+    expect(transform(SINGLE_ANALYTIC)).toEqualTableOf([
       ...SINGLE_ANALYTIC,
       { number: 1, string: 'Hi', boolean: false },
     ]);
@@ -34,7 +34,7 @@ describe('insertRows', () => {
         },
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([
+    expect(transform(SINGLE_ANALYTIC)).toEqualTableOf([
       ...SINGLE_ANALYTIC,
       { dataElementValue: 4 },
     ]);
@@ -49,7 +49,7 @@ describe('insertRows', () => {
         },
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([...SINGLE_ANALYTIC, { BCD1: 4 }]);
+    expect(transform(SINGLE_ANALYTIC)).toEqualTableOf([...SINGLE_ANALYTIC, { BCD1: 4 }]);
   });
 
   it('can execute functions', () => {
@@ -61,7 +61,7 @@ describe('insertRows', () => {
         },
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([
+    expect(transform(SINGLE_ANALYTIC)).toEqualTableOf([
       ...SINGLE_ANALYTIC,
       { period: '1st Jan 2020' },
     ]);
@@ -81,7 +81,7 @@ describe('insertRows', () => {
         },
       },
     ]);
-    expect(transform(MULTIPLE_ANALYTICS)).toEqualDataFrameOf({
+    expect(transform(MULTIPLE_ANALYTICS)).toEqualTableOf({
       rows: [
         { number: 1, string: 'Hi', boolean: false },
         { period: '20200101', organisationUnit: 'TO', dataElement: 'BCD1', value: 4 },
@@ -112,7 +112,7 @@ describe('insertRows', () => {
         },
       },
     ]);
-    expect(transform(MULTIPLE_ANALYTICS)).toEqualDataFrameOf([
+    expect(transform(MULTIPLE_ANALYTICS)).toEqualTableOf([
       { period: '20200101', organisationUnit: 'TO', dataElement: 'BCD1', value: 4 },
       { period: '20200102', organisationUnit: 'TO', dataElement: 'BCD1', value: 2 },
       { period: '20200103', organisationUnit: 'TO', dataElement: 'BCD1', value: 5 },
@@ -129,7 +129,7 @@ describe('insertRows', () => {
         },
       },
     ]);
-    expect(transform(MULTIPLE_ANALYTICS)).toEqualDataFrameOf([
+    expect(transform(MULTIPLE_ANALYTICS)).toEqualTableOf([
       { period: '20200101', organisationUnit: 'TO', dataElement: 'BCD1', value: 4 },
       { dataElementValue: 4 },
       { period: '20200102', organisationUnit: 'TO', dataElement: 'BCD1', value: 2 },
@@ -149,7 +149,7 @@ describe('insertRows', () => {
         position: 'before',
       },
     ]);
-    expect(transform(MULTIPLE_ANALYTICS)).toEqualDataFrameOf({
+    expect(transform(MULTIPLE_ANALYTICS)).toEqualTableOf({
       rows: [
         { dataElementValue: 4 },
         { period: '20200101', organisationUnit: 'TO', dataElement: 'BCD1', value: 4 },
@@ -172,7 +172,7 @@ describe('insertRows', () => {
         position: 'start',
       },
     ]);
-    expect(transform(MULTIPLE_ANALYTICS)).toEqualDataFrameOf({
+    expect(transform(MULTIPLE_ANALYTICS)).toEqualTableOf({
       rows: [
         { dataElementValue: 4 },
         { dataElementValue: 2 },
@@ -196,7 +196,7 @@ describe('insertRows', () => {
         where: "=not(eq($period, '20200101'))",
       },
     ]);
-    expect(transform(MULTIPLE_ANALYTICS)).toEqualDataFrameOf([
+    expect(transform(MULTIPLE_ANALYTICS)).toEqualTableOf([
       { period: '20200101', organisationUnit: 'TO', dataElement: 'BCD1', value: 4 },
       { period: '20200102', organisationUnit: 'TO', dataElement: 'BCD1', value: 2 },
       { dataElementValue: 2 },
@@ -216,7 +216,7 @@ describe('insertRows', () => {
         },
       },
     ]);
-    expect(transform(MULTIPLE_ANALYTICS)).toEqualDataFrameOf([
+    expect(transform(MULTIPLE_ANALYTICS)).toEqualTableOf([
       { period: '20200101', organisationUnit: 'TO', dataElement: 'BCD1', value: 4 },
       { period: '20200102', organisationUnit: 'TO', dataElement: 'BCD1', value: 2 },
       { period: '20200103', organisationUnit: 'TO', dataElement: 'BCD1', value: 5 },
@@ -238,7 +238,7 @@ describe('insertRows', () => {
         },
       },
     ]);
-    expect(transform(MERGEABLE_ANALYTICS)).toEqualDataFrameOf([
+    expect(transform(MERGEABLE_ANALYTICS)).toEqualTableOf([
       { period: '20200101', organisationUnit: 'TO', BCD1: 4 },
       { period: '20200102', organisationUnit: 'TO', BCD1: 2 },
       { period: '20200103', organisationUnit: 'TO', BCD1: 5 },

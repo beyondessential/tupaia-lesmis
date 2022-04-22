@@ -10,7 +10,7 @@ import { TransformParser } from '../parser';
 import { buildWhere } from './where';
 import { mapStringToStringValidator } from './transformValidators';
 import { buildNewColumns } from './helpers';
-import { DataFrame } from '../parser/customTypes';
+import { Table } from '../parser/customTypes';
 
 type InsertColumnsParams = {
   columns: { [key: string]: string };
@@ -22,10 +22,10 @@ export const paramsValidator = yup.object().shape({
   where: yup.string(),
 });
 
-const insertColumns = (df: DataFrame, params: InsertColumnsParams, context: Context) => {
-  const parser = new TransformParser(df, context);
-  const newColumns = buildNewColumns(df, parser, params.columns, params.where);
-  const newDf = new DataFrame(df);
+const insertColumns = (table: Table, params: InsertColumnsParams, context: Context) => {
+  const parser = new TransformParser(table, context);
+  const newColumns = buildNewColumns(table, parser, params.columns, params.where);
+  const newDf = new Table(table);
   Object.entries(newColumns).forEach(([columnName, columnData]) =>
     newDf.upsertColumn(columnName, columnData),
   );
@@ -49,5 +49,5 @@ const buildParams = (params: unknown): InsertColumnsParams => {
 
 export const buildInsertColumns = (params: unknown, context: Context) => {
   const builtParams = buildParams(params);
-  return (df: DataFrame) => insertColumns(df, builtParams, context);
+  return (table: Table) => insertColumns(table, builtParams, context);
 };

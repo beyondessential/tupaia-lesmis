@@ -4,7 +4,7 @@
  */
 
 import { TransformParser } from '../../../../reportBuilder/transform/parser';
-import { DataFrame, OrderedSet } from '../../../../reportBuilder/transform/parser/customTypes';
+import { Table, OrderedSet } from '../../../../reportBuilder/transform/parser/customTypes';
 
 describe('functions', () => {
   describe('basic', () => {
@@ -333,7 +333,7 @@ describe('functions', () => {
     });
 
     describe('range', () => {
-      const table = new DataFrame([
+      const table = new Table([
         { col1: 'cat', col2: 'dog', col3: 'emu' },
         { col1: 'fish', col2: 'goat', col3: 'turkey' },
         { col1: 'llama', col2: 'monkey', col3: 'moose' },

@@ -17,7 +17,7 @@ import { buildTransform } from '../../../reportBuilder/transform';
 describe('aliases', () => {
   it('keyValueByDataElementName', () => {
     const transform = buildTransform(['keyValueByDataElementName']);
-    expect(transform(MULTIPLE_ANALYTICS)).toEqualDataFrameOf([
+    expect(transform(MULTIPLE_ANALYTICS)).toEqualTableOf([
       { period: '20200101', organisationUnit: 'TO', BCD1: 4 },
       { period: '20200102', organisationUnit: 'TO', BCD1: 2 },
       { period: '20200103', organisationUnit: 'TO', BCD1: 5 },
@@ -26,7 +26,7 @@ describe('aliases', () => {
 
   it('keyValueByOrgUnit', () => {
     const transform = buildTransform(['keyValueByOrgUnit']);
-    expect(transform(MULTIPLE_ANALYTICS)).toEqualDataFrameOf([
+    expect(transform(MULTIPLE_ANALYTICS)).toEqualTableOf([
       { period: '20200101', dataElement: 'BCD1', TO: 4 },
       { period: '20200102', dataElement: 'BCD1', TO: 2 },
       { period: '20200103', dataElement: 'BCD1', TO: 5 },
@@ -35,7 +35,7 @@ describe('aliases', () => {
 
   it('keyValueByPeriod', () => {
     const transform = buildTransform(['keyValueByPeriod']);
-    expect(transform(MULTIPLE_ANALYTICS)).toEqualDataFrameOf({
+    expect(transform(MULTIPLE_ANALYTICS)).toEqualTableOf({
       rows: [
         { organisationUnit: 'TO', dataElement: 'BCD1', '20200101': 4 },
         { organisationUnit: 'TO', dataElement: 'BCD1', '20200102': 2 },
@@ -47,7 +47,7 @@ describe('aliases', () => {
 
   it('mostRecentValuePerOrgUnit', () => {
     const transform = buildTransform(['mostRecentValuePerOrgUnit']);
-    expect(transform(MERGEABLE_ANALYTICS)).toEqualDataFrameOf([
+    expect(transform(MERGEABLE_ANALYTICS)).toEqualTableOf([
       { period: '20200103', organisationUnit: 'TO', BCD1: 5, BCD2: 0 },
       { period: '20200103', organisationUnit: 'PG', BCD1: 2, BCD2: -1 },
     ]);
@@ -55,7 +55,7 @@ describe('aliases', () => {
 
   it('firstValuePerPeriodPerOrgUnit', () => {
     const transform = buildTransform(['firstValuePerPeriodPerOrgUnit']);
-    expect(transform(MULTIPLE_MERGEABLE_ANALYTICS)).toEqualDataFrameOf([
+    expect(transform(MULTIPLE_MERGEABLE_ANALYTICS)).toEqualTableOf([
       { period: '20200101', organisationUnit: 'TO', BCD1: 4, BCD2: 11 },
       { period: '20200102', organisationUnit: 'TO', BCD1: 2, BCD2: 1 },
       { period: '20200103', organisationUnit: 'TO', BCD1: 5, BCD2: 0 },
@@ -67,7 +67,7 @@ describe('aliases', () => {
 
   it('lastValuePerPeriodPerOrgUnit', () => {
     const transform = buildTransform(['lastValuePerPeriodPerOrgUnit']);
-    expect(transform(MULTIPLE_MERGEABLE_ANALYTICS)).toEqualDataFrameOf([
+    expect(transform(MULTIPLE_MERGEABLE_ANALYTICS)).toEqualTableOf([
       { period: '20200101', organisationUnit: 'TO', BCD1: 7, BCD2: 4 },
       { period: '20200102', organisationUnit: 'TO', BCD1: 12, BCD2: 18 },
       { period: '20200103', organisationUnit: 'TO', BCD1: 23, BCD2: 9 },
@@ -79,21 +79,21 @@ describe('aliases', () => {
 
   it('convertPeriodToWeek', () => {
     const transform = buildTransform(['convertPeriodToWeek']);
-    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([
+    expect(transform(SINGLE_ANALYTIC)).toEqualTableOf([
       { ...SINGLE_ANALYTIC[0], period: '2020W01' },
     ]);
   });
 
   it('convertEventDateToWeek', () => {
     const transform = buildTransform(['convertEventDateToWeek']);
-    expect(transform(SINGLE_EVENT)).toEqualDataFrameOf([{ ...SINGLE_EVENT[0], period: '2020W01' }]);
+    expect(transform(SINGLE_EVENT)).toEqualTableOf([{ ...SINGLE_EVENT[0], period: '2020W01' }]);
   });
 
   it('insertNumberOfFacilitiesColumn', () => {
     const transform = buildTransform(['insertNumberOfFacilitiesColumn'], {
       facilityCountByOrgUnit: { TO: 14 },
     });
-    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([
+    expect(transform(SINGLE_ANALYTIC)).toEqualTableOf([
       { ...SINGLE_ANALYTIC[0], numberOfFacilities: 14 },
     ]);
   });
@@ -102,7 +102,7 @@ describe('aliases', () => {
 describe('insertSummaryRowAndColumn', () => {
   it('inserts a summary row and summary column', () => {
     const transform = buildTransform(['insertSummaryRowAndColumn']);
-    expect(transform(TRANSFORMED_SUMMARY_BINARY)).toEqualDataFrameOf([
+    expect(transform(TRANSFORMED_SUMMARY_BINARY)).toEqualTableOf([
       { dataElement: 'Male condoms', TO: 'N', FJ: 'N', NR: 'Y', KI: 'N', summaryColumn: '75.0%' },
       {
         dataElement: 'Female condoms',
@@ -124,7 +124,7 @@ describe('insertSummaryRowAndColumn', () => {
 
   it('only summarises columns that have only Y | N | undefined values', () => {
     const transform = buildTransform(['insertSummaryRowAndColumn']);
-    expect(transform(TRANSFORMED_SUMMARY_VARIOUS)).toEqualDataFrameOf([
+    expect(transform(TRANSFORMED_SUMMARY_VARIOUS)).toEqualTableOf([
       {
         dataElement: 'Male condoms',
         TO: 'Yes',

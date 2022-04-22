@@ -14,7 +14,7 @@ describe('excludeRows', () => {
         where: '=$BCD1 < 6',
       },
     ]);
-    expect(transform(EXCLUDEABLE_ANALYTICS)).toEqualDataFrameOf([
+    expect(transform(EXCLUDEABLE_ANALYTICS)).toEqualTableOf([
       { period: '20200101', organisationUnit: 'PG', BCD1: 7 },
       { period: '20200102', organisationUnit: 'PG', BCD1: 8 },
     ]);

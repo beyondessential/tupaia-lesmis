@@ -4,7 +4,7 @@
  */
 
 import { Context } from '../../context';
-import { DataFrame } from '../parser/customTypes';
+import { Table } from '../parser/customTypes';
 
 /**
  * [
@@ -18,7 +18,7 @@ import { DataFrame } from '../parser/customTypes';
  * ]
  */
 export const insertNumberOfFacilitiesColumn = {
-  transform: (context: Context) => (df: DataFrame) => {
+  transform: (context: Context) => (table: Table) => {
     const { facilityCountByOrgUnit } = context;
 
     if (facilityCountByOrgUnit === undefined) {
@@ -27,8 +27,8 @@ export const insertNumberOfFacilitiesColumn = {
       );
     }
 
-    const newDf = new DataFrame([], df.columnNames);
-    df.rawRows().forEach(row => {
+    const newDf = new Table([], table.columnNames);
+    table.rawRows().forEach(row => {
       const { organisationUnit, ...restOfRow } = row;
 
       if (typeof organisationUnit !== 'string') {

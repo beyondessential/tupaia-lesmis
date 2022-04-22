@@ -12,7 +12,7 @@ import { TransformParser } from '../parser';
 import { buildWhere } from './where';
 import { mapStringToStringValidator } from './transformValidators';
 import { validateEvaluatedColumnNames } from './helpers';
-import { DataFrame } from '../parser/customTypes';
+import { Table } from '../parser/customTypes';
 
 type InsertParams = {
   columns: { [key: string]: string };
@@ -39,10 +39,10 @@ export const paramsValidator = yup.object().shape({
   }, [positionValidator]),
 });
 
-const insertRows = (df: DataFrame, params: InsertParams, context: Context) => {
-  const rows = [...df];
-  const parser = new TransformParser(df, context);
-  const newDf = new DataFrame(df);
+const insertRows = (table: Table, params: InsertParams, context: Context) => {
+  const rows = [...table];
+  const parser = new TransformParser(table, context);
+  const newDf = new Table(table);
   const rowsToInsert = rows.map(() => {
     const shouldInsertNewRow = params.where(parser);
     if (!shouldInsertNewRow) {
@@ -91,5 +91,5 @@ const buildParams = (params: unknown): InsertParams => {
 
 export const buildInsertRows = (params: unknown, context: Context) => {
   const builtParams = buildParams(params);
-  return (df: DataFrame) => insertRows(df, builtParams, context);
+  return (table: Table) => insertRows(table, builtParams, context);
 };

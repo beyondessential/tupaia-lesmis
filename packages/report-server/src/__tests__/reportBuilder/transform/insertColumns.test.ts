@@ -18,7 +18,7 @@ describe('insertColumns', () => {
         },
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([
+    expect(transform(SINGLE_ANALYTIC)).toEqualTableOf([
       { ...SINGLE_ANALYTIC[0], number: 1, string: 'Hi', boolean: false },
     ]);
   });
@@ -32,7 +32,7 @@ describe('insertColumns', () => {
         },
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([
+    expect(transform(SINGLE_ANALYTIC)).toEqualTableOf([
       { ...SINGLE_ANALYTIC[0], dataElementValue: 4 },
     ]);
   });
@@ -46,7 +46,7 @@ describe('insertColumns', () => {
         },
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([{ ...SINGLE_ANALYTIC[0], BCD1: 4 }]);
+    expect(transform(SINGLE_ANALYTIC)).toEqualTableOf([{ ...SINGLE_ANALYTIC[0], BCD1: 4 }]);
   });
 
   it('can execute functions', () => {
@@ -58,7 +58,7 @@ describe('insertColumns', () => {
         },
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([
+    expect(transform(SINGLE_ANALYTIC)).toEqualTableOf([
       { ...SINGLE_ANALYTIC[0], period: '1st Jan 2020' },
     ]);
   });
@@ -73,7 +73,7 @@ describe('insertColumns', () => {
         },
       },
     ]);
-    expect(transform(MULTIPLE_ANALYTICS)).toEqualDataFrameOf([
+    expect(transform(MULTIPLE_ANALYTICS)).toEqualTableOf([
       { ...MULTIPLE_ANALYTICS[0], period: '1st Jan 2020', BCD1: 4 },
       { ...MULTIPLE_ANALYTICS[1], period: '2nd Jan 2020', BCD1: 2 },
       { ...MULTIPLE_ANALYTICS[2], period: '3rd Jan 2020', BCD1: 5 },
@@ -90,7 +90,7 @@ describe('insertColumns', () => {
         },
       },
     ]);
-    expect(transform(MERGEABLE_ANALYTICS)).toEqualDataFrameOf({
+    expect(transform(MERGEABLE_ANALYTICS)).toEqualTableOf({
       rows: [
         { ...MERGEABLE_ANALYTICS[0], newVal: 8 },
         { ...MERGEABLE_ANALYTICS[1], newVal: 4 },
@@ -119,7 +119,7 @@ describe('insertColumns', () => {
         },
       },
     ]);
-    expect(transform(MERGEABLE_ANALYTICS)).toEqualDataFrameOf([
+    expect(transform(MERGEABLE_ANALYTICS)).toEqualTableOf([
       { ...MERGEABLE_ANALYTICS[0], organisationUnit: 'Tonga' },
       { ...MERGEABLE_ANALYTICS[1], organisationUnit: 'Tonga' },
       { ...MERGEABLE_ANALYTICS[2], organisationUnit: 'Tonga' },

@@ -6,18 +6,18 @@
 import { Row } from '../../../../types';
 import { OrderedSet } from '../OrderedSet';
 
-export class DataFrameRow {
-  public isDataFrameRow = true;
+export class TableRow {
+  public isTableRow = true;
   public readonly columnNames: OrderedSet<string>;
   public readonly index: number;
 
   private readonly row: Row;
 
-  public static checkIsDataFrameRow(input: unknown): input is DataFrameRow {
-    return typeof input === 'object' && input !== null && 'isDataFrameRow' in input;
+  public static checkIsTableRow(input: unknown): input is TableRow {
+    return typeof input === 'object' && input !== null && 'isTableRow' in input;
   }
 
-  constructor(row: Row, index: number, columnNames?: OrderedSet<string>) {
+  public constructor(row: Row, index: number, columnNames?: OrderedSet<string>) {
     this.row = { ...row };
     this.index = index;
     this.columnNames = columnNames ? new OrderedSet(columnNames) : new OrderedSet(Object.keys(row));
@@ -35,7 +35,7 @@ export class DataFrameRow {
       }
     });
 
-    return new DataFrameRow(
+    return new TableRow(
       Object.fromEntries(arrayNames.map(name => [name, this.row[name]])),
       this.index,
       this.columnNames,
@@ -51,15 +51,15 @@ export class DataFrameRow {
   }
 }
 
-export const createDataFrameRowType = {
-  name: 'DataFrameRow',
+export const createTableRowType = {
+  name: 'TableRow',
   dependencies: ['typed'],
   creator: ({ typed }: { typed: any }) => {
     typed.addType({
-      name: 'DataFrameRow',
-      test: DataFrameRow.checkIsDataFrameRow,
+      name: 'TableRow',
+      test: TableRow.checkIsTableRow,
     });
 
-    return DataFrameRow;
+    return TableRow;
   },
 };

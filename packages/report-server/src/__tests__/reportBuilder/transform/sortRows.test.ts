@@ -25,7 +25,7 @@ describe('sortRows', () => {
         by: 'period',
       },
     ]);
-    expect(transform(SORTABLE_ANALYTICS)).toEqualDataFrameOf([
+    expect(transform(SORTABLE_ANALYTICS)).toEqualTableOf([
       { period: '20200101', organisationUnit: 'TO', BCD1: 4 },
       { period: '20200101', organisationUnit: 'TO', BCD1: 11 },
       { period: '20200101', organisationUnit: 'PG', BCD1: 7 },
@@ -49,7 +49,7 @@ describe('sortRows', () => {
         direction: 'desc',
       },
     ]);
-    expect(transform(SORTABLE_ANALYTICS)).toEqualDataFrameOf([
+    expect(transform(SORTABLE_ANALYTICS)).toEqualTableOf([
       { period: '20200103', organisationUnit: 'TO', BCD1: 5 },
       { period: '20200103', organisationUnit: 'TO', BCD1: 0 },
       { period: '20200103', organisationUnit: 'PG', BCD1: 2 },
@@ -72,7 +72,7 @@ describe('sortRows', () => {
         by: ['period', 'organisationUnit'],
       },
     ]);
-    expect(transform(SORTABLE_ANALYTICS)).toEqualDataFrameOf([
+    expect(transform(SORTABLE_ANALYTICS)).toEqualTableOf([
       { period: '20200101', organisationUnit: 'PG', BCD1: 7 },
       { period: '20200101', organisationUnit: 'PG', BCD1: 13 },
       { period: '20200101', organisationUnit: 'TO', BCD1: 4 },
@@ -96,7 +96,7 @@ describe('sortRows', () => {
         direction: ['asc', 'desc'],
       },
     ]);
-    expect(transform(SORTABLE_ANALYTICS)).toEqualDataFrameOf([
+    expect(transform(SORTABLE_ANALYTICS)).toEqualTableOf([
       { period: '20200101', organisationUnit: 'PG', BCD1: 13 },
       { period: '20200101', organisationUnit: 'TO', BCD1: 11 },
       { period: '20200101', organisationUnit: 'PG', BCD1: 7 },
@@ -119,7 +119,7 @@ describe('sortRows', () => {
         by: '=$BCD1 * $BCD1',
       },
     ]);
-    expect(transform(SORTABLE_ANALYTICS)).toEqualDataFrameOf([
+    expect(transform(SORTABLE_ANALYTICS)).toEqualTableOf([
       { period: '20200103', organisationUnit: 'TO', BCD1: 0 },
       { period: '20200102', organisationUnit: 'TO', BCD1: 1 },
       { period: '20200103', organisationUnit: 'PG', BCD1: -1 },

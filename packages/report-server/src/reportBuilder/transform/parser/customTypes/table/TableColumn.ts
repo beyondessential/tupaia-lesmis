@@ -6,18 +6,18 @@
 import { FieldValue } from '../../../../types';
 import { OrderedSet } from '../OrderedSet';
 
-export class DataFrameColumn {
-  public isDataFrameColumn = true;
+export class TableColumn {
+  public isTableColumn = true;
   public readonly name: string;
   public readonly length: number;
 
   private readonly values: FieldValue[];
 
-  public static checkIsDataFrameColumn(input: unknown): input is DataFrameColumn {
-    return typeof input === 'object' && input !== null && 'isDataFrameColumn' in input;
+  public static checkIsTableColumn(input: unknown): input is TableColumn {
+    return typeof input === 'object' && input !== null && 'isTableColumn' in input;
   }
 
-  constructor(name: string, values: FieldValue[]) {
+  public constructor(name: string, values: FieldValue[]) {
     this.name = name;
     this.values = [...values];
     this.length = values.length;
@@ -38,7 +38,7 @@ export class DataFrameColumn {
       }
     });
 
-    return new DataFrameColumn(
+    return new TableColumn(
       this.name,
       arrayIndexes.map(index => this.values[index - 1]),
     );
@@ -49,15 +49,15 @@ export class DataFrameColumn {
   }
 }
 
-export const createDataFrameColumnType = {
-  name: 'DataFrameColumn',
+export const createTableColumnType = {
+  name: 'TableColumn',
   dependencies: ['typed'],
   creator: ({ typed }: { typed: any }) => {
     typed.addType({
-      name: 'DataFrameColumn',
-      test: DataFrameColumn.checkIsDataFrameColumn,
+      name: 'TableColumn',
+      test: TableColumn.checkIsTableColumn,
     });
 
-    return DataFrameColumn;
+    return TableColumn;
   },
 };

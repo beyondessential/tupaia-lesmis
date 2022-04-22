@@ -6,7 +6,7 @@
 import { yup } from '@tupaia/utils';
 import { FieldValue } from '../../types';
 import { TransformParser } from '../parser';
-import { DataFrame } from '../parser/customTypes';
+import { Table } from '../parser/customTypes';
 
 export const getColumnMatcher = (columnsToMatch: '*' | string | string[]) => {
   if (columnsToMatch === '*') {
@@ -39,21 +39,21 @@ export const validateEvaluatedColumnNames = (input: unknown) => {
 };
 
 export const buildNewColumns = (
-  df: DataFrame,
+  table: Table,
   parser: TransformParser,
   columnExpressions: Record<string, string>,
   where?: (parser: TransformParser) => boolean,
 ) => {
   const newColumns: Record<string, FieldValue[]> = {};
 
-  [...df].forEach((_, index) => {
+  [...table].forEach((_, index) => {
     const skipRow = where && !where(parser);
     Object.entries(columnExpressions).forEach(([key, expression]) => {
       const evaluatedKey = parser.evaluate(key);
       const columnNames = validateEvaluatedColumnNames(evaluatedKey);
       columnNames.forEach((columnName: string) => {
         const columnData =
-          newColumns[columnName] || new Array(df.rowCount()).fill(DataFrame.SKIP_UPSERT_CHAR);
+          newColumns[columnName] || new Array(table.rowCount()).fill(Table.SKIP_UPSERT_CHAR);
         newColumns[columnName] = columnData;
         if (skipRow) {
           return;

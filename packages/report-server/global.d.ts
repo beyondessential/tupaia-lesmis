@@ -10,7 +10,7 @@ declare global {
     interface Matchers<R> {
       toHaveBeenCalledOnceWith<E extends unknown[]>(...params: E): R;
       toBeRejectedWith(error?: string | Constructable | RegExp | Error): Promise<R>;
-      toEqualDataFrameOf(expected: Row[] | { rows: Row[]; columns: string[] }): R;
+      toEqualTableOf(expected: Row[] | { rows: Row[]; columns: string[] }): R;
     }
   }
 }

@@ -14,7 +14,7 @@ import {
   functionOverrides,
   factoryFunctions,
 } from './functions';
-import { typeCreators, DataFrame, OrderedSet, DataFrameRow, DataFrameColumn } from './customTypes';
+import { typeCreators, Table, OrderedSet, TableRow, TableColumn } from './customTypes';
 import { TransformScope } from './TransformScope';
 
 /**
@@ -25,21 +25,21 @@ type Lookups = {
   rowCount: number; // total rows in table
   columnName: string | undefined; // current column being operated on
   columnNames: OrderedSet<string>; // all columns in the table
-  row: DataFrame['row']; // selector for an individual row
-  rows: DataFrame['rows']; // selector for an multiple rows
-  column: DataFrame['column']; // selector for an individual column
-  columns: DataFrame['columns']; // selector for multiple columns
+  row: Table['row']; // selector for an individual row
+  rows: Table['rows']; // selector for an multiple rows
+  column: Table['column']; // selector for an individual column
+  columns: Table['columns']; // selector for multiple columns
 };
 
 export class TransformParser extends ExpressionParser {
   private static readonly EXPRESSION_PREFIX = '=';
 
-  private table: DataFrame;
+  private table: Table;
   private lookups: Lookups;
   // eslint-disable-next-line react/static-property-placement
   private context?: Context;
 
-  public constructor(table: DataFrame = new DataFrame(), context?: Context) {
+  public constructor(table: Table = new Table(), context?: Context) {
     super(new TransformScope());
 
     this.table = table;
@@ -49,10 +49,10 @@ export class TransformParser extends ExpressionParser {
       columnName: undefined,
       columnNames: this.table.columnNames,
       row: (index: number) => this.table.row(index),
-      rows: (matcher: number[] | OrderedSet<number> | ((row: DataFrameRow) => boolean)) =>
+      rows: (matcher: number[] | OrderedSet<number> | ((row: TableRow) => boolean)) =>
         this.table.rows(matcher),
       column: (name: string) => this.table.column(name),
-      columns: (matcher: string[] | OrderedSet<string> | ((column: DataFrameColumn) => boolean)) =>
+      columns: (matcher: string[] | OrderedSet<string> | ((column: TableColumn) => boolean)) =>
         this.table.columns(matcher),
     };
 

@@ -13,7 +13,7 @@ describe('updateColumns', () => {
         transform: 'updateColumns',
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([{ ...SINGLE_ANALYTIC[0] }]);
+    expect(transform(SINGLE_ANALYTIC)).toEqualTableOf([{ ...SINGLE_ANALYTIC[0] }]);
   });
 
   it('can insert basic values', () => {
@@ -27,7 +27,7 @@ describe('updateColumns', () => {
         },
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([
+    expect(transform(SINGLE_ANALYTIC)).toEqualTableOf([
       { ...SINGLE_ANALYTIC[0], number: 1, string: 'Hi', boolean: false },
     ]);
   });
@@ -41,7 +41,7 @@ describe('updateColumns', () => {
         },
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([
+    expect(transform(SINGLE_ANALYTIC)).toEqualTableOf([
       { ...SINGLE_ANALYTIC[0], dataElementValue: 4 },
     ]);
   });
@@ -55,7 +55,7 @@ describe('updateColumns', () => {
         },
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([{ ...SINGLE_ANALYTIC[0], BCD1: 4 }]);
+    expect(transform(SINGLE_ANALYTIC)).toEqualTableOf([{ ...SINGLE_ANALYTIC[0], BCD1: 4 }]);
   });
 
   it('can execute functions', () => {
@@ -67,7 +67,7 @@ describe('updateColumns', () => {
         },
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([
+    expect(transform(SINGLE_ANALYTIC)).toEqualTableOf([
       { ...SINGLE_ANALYTIC[0], period: '1st Jan 2020' },
     ]);
   });
@@ -82,7 +82,7 @@ describe('updateColumns', () => {
         include: '*',
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([
+    expect(transform(SINGLE_ANALYTIC)).toEqualTableOf([
       { period: '1st Jan 2020', organisationUnit: 'TO', dataElement: 'BCD1', value: 4 },
     ]);
   });
@@ -97,7 +97,7 @@ describe('updateColumns', () => {
         include: ['organisationUnit', 'value'],
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([
+    expect(transform(SINGLE_ANALYTIC)).toEqualTableOf([
       { period: '1st Jan 2020', organisationUnit: 'TO', value: 4 },
     ]);
   });
@@ -112,7 +112,7 @@ describe('updateColumns', () => {
         exclude: '*',
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([{ period: '1st Jan 2020' }]);
+    expect(transform(SINGLE_ANALYTIC)).toEqualTableOf([{ period: '1st Jan 2020' }]);
   });
 
   it('can exclude selected remaining fields', () => {
@@ -125,7 +125,7 @@ describe('updateColumns', () => {
         exclude: ['organisationUnit', 'value'],
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqualDataFrameOf([
+    expect(transform(SINGLE_ANALYTIC)).toEqualTableOf([
       { period: '1st Jan 2020', dataElement: 'BCD1' },
     ]);
   });
@@ -141,7 +141,7 @@ describe('updateColumns', () => {
         include: ['organisationUnit'],
       },
     ]);
-    expect(transform(MULTIPLE_ANALYTICS)).toEqualDataFrameOf([
+    expect(transform(MULTIPLE_ANALYTICS)).toEqualTableOf([
       { period: '1st Jan 2020', organisationUnit: 'TO', BCD1: 4 },
       { period: '2nd Jan 2020', organisationUnit: 'TO', BCD1: 2 },
       { period: '3rd Jan 2020', organisationUnit: 'TO', BCD1: 5 },
@@ -159,7 +159,7 @@ describe('updateColumns', () => {
         include: ['period', 'organisationUnit'],
       },
     ]);
-    expect(transform(MERGEABLE_ANALYTICS)).toEqualDataFrameOf([
+    expect(transform(MERGEABLE_ANALYTICS)).toEqualTableOf([
       { period: '20200101', organisationUnit: 'TO', newVal: 8 },
       { period: '20200102', organisationUnit: 'TO', newVal: 4 },
       { period: '20200103', organisationUnit: 'TO', newVal: 10 },
