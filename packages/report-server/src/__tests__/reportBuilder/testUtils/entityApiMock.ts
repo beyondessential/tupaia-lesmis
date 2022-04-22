@@ -62,20 +62,36 @@ export const entityApiMock = (
     getRelationshipsOfEntities: async (
       hierarchyName: string,
       entityCodes: string[],
-      groupBy: 'ancestor',
+      groupBy: 'ancestor' | 'descendant',
       queryOptions: { fields?: string[]; filter?: { type: string } } = {},
       ancestorQueryOptions: { filter?: { type: string } } = {},
       descendantQueryOptions: { filter?: { type: string } } = {},
     ) => {
+      if (groupBy !== 'ancestor') {
+        throw new Error("Haven't implemented groupBy descendant mock yet!");
+      }
+
+      const combinedAncestorQueryOptions = {
+        ...queryOptions,
+        filter: queryOptions.filter || ancestorQueryOptions.filter,
+      };
+      const combinedDescendantQueryOptions = {
+        ...queryOptions,
+        filter: queryOptions.filter || descendantQueryOptions.filter,
+      };
       const entitiesInHierarchy = entities[hierarchyName] || [];
-      const ancestorEntities = ancestorQueryOptions.filter?.type
-        ? getDescendantsOfEntities(hierarchyName, entityCodes, ancestorQueryOptions)
+      const ancestorEntities = combinedAncestorQueryOptions.filter?.type
+        ? getDescendantsOfEntities(hierarchyName, entityCodes, combinedAncestorQueryOptions)
         : entitiesInHierarchy.filter(e => entityCodes.includes(e.code));
 
       const ancestorEntityCodes = ancestorEntities.map(e => e.code);
       return ancestorEntityCodes.reduce((obj: Record<string, any[]>, ancestor) => {
         // eslint-disable-next-line no-param-reassign
-        obj[ancestor] = getDescendantsOfEntities(hierarchyName, [ancestor], descendantQueryOptions);
+        obj[ancestor] = getDescendantsOfEntities(
+          hierarchyName,
+          [ancestor],
+          combinedDescendantQueryOptions,
+        );
         return obj;
       }, {});
     },

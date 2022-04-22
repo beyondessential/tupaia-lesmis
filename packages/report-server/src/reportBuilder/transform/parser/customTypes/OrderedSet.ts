@@ -12,7 +12,7 @@ export class OrderedSet<T> {
     return input && typeof input === 'object' && 'isOrderedSet' in input;
   }
 
-  constructor(values: T[] | OrderedSet<T>) {
+  public constructor(values: T[] | OrderedSet<T>) {
     this.set = new Set(Array.isArray(values) ? values : Array.from(values.set));
   }
 

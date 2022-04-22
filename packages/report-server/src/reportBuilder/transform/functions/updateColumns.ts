@@ -6,7 +6,6 @@
 import { yup } from '@tupaia/utils';
 
 import { Context } from '../../context';
-import { FieldValue } from '../../types';
 import { TransformParser } from '../parser';
 import { buildWhere } from './where';
 import {

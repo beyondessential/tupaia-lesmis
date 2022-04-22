@@ -21,7 +21,7 @@ export const getColumnMatcher = (columnsToMatch: '*' | string | string[]) => {
 };
 
 const isIterable = (input: unknown): input is Iterable<unknown> => {
-  // @ts-ignore
+  // @ts-expect-error Typescript doesn't know Symbol.iterator exists, but this is how you check for iterables in js
   return typeof input === 'object' && typeof input[Symbol.iterator] === 'function';
 };
 
