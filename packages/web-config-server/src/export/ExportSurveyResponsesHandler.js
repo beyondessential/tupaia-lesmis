@@ -17,7 +17,7 @@ export class ExportSurveyResponsesHandler extends RouteHandler {
       itemCode,
       easyReadingMode,
     } = this.query;
-    const meditrakServerEndpoint = 'export/surveyResponses';
+    const centralServerEndpoint = 'export/surveyResponses';
     const {
       config: { name: reportName },
     } = itemCode && (await this.models.dashboardItem.findOne({ code: itemCode }));
@@ -41,7 +41,7 @@ export class ExportSurveyResponsesHandler extends RouteHandler {
 
     const response = await fetchFromMeditrakServerUsingTokens(
       this.models,
-      meditrakServerEndpoint,
+      centralServerEndpoint,
       null,
       queryParameters,
       this.req.session.userJson.userName,

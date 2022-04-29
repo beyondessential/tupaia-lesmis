@@ -35,6 +35,7 @@
       "files": [
         "packages/admin-panel-server/**",
         "packages/api-client/**",
+        "packages/central-server/**",
         "packages/data-api/**",
         "packages/data-lake-api/**",
         "packages/entity-server/**",

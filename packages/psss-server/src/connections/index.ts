@@ -4,5 +4,5 @@
  */
 
 export { EntityConnection } from './EntityConnection';
-export { MeditrakConnection } from './MeditrakConnection';
+export { CentralConnection as CentralConnection } from './CentralConnection';
 export { ReportConnection } from './ReportConnection';
