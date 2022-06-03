@@ -54,3 +54,25 @@ export const orgUnitIdToCode: ContextFunctionConfig = {
     return idToCode[orgUnitId];
   },
 };
+
+export const orgUnitCodeToAncestorVillageProperty: ContextFunctionConfig = {
+  dependencies: ['ancestorVillages', 'ancestorVillagesMap'],
+  func: ({ getContext }) => (orgUnitCode: string, property: 'code' | 'name') => {
+    const { ancestorVillages, ancestorVillagesMap } = getContext();
+    if (!ancestorVillages) {
+      throw new Error(
+        "Missing dependency 'ancestorVillages' required by 'orgUnitCodeToAncestorVillageProperty'",
+      );
+    }
+    if (!ancestorVillagesMap) {
+      throw new Error(
+        "Missing dependency 'ancestorVillagesMap' required by 'orgUnitCodeToAncestorVillageProperty'",
+      );
+    }
+    const ancestorVillageCode = ancestorVillagesMap[orgUnitCode];
+    const ancestorVillage = ancestorVillages.filter(
+      village => village.code === ancestorVillageCode,
+    )[0];
+    return ancestorVillage[property];
+  },
+};

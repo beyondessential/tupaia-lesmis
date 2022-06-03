@@ -82,7 +82,7 @@ target_path="$(
 )/$DUMP_FILE_NAME"
 target_zip_path="$target_path.gz"
 
-show_loading_spinner "Dumping database to $target_zip_path" "PGPASSWORD=$DB_PG_PASSWORD pg_dump \"host=$host user=$DB_PG_USER dbname=tupaia sslmode=require sslkey=$identity_file\" -Z1 -f $target_zip_path"
+PGPASSWORD=$DB_PG_PASSWORD pg_dump "host=$host user=$DB_PG_USER dbname=tupaia sslmode=require sslkey=$identity_file" -Z1 -f $target_zip_path
 show_loading_spinner "Unzipping $target_zip_path" "gunzip -f $target_zip_path"
 
 echo "Dump file available at $target_path"

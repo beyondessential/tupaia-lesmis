@@ -7,6 +7,8 @@ export interface Context {
   orgUnits?: { code: string; name: string; id: string }[];
   facilityCountByOrgUnit?: Record<string, number>; // { TO: 14, PG: 9 }
   dataElementCodeToName?: Record<string, string>;
+  ancestorVillagesMap?: Record<string, string>;
+  ancestorVillages?: { code: string; name: string }[];
 }
 
 export type ContextDependency = keyof Context;
