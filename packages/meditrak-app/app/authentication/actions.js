@@ -20,6 +20,7 @@ import {
 import { resetToHome, resetToLogin, resetToWelcomeScreen } from '../navigation';
 
 import { getErrorMessage } from '../sync/selectors';
+import { COUNTRIES_IN_DATABASE } from '../settings';
 
 const UNABLE_TO_CONNECT_MESSAGE = 'Unable to connect';
 
@@ -102,6 +103,14 @@ export const receiveLogin = (emailAddress, user, accessPolicy, installId) => asy
   { database, crashReporter },
 ) => {
   dispatch(resetToWelcomeScreen());
+
+  const countriesInAccessPolicy = accessPolicy.getEntitiesAllowed();
+  const countriesInDatabase = database.getSetting(COUNTRIES_IN_DATABASE);
+  if (!countriesInDatabase) {
+    database.setSetting(COUNTRIES_IN_DATABASE, new Set(countriesInAccessPolicy));
+  } else {
+    countriesInAccessPolicy.forEach(countryCode => countriesInDatabase.add(countryCode));
+  }
 
   const syncWasSuccessful = await database.synchronise(dispatch);
   const existingLoginDetails = database.getCurrentLoginDetails();

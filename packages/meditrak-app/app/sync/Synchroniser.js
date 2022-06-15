@@ -15,7 +15,7 @@ import {
   setSyncIsSyncing,
   setSyncComplete,
 } from './actions';
-import { LATEST_SERVER_SYNC_TIMESTAMP } from '../settings';
+import { COUNTRIES_IN_DATABASE, LATEST_SERVER_SYNC_TIMESTAMP } from '../settings';
 import { loadSocialFeedLatest } from '../social';
 import { getSyncMigrations } from './syncMigrations';
 
@@ -294,6 +294,10 @@ export class Synchroniser {
    * @return {Promise} Resolves with the change count, or passes up any error thrown
    */
   async getIncomingChangeCount(since, filters = {}) {
+    const countriesInDatabase = this.database.getSetting(COUNTRIES_IN_DATABASE);
+    if (countriesInDatabase) {
+      filters.countriesInDatabase = Array.from(countriesInDatabase).join(',');
+    }
     const responseJson = await this.api.get(`${API_ENDPOINT}/count`, { since, ...filters });
     if (responseJson.error && responseJson.error.length > 0) {
       throw new Error(responseJson.error);
@@ -312,6 +316,10 @@ export class Synchroniser {
   async getIncomingChanges(since, offset, filters = {}) {
     const startTime = new Date().getTime();
 
+    const countriesInDatabase = this.database.getSetting(COUNTRIES_IN_DATABASE);
+    if (countriesInDatabase) {
+      filters.countriesInDatabase = Array.from(countriesInDatabase).join(',');
+    }
     const responseJson = await this.api.get(API_ENDPOINT, {
       since,
       offset,
