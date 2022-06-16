@@ -133,24 +133,64 @@ const getRecordTypeFilter = async req => {
 };
 
 const getSelectFromClause = select => `
-  SELECT ${select} FROM syncable_meditrak_sync_queue
+  SELECT ${select} FROM permissions_based_meditrak_sync_queue
 `;
 
-const getBaseWhere = since => {
+const getBaseWhere = (since, permissionsBasedFilter) => {
   // Based on the 'since' query parameter, work out what the highest possible record id is that
   // the client could have already synchronised, and ignore any 'delete' type sync actions for
   // records with higher ids: if the client doesn't know about them there is no point in telling
   // them to delete them
   const highestPossibleSyncedId = getHighestPossibleIdForGivenTime(since);
 
-  const baseQuery = `
+  let query = `
     WHERE
     change_time > ?
-    and (type = ? or record_id <= ?)
   `;
-  const params = [since, 'update', highestPossibleSyncedId];
+  const params = [since];
 
-  return { query: baseQuery, params };
+  if (permissionsBasedFilter) {
+    const { allowedCountries, allowedPermissionGroups } = permissionsBasedFilter;
+    const permissionsByType = {
+      entity: allowedCountries,
+      clinic: allowedCountries,
+      geographical_area: allowedCountries,
+      country: allowedCountries,
+      permission_group: allowedPermissionGroups,
+      survey: allowedPermissionGroups,
+      survey_group: allowedPermissionGroups,
+      survey_screen: allowedPermissionGroups,
+      survey_screen_component: allowedPermissionGroups,
+      question: allowedPermissionGroups,
+      option_set: allowedPermissionGroups,
+      option: allowedPermissionGroups,
+    };
+    Object.entries(permissionsByType).forEach(([field, permissionValues], index) => {
+      if (index === 0) {
+        query = query.concat(`
+        and (
+        ${field}_permission IN ${SqlQuery.array(permissionValues)}
+      `);
+      } else {
+        query = query.concat(`
+        OR ${field}_permission IN ${SqlQuery.array(permissionValues)}
+      `);
+      }
+      params.push(...permissionValues);
+    });
+  } else {
+    query.concat(`
+    and "type" = ?
+    `);
+    params.push('update');
+  }
+
+  query = query.concat(`
+    or ("type" = ? and record_id <= ?))
+  `);
+  params.push('delete', highestPossibleSyncedId);
+
+  return { query, params };
 };
 
 const extractSinceValue = req => {
@@ -162,7 +202,7 @@ const extractSinceValue = req => {
   return parseFloat(since);
 };
 
-const extractPermissionsBasedFilterProps = req => {
+const extractPermissionsBasedFilter = req => {
   const { countriesInDatabase, permissionGroupsInDatabase } = req.query;
 
   if (!countriesInDatabase) {
@@ -174,16 +214,17 @@ const extractPermissionsBasedFilterProps = req => {
   }
 
   return {
-    countriesInDatabase: countriesInDatabase.split(','),
-    permissionGroupsInDatabase: permissionGroupsInDatabase.split(','),
+    allowedCountries: countriesInDatabase.split(','),
+    allowedPermissionGroups: permissionGroupsInDatabase.split(','),
   };
 };
 
 export const getChangesFilter = async (req, { select, sort, limit, offset }) => {
   const since = extractSinceValue(req);
-  const permissionBasedFilterProps = extractPermissionsBasedFilterProps(req);
+  const permissionBasedFilter = extractPermissionsBasedFilter(req);
 
-  let { query, params } = getBaseWhere(since);
+  // eslint-disable-next-line prefer-const
+  let { query, params } = getBaseWhere(since, permissionBasedFilter);
   const recordTypeFilter = await getRecordTypeFilter(req);
 
   if (recordTypeFilter) {
@@ -194,17 +235,7 @@ export const getChangesFilter = async (req, { select, sort, limit, offset }) => 
     params.push(...comparisonValue);
   }
 
-  if (permissionBasedFilterProps) {
-    const { countriesInDatabase, permissionGroupsInDatabase } = permissionBasedFilterProps;
-    const { query: cteQuery, params: cteParams } = permissionBasedCTE(
-      countriesInDatabase,
-      permissionGroupsInDatabase,
-    );
-    query = cteQuery.concat(getSelectFromClause(select)).concat(query);
-    params = cteParams.concat(params);
-  } else {
-    query = basicCTE.concat(getSelectFromClause(select)).concat(query);
-  }
+  query = getSelectFromClause(select).concat(query);
 
   if (sort) {
     query = query.concat(`
