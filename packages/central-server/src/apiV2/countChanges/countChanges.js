@@ -11,12 +11,9 @@ import { allowNoPermissions } from '../../permissions';
 const handleNonLegacyRequest = async (req, res) => {
   const { models } = req;
 
-  const filter = await getChangesFilter(req);
-  const changeCount = await models.meditrakSyncQueue.count(filter, {
-    joinWith: 'entity',
-    joinType: 'left',
-    joinCondition: ['meditrak_sync_queue.record_id', 'entity.id'],
-  });
+  const query = await getChangesFilter(req, { select: 'count(*)' });
+  const queryResult = await query.executeOnDatabase(models.database);
+  const changeCount = parseInt(queryResult[0].count);
   respond(res, { changeCount });
 };
 

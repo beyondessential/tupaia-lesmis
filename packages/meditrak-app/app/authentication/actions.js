@@ -20,7 +20,7 @@ import {
 import { resetToHome, resetToLogin, resetToWelcomeScreen } from '../navigation';
 
 import { getErrorMessage } from '../sync/selectors';
-import { COUNTRIES_IN_DATABASE } from '../settings';
+import { COUNTRIES_IN_DATABASE, PERMISSION_GROUPS_IN_DATABASE } from '../settings';
 
 const UNABLE_TO_CONNECT_MESSAGE = 'Unable to connect';
 
@@ -105,11 +105,25 @@ export const receiveLogin = (emailAddress, user, accessPolicy, installId) => asy
   dispatch(resetToWelcomeScreen());
 
   const countriesInAccessPolicy = accessPolicy.getEntitiesAllowed();
+  const permissionGroupsInAccessPolicy = accessPolicy.getPermissionGroups();
   const countriesInDatabase = database.getSetting(COUNTRIES_IN_DATABASE);
+  const permissionGroupsInDatabase = database.getSetting(PERMISSION_GROUPS_IN_DATABASE);
   if (!countriesInDatabase) {
-    database.setSetting(COUNTRIES_IN_DATABASE, new Set(countriesInAccessPolicy));
+    database.setSetting(COUNTRIES_IN_DATABASE, countriesInAccessPolicy.join(','));
   } else {
-    countriesInAccessPolicy.forEach(countryCode => countriesInDatabase.add(countryCode));
+    const countriesSet = new Set(countriesInDatabase.split(','));
+    countriesInAccessPolicy.forEach(countryCode => countriesSet.add(countryCode));
+    database.setSetting(COUNTRIES_IN_DATABASE, Array.from(countriesSet).join(','));
+  }
+
+  if (!permissionGroupsInDatabase) {
+    database.setSetting(PERMISSION_GROUPS_IN_DATABASE, permissionGroupsInAccessPolicy.join(','));
+  } else {
+    const permissionGroupsSet = new Set(permissionGroupsInDatabase.split(','));
+    permissionGroupsInAccessPolicy.forEach(permissionGroup =>
+      permissionGroupsSet.add(permissionGroup),
+    );
+    database.setSetting(PERMISSION_GROUPS_IN_DATABASE, Array.from(permissionGroupsSet).join(','));
   }
 
   const syncWasSuccessful = await database.synchronise(dispatch);
