@@ -150,33 +150,68 @@ const getBaseWhere = (since, permissionsBasedFilter) => {
   const params = [since];
 
   if (permissionsBasedFilter) {
-    const { allowedCountries, allowedPermissionGroups } = permissionsBasedFilter;
+    const { allowedCountries, allowedCountyIds, allowedPermissionGroups } = permissionsBasedFilter;
     const permissionsByType = {
-      entity: allowedCountries,
-      clinic: allowedCountries,
-      geographical_area: allowedCountries,
-      country: allowedCountries,
-      permission_group: allowedPermissionGroups,
-      survey: allowedPermissionGroups,
-      survey_group: allowedPermissionGroups,
-      survey_screen: allowedPermissionGroups,
-      survey_screen_component: allowedPermissionGroups,
-      question: allowedPermissionGroups,
-      option_set: allowedPermissionGroups,
-      option: allowedPermissionGroups,
+      entity: { country: { value: allowedCountries, operator: 'IN', formatter: SqlQuery.array } },
+      clinic: { country: { value: allowedCountries, operator: 'IN', formatter: SqlQuery.array } },
+      geographical_area: {
+        country: { value: allowedCountries, operator: 'IN', formatter: SqlQuery.array },
+      },
+      country: { country: { value: allowedCountries, operator: 'IN', formatter: SqlQuery.array } },
+      permission_group: {
+        permission: { value: allowedPermissionGroups, operator: 'IN', formatter: SqlQuery.array },
+      },
+      survey: {
+        permission: { value: allowedPermissionGroups, operator: 'IN', formatter: SqlQuery.array },
+        countries: { value: allowedCountyIds, operator: '&&', formatter: SqlQuery.inlineArray },
+      },
+      survey_group: {
+        permission: { value: allowedPermissionGroups, operator: 'IN', formatter: SqlQuery.array },
+        countries: { value: allowedCountyIds, operator: '&&', formatter: SqlQuery.inlineArray },
+      },
+      survey_screen: {
+        permission: { value: allowedPermissionGroups, operator: 'IN', formatter: SqlQuery.array },
+        countries: { value: allowedCountyIds, operator: '&&', formatter: SqlQuery.inlineArray },
+      },
+      survey_screen_component: {
+        permission: { value: allowedPermissionGroups, operator: 'IN', formatter: SqlQuery.array },
+        countries: { value: allowedCountyIds, operator: '&&', formatter: SqlQuery.inlineArray },
+      },
+      question: {
+        permission: { value: allowedPermissionGroups, operator: 'IN', formatter: SqlQuery.array },
+        countries: { value: allowedCountyIds, operator: '&&', formatter: SqlQuery.inlineArray },
+      },
+      option_set: {
+        permission: { value: allowedPermissionGroups, operator: 'IN', formatter: SqlQuery.array },
+        countries: { value: allowedCountyIds, operator: '&&', formatter: SqlQuery.inlineArray },
+      },
+      option: {
+        permission: { value: allowedPermissionGroups, operator: 'IN', formatter: SqlQuery.array },
+        countries: { value: allowedCountyIds, operator: '&&', formatter: SqlQuery.inlineArray },
+      },
     };
-    Object.entries(permissionsByType).forEach(([field, permissionValues], index) => {
+    const permissionClauses = Object.entries(permissionsByType).map(
+      ([field, permissionRules]) =>
+        `(${Object.entries(permissionRules)
+          .map(([permissionType, { value, formatter, operator }]) => {
+            const clause = `${field}_${permissionType} ${operator} ${formatter(value)}`;
+            params.push(...value);
+            return clause;
+          })
+          .join(' and ')})`,
+    );
+
+    permissionClauses.forEach((clause, index) => {
       if (index === 0) {
         query = query.concat(`
         and (
-        ${field}_permission IN ${SqlQuery.array(permissionValues)}
+        ${clause}
       `);
       } else {
         query = query.concat(`
-        OR ${field}_permission IN ${SqlQuery.array(permissionValues)}
+        OR ${clause}
       `);
       }
-      params.push(...permissionValues);
     });
   } else {
     query.concat(`
@@ -202,7 +237,7 @@ const extractSinceValue = req => {
   return parseFloat(since);
 };
 
-const extractPermissionsBasedFilter = req => {
+const extractPermissionsBasedFilter = async req => {
   const { countriesInDatabase, permissionGroupsInDatabase } = req.query;
 
   if (!countriesInDatabase) {
@@ -213,15 +248,22 @@ const extractPermissionsBasedFilter = req => {
     return null;
   }
 
+  const allowedCountries = countriesInDatabase.split(',');
+  const allowedCountyIds = (await req.models.country.find({ code: allowedCountries })).map(
+    country => country.id,
+  );
+  const allowedPermissionGroups = permissionGroupsInDatabase.split(',');
+
   return {
-    allowedCountries: countriesInDatabase.split(','),
-    allowedPermissionGroups: permissionGroupsInDatabase.split(','),
+    allowedCountries,
+    allowedCountyIds,
+    allowedPermissionGroups,
   };
 };
 
 export const getChangesFilter = async (req, { select, sort, limit, offset }) => {
   const since = extractSinceValue(req);
-  const permissionBasedFilter = extractPermissionsBasedFilter(req);
+  const permissionBasedFilter = await extractPermissionsBasedFilter(req);
 
   // eslint-disable-next-line prefer-const
   let { query, params } = getBaseWhere(since, permissionBasedFilter);

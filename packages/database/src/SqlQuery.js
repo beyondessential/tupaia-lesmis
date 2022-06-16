@@ -13,6 +13,13 @@ export class SqlQuery {
    * @param {unknown[]} arr
    * @returns {string} SQL parameter injection string for the array of values
    */
+  static inlineArray = arr => `ARRAY[${arr.map(() => '?').join(',')}]`;
+
+  /**
+   * @public
+   * @param {unknown[]} arr
+   * @returns {string} SQL parameter injection string for the array of values
+   */
   static array = arr => `(${arr.map(() => '?').join(',')})`;
 
   /**
@@ -73,7 +80,7 @@ export class SqlQuery {
    */
   loggableQuery() {
     const replacementIterator = this.parameters
-      .map(param => param.replace(/'/g, "''"))
+      .map(param => (typeof param === 'string' ? param.replace(/'/g, "''") : param))
       [Symbol.iterator]();
     return this.query.replace(/\?/g, () => `'${replacementIterator.next().value}'`);
   }
