@@ -12,7 +12,11 @@ const handleNonLegacyRequest = async (req, res) => {
   const { models } = req;
 
   const filter = await getChangesFilter(req);
-  const changeCount = await models.meditrakSyncQueue.count(filter);
+  const changeCount = await models.meditrakSyncQueue.count(filter, {
+    joinWith: 'entity',
+    joinType: 'left',
+    joinCondition: ['meditrak_sync_queue.record_id', 'entity.id'],
+  });
   respond(res, { changeCount });
 };
 

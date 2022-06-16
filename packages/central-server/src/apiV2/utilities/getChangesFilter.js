@@ -6,7 +6,7 @@
 import { get } from 'lodash';
 import semverCompare from 'semver-compare';
 
-import { getHighestPossibleIdForGivenTime } from '@tupaia/database';
+import { getHighestPossibleIdForGivenTime, SqlQuery, QUERY_CONJUNCTIONS } from '@tupaia/database';
 import { ValidationError } from '@tupaia/utils';
 import { fetchRequestingMeditrakDevice } from './fetchRequestingMeditrakDevice';
 
@@ -24,39 +24,40 @@ const getRecordTypeFilter = async req => {
   const { appVersion, recordTypes = null } = req.query;
 
   if (recordTypes) {
-    return recordTypes.split(',');
+    return { comparator: 'IN', comparisonValue: recordTypes.split(',') };
   }
   if (appVersion) {
-    return getSupportedTypes(models, appVersion);
+    return { comparator: 'IN', comparisonValue: await getSupportedTypes(models, appVersion) };
   }
 
   const meditrakDevice = await fetchRequestingMeditrakDevice(req);
   const unsupportedTypes = get(meditrakDevice, 'config.unsupportedTypes', []);
   if (unsupportedTypes.length > 0) {
-    return { comparator: 'not in', comparisonValue: unsupportedTypes };
+    return { comparator: 'NOT IN', comparisonValue: unsupportedTypes };
   }
 
   return null;
 };
 
-const getBaseFilter = since => {
+const getBaseFilter = (since, countriesInDatabase) => {
   // Based on the 'since' query parameter, work out what the highest possible record id is that
   // the client could have already synchronised, and ignore any 'delete' type sync actions for
   // records with higher ids: if the client doesn't know about them there is no point in telling
   // them to delete them
   const highestPossibleSyncedId = getHighestPossibleIdForGivenTime(since);
 
-  return {
-    change_time: { comparator: '>', comparisonValue: since },
-    _and_: {
-      type: 'update',
-      record_id: {
-        comparisonType: 'orWhere',
-        comparator: '<=',
-        comparisonValue: highestPossibleSyncedId,
-      },
-    },
-  };
+  let baseQuery = `
+    change_time > ?
+    and (meditrak_sync_queue.type = ? or record_id <= ?)
+  `;
+  const params = [since, 'update', highestPossibleSyncedId];
+  if (countriesInDatabase) {
+    baseQuery = baseQuery.concat(`
+      and (entity.country_code IN ${SqlQuery.array(countriesInDatabase)} or record_type != ?)
+    `);
+    params.push(...countriesInDatabase, 'entity');
+  }
+  return { query: baseQuery, params };
 };
 
 const extractSinceValue = req => {
@@ -68,13 +69,30 @@ const extractSinceValue = req => {
   return parseFloat(since);
 };
 
+const extractCountriesInDatabaseValue = req => {
+  const { countriesInDatabase } = req.query;
+
+  return countriesInDatabase ? countriesInDatabase.split(',') : countriesInDatabase;
+};
+
 export const getChangesFilter = async req => {
   const since = extractSinceValue(req);
-  const filter = getBaseFilter(since);
+  const countriesInDatabase = extractCountriesInDatabaseValue(req);
+  let { query, params } = getBaseFilter(since, countriesInDatabase);
   const recordTypeFilter = await getRecordTypeFilter(req);
+
   if (recordTypeFilter) {
-    filter.record_type = recordTypeFilter;
+    const { comparator, comparisonValue } = recordTypeFilter;
+    query = query.concat(`
+      and record_type ${comparator} ${SqlQuery.array(comparisonValue)}
+    `);
+    params.push(...comparisonValue);
   }
 
-  return filter;
+  return {
+    [QUERY_CONJUNCTIONS.RAW]: {
+      sql: query,
+      parameters: params,
+    },
+  };
 };

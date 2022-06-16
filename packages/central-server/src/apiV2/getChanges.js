@@ -41,6 +41,9 @@ export async function getChanges(req, res) {
   try {
     const filter = await getChangesFilter(req);
     const changes = await database.find(TYPES.MEDITRAK_SYNC_QUEUE, filter, {
+      joinWith: 'entity',
+      joinType: 'left',
+      joinCondition: ['meditrak_sync_queue.record_id', 'entity.id'],
       sort: ['change_time'],
       limit,
       offset,
