@@ -3,6 +3,8 @@
  * Copyright (c) 2017 Beyond Essential Systems Pty Ltd
  */
 
+import keyBy from 'lodash.keyby';
+import groupBy from 'lodash.groupby';
 import { respond, DatabaseError } from '@tupaia/utils';
 import { TYPES } from '@tupaia/database';
 import { getChangesFilter, getColumnsForMeditrakApp } from './utilities';
@@ -13,7 +15,7 @@ const MAX_CHANGES_RETURNED = 100;
 /**
  * Gets the record ready to sync down to a sync client, transforming any properties as required
  */
-async function getRecordForSync(record) {
+function getRecordForSync(record) {
   const recordWithoutNulls = {};
   // Remove null entries to a) save bandwidth and b) remain consistent with previous mongo based db
   // which simply had no key for undefined properties, whereas postgres uses null
@@ -47,34 +49,52 @@ export async function getChanges(req, res) {
       offset,
     });
     const changes = await query.executeOnDatabase(database);
-    const changesToSend = await Promise.all(
-      changes.map(async change => {
-        const {
-          type: action,
-          record_type: recordType,
-          record_id: recordId,
-          change_time: timestamp,
-        } = change;
-        const columns = await getColumnsForMeditrakApp(models.getModelForDatabaseType(recordType));
-        const changeObject = { action, recordType, timestamp };
-        if (action === 'delete') {
-          changeObject.record = { id: recordId };
-          if (recordType === TYPES.GEOGRAPHICAL_AREA) {
-            // TODO LEGACY Deal with this bug on app end for v3 api
-            changeObject.recordType = 'area';
-          }
-        } else {
-          const record = await database.findById(recordType, recordId, { lean: true, columns });
-          if (!record) {
-            const errorMessage = `Couldn't find record type ${recordType} with id ${recordId}`;
-            changeObject.error = { error: errorMessage };
-          } else {
-            changeObject.record = await getRecordForSync(record);
-          }
-        }
-        return changeObject;
-      }),
+    const changesByRecordType = groupBy(changes, 'record_type');
+    const recordTypesToSync = Object.keys(changesByRecordType);
+    const columnNamesByRecordType = Object.fromEntries(
+      await Promise.all(
+        recordTypesToSync.map(async recordType => [
+          recordType,
+          await getColumnsForMeditrakApp(models.getModelForDatabaseType(recordType)),
+        ]),
+      ),
     );
+    const changeRecords = (
+      await Promise.all(
+        Object.entries(changesByRecordType).map(async ([recordType, changesForType]) => {
+          const changeIds = changesForType.map(change => change.record_id);
+          const columns = columnNamesByRecordType[recordType];
+          return database.find(recordType, { id: changeIds }, { lean: true, columns });
+        }),
+      )
+    ).flat();
+    const changeRecordsById = keyBy(changeRecords, 'id');
+
+    const changesToSend = changes.map(change => {
+      const {
+        type: action,
+        record_type: recordType,
+        record_id: recordId,
+        change_time: timestamp,
+      } = change;
+      const changeObject = { action, recordType, timestamp };
+      if (action === 'delete') {
+        changeObject.record = { id: recordId };
+        if (recordType === TYPES.GEOGRAPHICAL_AREA) {
+          // TODO LEGACY Deal with this bug on app end for v3 api
+          changeObject.recordType = 'area';
+        }
+      } else {
+        const record = changeRecordsById[recordId];
+        if (!record) {
+          const errorMessage = `Couldn't find record type ${recordType} with id ${recordId}`;
+          changeObject.error = { error: errorMessage };
+        } else {
+          changeObject.record = getRecordForSync(record);
+        }
+      }
+      return changeObject;
+    });
     respond(res, changesToSend);
     return;
   } catch (error) {
