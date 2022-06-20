@@ -7,7 +7,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { DataFetchingTable } from '../../table';
-import { EditModal } from '../../editor';
+import { EditModal, NewProjectModal } from '../../editor';
 import { Header, PageBody } from '../../widgets';
 import { usePortalWithCallback } from '../../utilities';
 
@@ -43,6 +43,7 @@ export const ResourcePage = ({
     />,
     getHeaderEl,
   );
+  const IsNewProject = createConfig != null && title === 'Projects';
   return (
     <>
       {HeaderPortal}
@@ -57,11 +58,19 @@ export const ResourcePage = ({
           defaultSorting={defaultSorting}
         />
       </Container>
-      <EditModal
-        {...editConfig}
-        onProcessDataForSave={onProcessDataForSave}
-        displayUsedBy={displayUsedBy}
-      />
+      {IsNewProject ? (
+        <NewProjectModal
+          {...editConfig}
+          onProcessDataForSave={onProcessDataForSave}
+          displayUsedBy={displayUsedBy}
+        />
+      ) : (
+        <EditModal
+          {...editConfig}
+          onProcessDataForSave={onProcessDataForSave}
+          displayUsedBy={displayUsedBy}
+        />
+      )}
     </>
   );
 };

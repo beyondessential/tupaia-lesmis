@@ -10,4 +10,5 @@ export { EditButton } from './EditButton';
 export { BulkEditButton } from './BulkEditButton';
 export { BulkCreateButton } from './BulkCreateButton';
 export { EditModal } from './EditModal';
+export { NewProjectModal } from './NewProjectModal';
 export { reducer } from './reducer';

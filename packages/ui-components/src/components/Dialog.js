@@ -27,14 +27,15 @@ const StyledDialog = styled(MuiDialog)`
   }
 `;
 
-export const Dialog = ({ children, ...props }) => (
-  <StyledDialog fullWidth maxWidth="sm" {...props}>
+export const Dialog = ({ children, maxWidth = 'sm', ...props }) => (
+  <StyledDialog fullWidth maxWidth={maxWidth} {...props}>
     {children}
   </StyledDialog>
 );
 
 Dialog.propTypes = {
   children: PropTypes.any.isRequired,
+  maxWidth: PropTypes.string,
 };
 
 const Header = styled(FlexStart)`
