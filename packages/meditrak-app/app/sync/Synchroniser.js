@@ -372,13 +372,13 @@ export class Synchroniser {
       : [];
 
     // Add new incoming countries and permission groups
-    const newAndOldCountries = new Set([...oldCountries, ...incomingCountries]);
-    const newAndOldPermissionGroups = new Set([
-      ...oldPermissionGroups,
-      ...incomingPermissionGroups,
-    ]);
+    const newAndOldCountries = Array.from(new Set([...oldCountries, ...incomingCountries]));
+    const newAndOldPermissionGroups = Array.from(
+      new Set([...oldPermissionGroups, ...incomingPermissionGroups]),
+    );
 
-    // Delete countries and permission groups that are no longer in database
+    // Sync may have deleted some countries or permission groups
+    // so exclude countries and permission groups that are no longer in database
     const countriesInDatabase = this.database.getCountryCodes();
     const countriesSynced = newAndOldCountries.filter(country =>
       countriesInDatabase.includes(country),
@@ -389,8 +389,8 @@ export class Synchroniser {
       permissionGroupsInDatabase.includes(permissionGroup),
     );
 
-    this.database.setSetting(COUNTRIES_SYNCED, [...countriesSynced].join(','));
-    this.database.setSetting(PERMISSION_GROUPS_SYNCED, [...permissionGroupsSynced].join(','));
+    this.database.setSetting(COUNTRIES_SYNCED, countriesSynced.join(','));
+    this.database.setSetting(PERMISSION_GROUPS_SYNCED, permissionGroupsSynced.join(','));
   }
 
   async runMigrations(setProgressMessage) {
