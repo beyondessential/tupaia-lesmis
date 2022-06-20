@@ -318,7 +318,11 @@ export class Synchroniser {
       throw new Error(responseJson.error);
     }
     const { changeCount, countries, permissionGroups } = responseJson;
-    if (changeCount !== 'number' || !Array.isArray(countries) || !Array.isArray(permissionGroups)) {
+    if (
+      typeof changeCount !== 'number' ||
+      !Array.isArray(countries) ||
+      !Array.isArray(permissionGroups)
+    ) {
       throw new Error('Unexpected response from server');
     }
     return { changeCount, countries, permissionGroups };
