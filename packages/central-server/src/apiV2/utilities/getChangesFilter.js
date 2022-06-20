@@ -19,99 +19,6 @@ const getSupportedTypes = async (models, appVersion) => {
   );
 };
 
-const basicCTE = `
-with 
-syncable_meditrak_sync_queue as (
-	select * from meditrak_sync_queue
-)
-`;
-
-const permissionBasedCTE = (allowedCountries, allowedPermissionGroups) => ({
-  query: `
-with 
-allowed_entity as (
-	select e.id from entity e 
-	where e.country_code in ${SqlQuery.array(allowedCountries)}
-), 
-allowed_country as (
-	select co.id from country co 
-	where co.code in ${SqlQuery.array(allowedCountries)}
-),
-allowed_clinic as (
-	select c.id from clinic c 
-	join allowed_entity a_e on c.country_id = a_e.id
-),
-allowed_geographical_area as (
-	select ga.id from geographical_area ga 
-	join allowed_entity a_e on ga.country_id = a_e.id
-),
-allowed_permission_group  as (
-	select pg.id from permission_group pg  
-	where pg."name" in ${SqlQuery.array(allowedPermissionGroups)}
-),
-allowed_survey as (
-	select s.id, s.survey_group_id  from survey s
-	join allowed_permission_group apg on s.permission_group_id = apg.id
-),
-allowed_survey_group as (
-	select sg.id from survey_group sg 
-	join allowed_survey a_s on a_s.survey_group_id = sg.id
-),
-allowed_survey_screen as (
-	select ss.id from survey_screen ss 
-	join allowed_survey a_s on ss.survey_id = a_s.id
-),
-allowed_survey_screen_component as (
-	select ssc.id, ssc.question_id from survey_screen_component ssc 
-	join allowed_survey_screen ass on ssc.screen_id = ass.id
-),
-allowed_question as (
-	select q.id, q.option_set_id from question q  
-	join allowed_survey_screen_component assc on assc.question_id = q.id
-),
-allowed_option_set as (
-	select os.id from option_set os   
-	join allowed_question aq on aq.option_set_id = os.id
-),
-allowed_option as (
-	select o.id from "option" o    
-	join allowed_option_set aos on o.option_set_id = aos.id
-),allowed_meditrak_sync_queue as (
-  select msq.* from meditrak_sync_queue msq 
-  join (
-  (select id from allowed_entity)
-  union 
-  (select id from allowed_clinic)
-  union 
-  (select id from allowed_country)
-  union 
-  (select id from allowed_geographical_area)
-  union 
-  (select id from allowed_permission_group)
-  union 
-  (select id from allowed_survey)
-  union 
-  (select id from allowed_survey_group)
-  union 
-  (select id from allowed_survey_screen)
-  union 
-  (select id from allowed_survey_screen_component)
-  union 
-  (select id from allowed_question)
-  union 
-  (select id from allowed_option_set)
-  union 
-  (select id from allowed_option)
-  ) id_with_permission on msq.record_id = id_with_permission.id
-),syncable_meditrak_sync_queue as (
-  select * from allowed_meditrak_sync_queue
-  union 
-  (select * from meditrak_sync_queue msq where "type" = 'delete')
-)
-`,
-  params: [...allowedCountries, ...allowedCountries, ...allowedPermissionGroups],
-});
-
 const getRecordTypeFilter = async req => {
   const { models } = req;
   const { appVersion, recordTypes = null } = req.query;
@@ -151,15 +58,12 @@ const getBaseWhere = (since, permissionsBasedFilter) => {
 
   if (permissionsBasedFilter) {
     const { allowedCountries, allowedCountyIds, allowedPermissionGroups } = permissionsBasedFilter;
+    const typesWithoutPermissions = ['country', 'permission_group'];
     const permissionsByType = {
       entity: { country: { value: allowedCountries, operator: 'IN', formatter: SqlQuery.array } },
       clinic: { country: { value: allowedCountries, operator: 'IN', formatter: SqlQuery.array } },
       geographical_area: {
         country: { value: allowedCountries, operator: 'IN', formatter: SqlQuery.array },
-      },
-      country: { country: { value: allowedCountries, operator: 'IN', formatter: SqlQuery.array } },
-      permission_group: {
-        permission: { value: allowedPermissionGroups, operator: 'IN', formatter: SqlQuery.array },
       },
       survey: {
         permission: { value: allowedPermissionGroups, operator: 'IN', formatter: SqlQuery.array },
@@ -190,6 +94,12 @@ const getBaseWhere = (since, permissionsBasedFilter) => {
         countries: { value: allowedCountyIds, operator: '&&', formatter: SqlQuery.inlineArray },
       },
     };
+
+    const permissionLessClause = `and (
+      ("type" = ? and record_type IN ${SqlQuery.array(typesWithoutPermissions)})`;
+    query = query.concat(permissionLessClause);
+    params.push('update', ...typesWithoutPermissions);
+
     const permissionClauses = Object.entries(permissionsByType).map(
       ([field, permissionRules]) =>
         `(${Object.entries(permissionRules)
@@ -201,17 +111,10 @@ const getBaseWhere = (since, permissionsBasedFilter) => {
           .join(' and ')})`,
     );
 
-    permissionClauses.forEach((clause, index) => {
-      if (index === 0) {
-        query = query.concat(`
-        and (
-        ${clause}
-      `);
-      } else {
-        query = query.concat(`
+    permissionClauses.forEach(clause => {
+      query = query.concat(`
         OR ${clause}
       `);
-      }
     });
   } else {
     query.concat(`
