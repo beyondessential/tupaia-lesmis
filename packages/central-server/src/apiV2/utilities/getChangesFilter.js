@@ -9,6 +9,10 @@ import semverCompare from 'semver-compare';
 import { getHighestPossibleIdForGivenTime, SqlQuery } from '@tupaia/database';
 import { ValidationError } from '@tupaia/utils';
 import { fetchRequestingMeditrakDevice } from './fetchRequestingMeditrakDevice';
+import {
+  PERMISSIONS_BASED_SYNC_MIN_APP_VERSION,
+  supportsPermissionsBasedSync,
+} from './supportsPermissionsBasedSync';
 
 const isAppVersionGreaterThanMin = (version, minVersion) => semverCompare(version, minVersion) >= 0;
 
@@ -43,7 +47,7 @@ const getSelectFromClause = select => `
   SELECT ${select} FROM permissions_based_meditrak_sync_queue
 `;
 
-const getBaseWhere = (since, permissionsBasedFilter) => {
+const getBaseWhere = async (req, since, permissionsBasedFilter) => {
   // Based on the 'since' query parameter, work out what the highest possible record id is that
   // the client could have already synchronised, and ignore any 'delete' type sync actions for
   // records with higher ids: if the client doesn't know about them there is no point in telling
@@ -51,14 +55,13 @@ const getBaseWhere = (since, permissionsBasedFilter) => {
   const highestPossibleSyncedId = getHighestPossibleIdForGivenTime(since);
 
   let query = `
-    WHERE
     change_time > ?
     AND (
   `;
   const params = [since];
 
   if (permissionsBasedFilter) {
-    const { allowedCountries, allowedCountyIds, allowedPermissionGroups } = permissionsBasedFilter;
+    const { allowedCountries, allowedCountryIds, allowedPermissionGroups } = permissionsBasedFilter;
     const typesWithoutPermissions = ['country', 'permission_group']; // Sync all countries and permission groups (needed for requesting access)
     const permissionsClauses = [
       {
@@ -68,6 +71,10 @@ const getBaseWhere = (since, permissionsBasedFilter) => {
       {
         query: `entity_type = ?`, // Sync all country entities (needed for requesting access to countries)
         params: ['country'],
+      },
+      {
+        query: `entity_country IN ${SqlQuery.array(allowedCountries)}`,
+        params: [...allowedCountries],
       },
       {
         query: `clinic_country IN ${SqlQuery.array(allowedCountries)}`,
@@ -80,44 +87,44 @@ const getBaseWhere = (since, permissionsBasedFilter) => {
       {
         query: `survey_permission IN ${SqlQuery.array(
           allowedPermissionGroups,
-        )} AND survey_countries && ${SqlQuery.inlineArray(allowedCountyIds)}`,
-        params: [...allowedPermissionGroups, ...allowedCountyIds],
+        )} AND survey_countries && ${SqlQuery.inlineArray(allowedCountryIds)}`,
+        params: [...allowedPermissionGroups, ...allowedCountryIds],
       },
       {
         query: `survey_group_permission IN ${SqlQuery.array(
           allowedPermissionGroups,
-        )} AND survey_group_countries && ${SqlQuery.inlineArray(allowedCountyIds)}`,
-        params: [...allowedPermissionGroups, ...allowedCountyIds],
+        )} AND survey_group_countries && ${SqlQuery.inlineArray(allowedCountryIds)}`,
+        params: [...allowedPermissionGroups, ...allowedCountryIds],
       },
       {
         query: `survey_screen_permission IN ${SqlQuery.array(
           allowedPermissionGroups,
-        )} AND survey_screen_countries && ${SqlQuery.inlineArray(allowedCountyIds)}`,
-        params: [...allowedPermissionGroups, ...allowedCountyIds],
+        )} AND survey_screen_countries && ${SqlQuery.inlineArray(allowedCountryIds)}`,
+        params: [...allowedPermissionGroups, ...allowedCountryIds],
       },
       {
         query: `survey_screen_component_permission IN ${SqlQuery.array(
           allowedPermissionGroups,
-        )} AND survey_screen_component_countries && ${SqlQuery.inlineArray(allowedCountyIds)}`,
-        params: [...allowedPermissionGroups, ...allowedCountyIds],
+        )} AND survey_screen_component_countries && ${SqlQuery.inlineArray(allowedCountryIds)}`,
+        params: [...allowedPermissionGroups, ...allowedCountryIds],
       },
       {
         query: `question_permission IN ${SqlQuery.array(
           allowedPermissionGroups,
-        )} AND question_countries && ${SqlQuery.inlineArray(allowedCountyIds)}`,
-        params: [...allowedPermissionGroups, ...allowedCountyIds],
+        )} AND question_countries && ${SqlQuery.inlineArray(allowedCountryIds)}`,
+        params: [...allowedPermissionGroups, ...allowedCountryIds],
       },
       {
         query: `option_set_permission IN ${SqlQuery.array(
           allowedPermissionGroups,
-        )} AND option_set_countries && ${SqlQuery.inlineArray(allowedCountyIds)}`,
-        params: [...allowedPermissionGroups, ...allowedCountyIds],
+        )} AND option_set_countries && ${SqlQuery.inlineArray(allowedCountryIds)}`,
+        params: [...allowedPermissionGroups, ...allowedCountryIds],
       },
       {
         query: `option_permission IN ${SqlQuery.array(
           allowedPermissionGroups,
-        )} AND option_countries && ${SqlQuery.inlineArray(allowedCountyIds)}`,
-        params: [...allowedPermissionGroups, ...allowedCountyIds],
+        )} AND option_countries && ${SqlQuery.inlineArray(allowedCountryIds)}`,
+        params: [...allowedPermissionGroups, ...allowedCountryIds],
       },
     ];
 
@@ -141,6 +148,16 @@ const getBaseWhere = (since, permissionsBasedFilter) => {
   `);
   params.push('delete', highestPossibleSyncedId);
 
+  const recordTypeFilter = await getRecordTypeFilter(req);
+
+  if (recordTypeFilter) {
+    const { comparator, comparisonValue } = recordTypeFilter;
+    query = query.concat(`
+      AND record_type ${comparator} ${SqlQuery.array(comparisonValue)}
+    `);
+    params.push(...comparisonValue);
+  }
+
   return { query, params };
 };
 
@@ -154,46 +171,86 @@ const extractSinceValue = req => {
 };
 
 const extractPermissionsBasedFilter = async req => {
-  const { countriesInDatabase, permissionGroupsInDatabase } = req.query;
+  const { accessPolicy } = req;
+  const {
+    appVersion,
+    countriesSynced: countriesSyncedString,
+    permissionGroupsSynced: permissionGroupsSyncedString,
+  } = req.query;
 
-  if (!countriesInDatabase) {
-    return null;
+  if (!supportsPermissionsBasedSync(appVersion)) {
+    throw new Error(
+      `Permissions based sync is not supported for appVersion: ${appVersion}, must be ${PERMISSIONS_BASED_SYNC_MIN_APP_VERSION} or higher`,
+    );
   }
 
-  if (!permissionGroupsInDatabase) {
-    return null;
+  const usersCountries = accessPolicy.getEntitiesAllowed();
+  const usersPermissionGroups = accessPolicy.getPermissionGroups();
+
+  // First time sync, just return new countries and permission groups
+  if (!countriesSyncedString || !permissionGroupsSyncedString) {
+    const userCountryIds = (await req.models.country.find({ code: usersCountries })).map(
+      country => country.id,
+    );
+    return {
+      unsynced: {
+        allowedCountries: usersCountries,
+        allowedCountryIds: userCountryIds,
+        allowedPermissionGroups: usersPermissionGroups,
+      },
+    };
   }
 
-  const allowedCountries = countriesInDatabase.split(',');
-  const allowedCountyIds = (await req.models.country.find({ code: allowedCountries })).map(
+  const syncedCountries = countriesSyncedString.split(',');
+  const syncedPermissionGroups = permissionGroupsSyncedString.split(',');
+  const syncedCountryIds = (await req.models.country.find({ code: syncedCountries })).map(
     country => country.id,
   );
-  const allowedPermissionGroups = permissionGroupsInDatabase.split(',');
+
+  const unsyncedCountries = usersCountries.filter(country => !syncedCountries.includes(country));
+  const unsyncedPermissionGroups = usersPermissionGroups.filter(
+    permissionGroup => !syncedPermissionGroups.includes(permissionGroup),
+  );
+
+  if (unsyncedCountries.length === 0 && unsyncedPermissionGroups.length === 0) {
+    // No new countries or permissionGroups, just return synced
+    return {
+      synced: {
+        allowedCountries: syncedCountries,
+        allowedCountryIds: syncedCountryIds,
+        allowedPermissionGroups: syncedPermissionGroups,
+      },
+    };
+  }
+
+  const unsyncedCountryIds = (await req.models.country.find({ code: unsyncedCountries })).map(
+    country => country.id,
+  );
 
   return {
-    allowedCountries,
-    allowedCountyIds,
-    allowedPermissionGroups,
+    unsynced: {
+      allowedCountries: unsyncedCountries,
+      allowedCountryIds: unsyncedCountryIds,
+      allowedPermissionGroups: unsyncedPermissionGroups,
+    },
+    synced: {
+      allowedCountries: syncedCountries,
+      allowedCountryIds: syncedCountryIds,
+      allowedPermissionGroups: syncedPermissionGroups,
+    },
   };
 };
 
 export const getChangesFilter = async (req, { select, sort, limit, offset }) => {
   const since = extractSinceValue(req);
-  const permissionBasedFilter = await extractPermissionsBasedFilter(req);
 
-  // eslint-disable-next-line prefer-const
-  let { query, params } = getBaseWhere(since, permissionBasedFilter);
-  const recordTypeFilter = await getRecordTypeFilter(req);
-
-  if (recordTypeFilter) {
-    const { comparator, comparisonValue } = recordTypeFilter;
-    query = query.concat(`
-      AND record_type ${comparator} ${SqlQuery.array(comparisonValue)}
-    `);
-    params.push(...comparisonValue);
-  }
-
-  query = getSelectFromClause(select).concat(query);
+  let query = '';
+  const params = [];
+  query = query.concat(getSelectFromClause(select));
+  const { query: whereQuery, params: whereParams } = await getBaseWhere(req, since);
+  query = query.concat(`WHERE
+  ${whereQuery}`);
+  params.push(...whereParams);
 
   if (sort) {
     query = query.concat(`
@@ -215,5 +272,77 @@ export const getChangesFilter = async (req, { select, sort, limit, offset }) => 
     params.push(offset);
   }
 
-  return new SqlQuery(query, params);
+  return { query: new SqlQuery(query, params) };
+};
+
+export const getPermissionsBasedChangesFilter = async (req, { select, sort, limit, offset }) => {
+  const since = extractSinceValue(req);
+  const permissionBasedFilter = await extractPermissionsBasedFilter(req);
+
+  let query = '';
+  const params = [];
+  const { unsynced, synced } = permissionBasedFilter;
+  if (unsynced) {
+    query = query.concat(getSelectFromClause(select));
+    query = query.concat(`WHERE (
+    `);
+    const { query: whereQuery, params: whereParams } = await getBaseWhere(req, 0, unsynced);
+    query = query.concat(whereQuery);
+    params.push(...whereParams);
+  }
+
+  if (unsynced && synced) {
+    query = query.concat(`
+      ) OR (
+      `);
+  }
+
+  if (synced) {
+    if (!unsynced) {
+      query = query.concat(getSelectFromClause(select));
+      query = query.concat(`WHERE (
+        `);
+    }
+    const { query: whereQuery, params: whereParams } = await getBaseWhere(req, since, synced);
+    query = query.concat(whereQuery);
+    params.push(...whereParams);
+  }
+
+  query = query.concat(`)
+  `);
+
+  if (sort) {
+    query = query.concat(`
+    ORDER BY ${sort}
+    `);
+  }
+
+  if (limit !== undefined) {
+    query = query.concat(`
+    LIMIT ?
+    `);
+    params.push(limit);
+  }
+
+  if (offset !== undefined) {
+    query = query.concat(`
+    OFFSET ?
+    `);
+    params.push(offset);
+  }
+
+  const countriesInSync = [
+    ...(unsynced?.allowedCountries || []),
+    ...(synced?.allowedCountries || []),
+  ];
+  const permissionGroupsInSync = [
+    ...(unsynced?.allowedPermissionGroups || []),
+    ...(synced?.allowedPermissionGroups || []),
+  ];
+
+  return {
+    query: new SqlQuery(query, params),
+    countries: countriesInSync,
+    permissionGroups: permissionGroupsInSync,
+  };
 };

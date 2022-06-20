@@ -7,7 +7,12 @@ import keyBy from 'lodash.keyby';
 import groupBy from 'lodash.groupby';
 import { respond, DatabaseError } from '@tupaia/utils';
 import { TYPES } from '@tupaia/database';
-import { getChangesFilter, getColumnsForMeditrakApp } from './utilities';
+import {
+  supportsPermissionsBasedSync,
+  getChangesFilter,
+  getPermissionsBasedChangesFilter,
+  getColumnsForMeditrakApp,
+} from './utilities';
 import { allowNoPermissions } from '../permissions';
 
 const MAX_CHANGES_RETURNED = 100;
@@ -36,13 +41,16 @@ function getRecordForSync(record) {
  */
 export async function getChanges(req, res) {
   const { database, models } = req;
-  const { limit = MAX_CHANGES_RETURNED, offset = 0 } = req.query;
+  const { limit = MAX_CHANGES_RETURNED, offset = 0, appVersion } = req.query;
 
   await req.assertPermissions(allowNoPermissions);
 
   try {
     const msqColumns = await models.meditrakSyncQueue.fetchFieldNames();
-    const query = await getChangesFilter(req, {
+    const changeFilterFunction = supportsPermissionsBasedSync(appVersion)
+      ? getPermissionsBasedChangesFilter
+      : getChangesFilter;
+    const { query } = await changeFilterFunction(req, {
       select: msqColumns.join(', '),
       sort: 'change_time ASC',
       limit,
