@@ -53,78 +53,91 @@ const getBaseWhere = (since, permissionsBasedFilter) => {
   let query = `
     WHERE
     change_time > ?
+    AND (
   `;
   const params = [since];
 
   if (permissionsBasedFilter) {
     const { allowedCountries, allowedCountyIds, allowedPermissionGroups } = permissionsBasedFilter;
-    const typesWithoutPermissions = ['country', 'permission_group'];
-    const permissionsByType = {
-      entity: { country: { value: allowedCountries, operator: 'IN', formatter: SqlQuery.array } },
-      clinic: { country: { value: allowedCountries, operator: 'IN', formatter: SqlQuery.array } },
-      geographical_area: {
-        country: { value: allowedCountries, operator: 'IN', formatter: SqlQuery.array },
+    const typesWithoutPermissions = ['country', 'permission_group']; // Sync all countries and permission groups (needed for requesting access)
+    const permissionsClauses = [
+      {
+        query: `"type" = ? AND record_type IN ${SqlQuery.array(typesWithoutPermissions)}`,
+        params: ['update', ...typesWithoutPermissions],
       },
-      survey: {
-        permission: { value: allowedPermissionGroups, operator: 'IN', formatter: SqlQuery.array },
-        countries: { value: allowedCountyIds, operator: '&&', formatter: SqlQuery.inlineArray },
+      {
+        query: `entity_type = ?`, // Sync all country entities (needed for requesting access to countries)
+        params: ['country'],
       },
-      survey_group: {
-        permission: { value: allowedPermissionGroups, operator: 'IN', formatter: SqlQuery.array },
-        countries: { value: allowedCountyIds, operator: '&&', formatter: SqlQuery.inlineArray },
+      {
+        query: `clinic_country IN ${SqlQuery.array(allowedCountries)}`,
+        params: [...allowedCountries],
       },
-      survey_screen: {
-        permission: { value: allowedPermissionGroups, operator: 'IN', formatter: SqlQuery.array },
-        countries: { value: allowedCountyIds, operator: '&&', formatter: SqlQuery.inlineArray },
+      {
+        query: `geographical_area_country IN ${SqlQuery.array(allowedCountries)}`,
+        params: [...allowedCountries],
       },
-      survey_screen_component: {
-        permission: { value: allowedPermissionGroups, operator: 'IN', formatter: SqlQuery.array },
-        countries: { value: allowedCountyIds, operator: '&&', formatter: SqlQuery.inlineArray },
+      {
+        query: `survey_permission IN ${SqlQuery.array(
+          allowedPermissionGroups,
+        )} AND survey_countries && ${SqlQuery.inlineArray(allowedCountyIds)}`,
+        params: [...allowedPermissionGroups, ...allowedCountyIds],
       },
-      question: {
-        permission: { value: allowedPermissionGroups, operator: 'IN', formatter: SqlQuery.array },
-        countries: { value: allowedCountyIds, operator: '&&', formatter: SqlQuery.inlineArray },
+      {
+        query: `survey_group_permission IN ${SqlQuery.array(
+          allowedPermissionGroups,
+        )} AND survey_group_countries && ${SqlQuery.inlineArray(allowedCountyIds)}`,
+        params: [...allowedPermissionGroups, ...allowedCountyIds],
       },
-      option_set: {
-        permission: { value: allowedPermissionGroups, operator: 'IN', formatter: SqlQuery.array },
-        countries: { value: allowedCountyIds, operator: '&&', formatter: SqlQuery.inlineArray },
+      {
+        query: `survey_screen_permission IN ${SqlQuery.array(
+          allowedPermissionGroups,
+        )} AND survey_screen_countries && ${SqlQuery.inlineArray(allowedCountyIds)}`,
+        params: [...allowedPermissionGroups, ...allowedCountyIds],
       },
-      option: {
-        permission: { value: allowedPermissionGroups, operator: 'IN', formatter: SqlQuery.array },
-        countries: { value: allowedCountyIds, operator: '&&', formatter: SqlQuery.inlineArray },
+      {
+        query: `survey_screen_component_permission IN ${SqlQuery.array(
+          allowedPermissionGroups,
+        )} AND survey_screen_component_countries && ${SqlQuery.inlineArray(allowedCountyIds)}`,
+        params: [...allowedPermissionGroups, ...allowedCountyIds],
       },
-    };
+      {
+        query: `question_permission IN ${SqlQuery.array(
+          allowedPermissionGroups,
+        )} AND question_countries && ${SqlQuery.inlineArray(allowedCountyIds)}`,
+        params: [...allowedPermissionGroups, ...allowedCountyIds],
+      },
+      {
+        query: `option_set_permission IN ${SqlQuery.array(
+          allowedPermissionGroups,
+        )} AND option_set_countries && ${SqlQuery.inlineArray(allowedCountyIds)}`,
+        params: [...allowedPermissionGroups, ...allowedCountyIds],
+      },
+      {
+        query: `option_permission IN ${SqlQuery.array(
+          allowedPermissionGroups,
+        )} AND option_countries && ${SqlQuery.inlineArray(allowedCountyIds)}`,
+        params: [...allowedPermissionGroups, ...allowedCountyIds],
+      },
+    ];
 
-    const permissionLessClause = `and (
-      ("type" = ? and record_type IN ${SqlQuery.array(typesWithoutPermissions)})`;
-    query = query.concat(permissionLessClause);
-    params.push('update', ...typesWithoutPermissions);
-
-    const permissionClauses = Object.entries(permissionsByType).map(
-      ([field, permissionRules]) =>
-        `(${Object.entries(permissionRules)
-          .map(([permissionType, { value, formatter, operator }]) => {
-            const clause = `${field}_${permissionType} ${operator} ${formatter(value)}`;
-            params.push(...value);
-            return clause;
-          })
-          .join(' and ')})`,
-    );
-
-    permissionClauses.forEach(clause => {
+    permissionsClauses.forEach(({ query: permClauseQuery, params: permClauseParams }, index) => {
       query = query.concat(`
-        OR ${clause}
-      `);
+          ${index !== 0 ? 'OR ' : ''}(${permClauseQuery})
+        `);
+      params.push(...permClauseParams);
     });
   } else {
-    query.concat(`
-    and "type" = ?
+    // If not permissions based filter just sync all updates
+    query = query.concat(`
+    "type" = ?
     `);
     params.push('update');
   }
 
+  // Only sync deletes that have occurred prior to the latest possibly synced record
   query = query.concat(`
-    or ("type" = ? and record_id <= ?))
+    OR ("type" = ? AND record_id <= ?))
   `);
   params.push('delete', highestPossibleSyncedId);
 
