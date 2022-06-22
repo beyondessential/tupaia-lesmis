@@ -7,7 +7,7 @@ import { expect } from 'chai';
 
 import { oneSecondSleep, randomIntBetween } from '@tupaia/utils';
 import { MeditrakSyncQueue } from '../../database';
-import { TestableApp, upsertQuestion } from '../testUtilities';
+import { TestableApp, upsertEntity, upsertQuestion, upsertSurveyGroup } from '../testUtilities';
 
 describe('GET /changes/count', async () => {
   const app = new TestableApp();
@@ -138,5 +138,26 @@ describe('GET /changes/count', async () => {
     // that happen in the second round of deletes
     response = await app.get(`changes/count?since=${timestampBeforeSecondDelete}`);
     expect(response.body.changeCount).to.equal(numberOfQuestionsToDeleteFromSecondUpdate);
+  });
+
+  it('should return the correct number of changes based on appVersion', async function () {
+    const since = Date.now();
+    // Wait one second for the triggers to have properly added the changes to the queue
+    await oneSecondSleep();
+
+    await upsertQuestion(); // version 0.0.1
+    await upsertSurveyGroup(); // version 1.6.69
+    await upsertEntity(); // version 1.7.102
+
+    await oneSecondSleep();
+    await meditrakSyncQueue.scheduleChangeQueueHandler();
+    let response = await app.get(`changes/count?since=${since}&appVersion=0.0.1`);
+    expect(response.body.changeCount).to.equal(1);
+
+    response = await app.get(`changes/count?since=${since}&appVersion=1.6.69`);
+    expect(response.body.changeCount).to.equal(2);
+
+    response = await app.get(`changes/count?since=${since}&appVersion=1.7.102`);
+    expect(response.body.changeCount).to.equal(3);
   });
 });
