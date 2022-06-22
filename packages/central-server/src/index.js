@@ -18,7 +18,7 @@ import {
 } from '@tupaia/database';
 import { isFeatureEnabled } from '@tupaia/utils';
 
-import { createMeditrakSyncQueue, createPermissionsBasedMeditrakSyncQueueView } from './database';
+import { MeditrakSyncQueue } from './database';
 import * as modelClasses from './database/models';
 import { startSyncWithDhis } from './dhis';
 import { startSyncWithMs1 } from './ms1';
@@ -39,9 +39,9 @@ import winston from './log';
    * Set up change handlers e.g. for syncing
    */
   if (isFeatureEnabled('MEDITRAK_SYNC_QUEUE')) {
-    await createPermissionsBasedMeditrakSyncQueueView(database);
-    winston.info(`Created permissions based meditrak sync queue`);
-    createMeditrakSyncQueue(models);
+    const meditrakSyncQueue = new MeditrakSyncQueue(models);
+    await meditrakSyncQueue.createPermissionsBasedView(); // Ensure permissions based view has been setup
+    meditrakSyncQueue.listenForChanges();
   }
 
   // Pre-cache entity hierarchy details

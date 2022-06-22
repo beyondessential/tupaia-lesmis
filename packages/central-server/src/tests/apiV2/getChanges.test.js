@@ -5,20 +5,22 @@
 
 import { expect } from 'chai';
 
-import { TYPES } from '@tupaia/database';
 import { oneSecondSleep, randomIntBetween } from '@tupaia/utils';
-import { SyncQueue } from '../../database';
+import { MeditrakSyncQueue } from '../../database';
 import { TestableApp, upsertQuestion } from '../testUtilities';
 
 describe('GET /changes/count', async () => {
   const app = new TestableApp();
   const { models } = app;
+  const meditrakSyncQueue = new MeditrakSyncQueue(models);
 
   before(async () => {
     await app.grantFullAccess();
 
     // Set up real sync queue for testing the /changes endpoint
-    const syncQueue = new SyncQueue(models, models.meditrakSyncQueue, [TYPES.QUESTION]); // eslint-disable-line no-unused-vars
+    await meditrakSyncQueue.createPermissionsBasedView();
+    meditrakSyncQueue.setDebounceTime(100); // Faster debounce time for tests
+    meditrakSyncQueue.listenForChanges();
   });
 
   after(() => {
@@ -47,6 +49,7 @@ describe('GET /changes/count', async () => {
     }
     // Wait one second for the triggers to have properly added the changes to the queue
     await oneSecondSleep();
+    await meditrakSyncQueue.scheduleChangeQueueHandler();
     const response = await app.get(`changes/count?since=${since}`);
     expect(response.body.changeCount).to.equal(numberOfQuestionsToAdd);
   });
@@ -112,6 +115,7 @@ describe('GET /changes/count', async () => {
     const totalDeletes =
       numberOfQuestionsToDeleteFromFirstUpdate + numberOfQuestionsToDeleteFromSecondUpdate;
     const netNewRecords = grossNewRecords - totalDeletes;
+    await meditrakSyncQueue.scheduleChangeQueueHandler();
     let response = await app.get(`changes/count?since=${timestampBeforeFirstUpdate}`);
     expect(response.body.changeCount).to.equal(netNewRecords);
 

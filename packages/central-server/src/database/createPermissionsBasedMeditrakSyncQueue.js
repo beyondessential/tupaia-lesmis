@@ -15,24 +15,24 @@ const query = new SqlQuery(`
 DROP MATERIALIZED VIEW IF EXISTS permissions_based_meditrak_sync_queue;
 CREATE MATERIALIZED VIEW permissions_based_meditrak_sync_queue AS 
 SELECT msq.*, 
-	e.country_code AS entity_country, 
-	e."type" AS entity_type, 
-	c_e.country_code AS clinic_country, 
-	ga_e.country_code AS geographical_area_country, 
-	s_pg."name" AS survey_permission, 
-	s.country_ids  AS survey_countries, 
-	sg_s_pg."name" AS survey_group_permission, 
-	sg_s.country_ids AS survey_group_countries,
-	ss_s_pg."name" AS survey_screen_permission, 
-	ss_s.country_ids AS survey_screen_countries, 
-	ssc_ss_s_pg."name" AS survey_screen_component_permission, 
-	ssc_ss_s.country_ids AS survey_screen_component_countries, 
-	q_ssc_ss_s_pg."name" AS question_permission, 
-	q_ssc_ss_s.country_ids  AS question_countries, 
-	os_q_ssc_ss_s_pg."name" AS option_set_permission, 
-	os_q_ssc_ss_s.country_ids AS option_set_countries, 
-	o_os_q_ssc_ss_s_pg."name" AS option_permission, 
-	o_os_q_ssc_ss_s.country_ids AS option_countries
+	max(e.country_code) AS entity_country, 
+	max(e."type") AS entity_type, 
+	max(c_e.country_code) AS clinic_country, 
+	max(ga_e.country_code) AS geographical_area_country, 
+	array(select distinct unnest(array_agg(s_pg."name"))) AS survey_permissions, 
+	array(select distinct unnest(array_concat_agg(s.country_ids))) AS survey_countries, 
+	array(select distinct unnest(array_agg(sg_s_pg."name"))) AS survey_group_permissions, 
+	array(select distinct unnest(array_concat_agg(sg_s.country_ids))) AS survey_group_countries,
+	array(select distinct unnest(array_agg(ss_s_pg."name"))) AS survey_screen_permissions, 
+	array(select distinct unnest(array_concat_agg(ss_s.country_ids))) AS survey_screen_countries, 
+	array(select distinct unnest(array_agg(ssc_ss_s_pg."name"))) AS survey_screen_component_permissions, 
+	array(select distinct unnest(array_concat_agg(ssc_ss_s.country_ids))) AS survey_screen_component_countries, 
+	array(select distinct unnest(array_agg(q_ssc_ss_s_pg."name"))) AS question_permissions, 
+	array(select distinct unnest(array_concat_agg(q_ssc_ss_s.country_ids))) AS question_countries, 
+	array(select distinct unnest(array_agg(os_q_ssc_ss_s_pg."name"))) AS option_set_permissions, 
+	array(select distinct unnest(array_concat_agg(os_q_ssc_ss_s.country_ids))) AS option_set_countries, 
+	array(select distinct unnest(array_agg(o_os_q_ssc_ss_s_pg."name"))) AS option_permissions, 
+	array(select distinct unnest(array_concat_agg(o_os_q_ssc_ss_s.country_ids))) AS option_countries
 FROM meditrak_sync_queue msq 
 LEFT JOIN entity e ON msq.record_id = e.id
 LEFT JOIN clinic c ON msq.record_id = c.id
@@ -68,9 +68,11 @@ LEFT JOIN question o_os_q ON o_os_q.option_set_id = o_os.id
 LEFT JOIN survey_screen_component o_os_q_ssc ON o_os_q_ssc.question_id = o_os_q.id
 LEFT JOIN survey_screen o_os_q_ssc_ss ON o_os_q_ssc.screen_id = o_os_q_ssc_ss.id
 LEFT JOIN survey o_os_q_ssc_ss_s ON o_os_q_ssc_ss.survey_id  = o_os_q_ssc_ss_s.id 
-LEFT JOIN permission_group o_os_q_ssc_ss_s_pg ON o_os_q_ssc_ss_s.permission_group_id = o_os_q_ssc_ss_s_pg.id;
+LEFT JOIN permission_group o_os_q_ssc_ss_s_pg ON o_os_q_ssc_ss_s.permission_group_id = o_os_q_ssc_ss_s_pg.id
+GROUP BY msq.id;
+CREATE UNIQUE INDEX permissions_based_meditrak_sync_queue_id_idx ON permissions_based_meditrak_sync_queue (id); 
 `);
 
-export const createPermissionsBasedMeditrakSyncQueueView = async database => {
+export const createPermissionsBasedMeditrakSyncQueue = async database => {
   return query.executeOnDatabase(database);
 };

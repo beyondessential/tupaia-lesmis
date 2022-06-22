@@ -85,43 +85,43 @@ const getBaseWhere = async (req, since, permissionsBasedFilter) => {
         params: [...allowedCountries],
       },
       {
-        query: `survey_permission IN ${SqlQuery.array(
+        query: `survey_permissions && ${SqlQuery.inlineArray(
           allowedPermissionGroups,
         )} AND survey_countries && ${SqlQuery.inlineArray(allowedCountryIds)}`,
         params: [...allowedPermissionGroups, ...allowedCountryIds],
       },
       {
-        query: `survey_group_permission IN ${SqlQuery.array(
+        query: `survey_group_permissions && ${SqlQuery.inlineArray(
           allowedPermissionGroups,
         )} AND survey_group_countries && ${SqlQuery.inlineArray(allowedCountryIds)}`,
         params: [...allowedPermissionGroups, ...allowedCountryIds],
       },
       {
-        query: `survey_screen_permission IN ${SqlQuery.array(
+        query: `survey_screen_permissions && ${SqlQuery.inlineArray(
           allowedPermissionGroups,
         )} AND survey_screen_countries && ${SqlQuery.inlineArray(allowedCountryIds)}`,
         params: [...allowedPermissionGroups, ...allowedCountryIds],
       },
       {
-        query: `survey_screen_component_permission IN ${SqlQuery.array(
+        query: `survey_screen_component_permissions && ${SqlQuery.inlineArray(
           allowedPermissionGroups,
         )} AND survey_screen_component_countries && ${SqlQuery.inlineArray(allowedCountryIds)}`,
         params: [...allowedPermissionGroups, ...allowedCountryIds],
       },
       {
-        query: `question_permission IN ${SqlQuery.array(
+        query: `question_permissions && ${SqlQuery.inlineArray(
           allowedPermissionGroups,
         )} AND question_countries && ${SqlQuery.inlineArray(allowedCountryIds)}`,
         params: [...allowedPermissionGroups, ...allowedCountryIds],
       },
       {
-        query: `option_set_permission IN ${SqlQuery.array(
+        query: `option_set_permissions && ${SqlQuery.inlineArray(
           allowedPermissionGroups,
         )} AND option_set_countries && ${SqlQuery.inlineArray(allowedCountryIds)}`,
         params: [...allowedPermissionGroups, ...allowedCountryIds],
       },
       {
-        query: `option_permission IN ${SqlQuery.array(
+        query: `option_permissions && ${SqlQuery.inlineArray(
           allowedPermissionGroups,
         )} AND option_countries && ${SqlQuery.inlineArray(allowedCountryIds)}`,
         params: [...allowedPermissionGroups, ...allowedCountryIds],
