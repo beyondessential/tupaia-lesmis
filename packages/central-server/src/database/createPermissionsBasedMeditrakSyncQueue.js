@@ -17,8 +17,8 @@ CREATE MATERIALIZED VIEW permissions_based_meditrak_sync_queue AS
 SELECT msq.*, 
 	max(e.country_code) AS entity_country, 
 	max(e."type") AS entity_type, 
-	max(c_e.country_code) AS clinic_country, 
-	max(ga_e.country_code) AS geographical_area_country, 
+	max(c_co.code) AS clinic_country, 
+	max(ga_co.code) AS geographical_area_country, 
 	NULLIF(array(select distinct unnest(array_agg(s_pg."name"))), '{NULL}') AS survey_permissions, 
 	NULLIF(array(select distinct unnest(array_concat_agg(s.country_ids))), '{}') AS survey_countries, 
 	NULLIF(array(select distinct unnest(array_agg(sg_s_pg."name"))), '{NULL}') AS survey_group_permissions, 
@@ -36,9 +36,9 @@ SELECT msq.*,
 FROM meditrak_sync_queue msq 
 LEFT JOIN entity e ON msq.record_id = e.id
 LEFT JOIN clinic c ON msq.record_id = c.id
-LEFT JOIN entity c_e ON c.country_id = c_e.id 
+LEFT JOIN country c_co ON c.country_id = c_co.id 
 LEFT JOIN geographical_area ga ON msq.record_id = ga.id 
-LEFT JOIN entity ga_e ON ga.country_id = ga_e.id 
+LEFT JOIN country ga_co ON ga.country_id = ga_co.id 
 LEFT JOIN survey s ON msq.record_id = s.id 
 LEFT JOIN permission_group s_pg ON s.permission_group_id = s_pg.id 
 LEFT JOIN survey_group sg ON msq.record_id = sg.id
