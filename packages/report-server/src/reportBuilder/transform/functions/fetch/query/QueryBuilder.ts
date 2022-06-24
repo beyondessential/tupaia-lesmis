@@ -3,8 +3,8 @@
  * Copyright (c) 2017 - 2021 Beyond Essential Systems Pty Ltd
  */
 
-import { ReqContext } from '../context';
-import { FetchReportQuery, ReportConfig } from '../../types';
+import { ReqContext } from '../../../../context';
+import { FetchReportQuery, ReportConfig } from '../../../../../types';
 import { buildPeriodParams } from './buildPeriodParams';
 import { buildOrganisationUnitParams } from './buildOrganisationUnitParams';
 

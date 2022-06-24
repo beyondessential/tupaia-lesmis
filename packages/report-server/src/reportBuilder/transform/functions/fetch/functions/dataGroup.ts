@@ -5,8 +5,8 @@
 
 import { yup } from '@tupaia/utils';
 
-import { ReportServerAggregator } from '../../../aggregator';
-import { Aggregation, FetchReportQuery, ReportConfig } from '../../../types';
+import { ReportServerAggregator } from '../../../../../aggregator';
+import { Aggregation, FetchReportQuery, ReportConfig } from '../../../../../types';
 import { FetchResponse } from '../types';
 
 type DataGroupParams = Pick<ReportConfig['fetch'], 'dataGroups' | 'dataElements' | 'aggregations'>;

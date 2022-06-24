@@ -3,8 +3,8 @@
  * Copyright (c) 2017 - 2020 Beyond Essential Systems Pty Ltd
  */
 
-import { FetchReportQuery, ReportConfig } from '../../types';
-import { ReportServerAggregator } from '../../aggregator';
+import { FetchReportQuery, ReportConfig } from '../../../../types';
+import { ReportServerAggregator } from '../../../../aggregator';
 import { FetchResponse } from './types';
 import { fetchBuilders } from './functions';
 

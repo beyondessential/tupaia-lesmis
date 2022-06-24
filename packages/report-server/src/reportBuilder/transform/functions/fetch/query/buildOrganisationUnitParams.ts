@@ -5,8 +5,8 @@
 
 import keyBy from 'lodash.keyby';
 
-import { ReqContext } from '../context';
-import { FetchReportQuery, ReportConfig } from '../../types';
+import { ReqContext } from '../../../../context';
+import { FetchReportQuery, ReportConfig } from '../../../../../types';
 
 const REQUESTED_ORG_UNITS_PLACEHOLDER = '$requested';
 

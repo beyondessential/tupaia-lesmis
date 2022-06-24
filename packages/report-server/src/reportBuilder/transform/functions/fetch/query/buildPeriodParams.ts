@@ -12,7 +12,7 @@ import {
   utcMoment,
 } from '@tupaia/utils';
 
-import { FetchReportQuery, PeriodParams, ReportConfig } from '../../types';
+import { FetchReportQuery, PeriodParams, ReportConfig } from '../../../../../types';
 import { DateOffset } from './types';
 
 const buildDateUsingSpecs = (date: string | undefined, dateOffset: DateOffset) => {
