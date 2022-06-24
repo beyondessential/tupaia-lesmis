@@ -14,7 +14,7 @@ type FetchParams = {
   call: (aggregator: ReportServerAggregator, query: FetchReportQuery) => Promise<FetchResponse>;
 };
 
-const fetch = (
+const fetchData = (
   aggregator: ReportServerAggregator,
   query: FetchReportQuery,
   fetcher: FetchParams,
@@ -30,8 +30,8 @@ const buildParams = (params: FetchConfig): FetchParams => {
   };
 };
 
-export const buildFetch = (params: FetchConfig) => {
+export const buildFetchData = (params: FetchConfig) => {
   const builtParams = buildParams(params);
   return (aggregator: ReportServerAggregator, query: FetchReportQuery) =>
-    fetch(aggregator, query, builtParams);
+    fetchData(aggregator, query, builtParams);
 };
