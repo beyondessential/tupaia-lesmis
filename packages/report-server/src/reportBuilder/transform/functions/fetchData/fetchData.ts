@@ -7,6 +7,8 @@ import { FetchReportQuery, ReportConfig } from '../../../../types';
 import { ReportServerAggregator } from '../../../../aggregator';
 import { FetchResponse } from './types';
 import { fetchBuilders } from './functions';
+import { Context, updateContext } from '../../../context';
+import { Row } from '../../../types';
 
 type FetchConfig = ReportConfig['fetch'];
 
@@ -14,15 +16,13 @@ type FetchParams = {
   call: (aggregator: ReportServerAggregator, query: FetchReportQuery) => Promise<FetchResponse>;
 };
 
-const fetchData = (
-  aggregator: ReportServerAggregator,
-  query: FetchReportQuery,
-  fetcher: FetchParams,
-): Promise<FetchResponse> => {
-  return fetcher.call(aggregator, query);
+const fetchData = async (rows: Row[], params: FetchParams, context: Context) => {
+  const response = await params.call(context.request.aggregator, context.request.query);
+  await updateContext(context, response);
+  return rows.concat(...response.results);
 };
 
-const buildParams = (params: FetchConfig): FetchParams => {
+const buildParams = (params: unknown): FetchParams => {
   const fetchFunction = 'dataGroups' in params ? 'dataGroups' : 'dataElements';
 
   return {
@@ -30,8 +30,7 @@ const buildParams = (params: FetchConfig): FetchParams => {
   };
 };
 
-export const buildFetchData = (params: FetchConfig) => {
+export const buildFetchData = (params: unknown, context: Context) => {
   const builtParams = buildParams(params);
-  return (aggregator: ReportServerAggregator, query: FetchReportQuery) =>
-    fetchData(aggregator, query, builtParams);
+  return (rows: Row[]) => fetchData(rows, builtParams, context);
 };

@@ -26,10 +26,12 @@ import {
   buildGatherColumns,
   paramsValidator as gatherColumnsParamsValidator,
 } from './gatherColumns';
+import { buildFetchData } from './fetchData';
 
 type TransformBuilder = (params: unknown, context: Context) => (rows: Row[]) => Row[];
 
 export const transformBuilders: Record<string, TransformBuilder> = {
+  fetchData: buildFetchData,
   insertColumns: buildInsertColumns,
   excludeColumns: buildExcludeColumns,
   updateColumns: buildUpdateColumns,

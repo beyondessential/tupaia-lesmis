@@ -3,20 +3,11 @@
  * Copyright (c) 2017 - 2021 Beyond Essential Systems Pty Ltd
  */
 
-import { AccessPolicy } from '@tupaia/access-policy';
 import { getUniqueEntries } from '@tupaia/utils';
 
 import { FetchResponse } from '../fetch';
 import { detectDependencies } from './detectDependencies';
-import { Context, ContextDependency } from './types';
-import { RequestContext } from '../../types';
-
-export type ReqContext = {
-  hierarchy: string;
-  permissionGroup: string;
-  services: RequestContext['services'];
-  accessPolicy: AccessPolicy;
-};
+import { Context, ContextDependency, ReqContext } from './types';
 
 type ContextBuilder<K extends ContextDependency> = (
   reqContext: ReqContext,
@@ -89,19 +80,21 @@ const setContextValue = <Key extends ContextDependency>(
   context[key] = value;
 };
 
+export const updateContext = async (context: Context, data: FetchResponse): Promise<Context> => {
+  for (const key of context.dependencies) {
+    validateDependency(key);
+    setContextValue(context, key, await contextBuilders[key](context.request, data));
+  }
+
+  return context;
+};
+
 export const buildContext = async (
   transform: unknown,
   reqContext: ReqContext,
-  data: FetchResponse,
 ): Promise<Context> => {
   const dependencies = detectDependencies(transform);
 
-  const context: Context = {};
-
-  for (const key of dependencies) {
-    validateDependency(key);
-    setContextValue(context, key, await contextBuilders[key](reqContext, data));
-  }
-
+  const context: Context = { request: reqContext, dependencies };
   return context;
 };

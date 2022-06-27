@@ -3,8 +3,7 @@
  * Copyright (c) 2017 - 2020 Beyond Essential Systems Pty Ltd
  */
 
-import { ReportServerAggregator } from '../aggregator';
-import { FetchReportQuery, StandardOrCustomReportConfig } from '../types';
+import { StandardOrCustomReportConfig } from '../types';
 import { configValidator } from './configValidator';
 import { buildContext, ReqContext } from './context';
 import { buildTransform } from './transform';
@@ -36,10 +35,7 @@ export class ReportBuilder {
     return this;
   };
 
-  public build = async (
-    aggregator: ReportServerAggregator,
-    query: FetchReportQuery,
-  ): Promise<BuiltReport> => {
+  public build = async (): Promise<BuiltReport> => {
     if (!this.config) {
       throw new Error('Report requires a config be set');
     }
@@ -50,18 +46,18 @@ export class ReportBuilder {
         throw new Error(`Custom report ${this.config.customReport} does not exist`);
       }
 
-      const customReportData = await customReportBuilder(this.reqContext, query);
+      const customReportData = await customReportBuilder(this.reqContext);
       return { results: customReportData };
     }
 
     const data = this.testData || [];
 
-    const context = await buildContext(this.config.transform, this.reqContext, data);
+    const context = await buildContext(this.config.transform, this.reqContext);
     const transform = buildTransform(this.config.transform, context);
     const transformedData = transform(data);
 
     const outputContext = { ...this.config.fetch };
-    const output = buildOutput(this.config.output, outputContext, aggregator);
+    const output = buildOutput(this.config.output, outputContext, this.reqContext.aggregator);
     const outputData = await output(transformedData);
 
     return { results: outputData };

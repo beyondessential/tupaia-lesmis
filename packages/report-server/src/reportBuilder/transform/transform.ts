@@ -73,7 +73,7 @@ const buildParams = (params: unknown, context: Context): BuiltTransformParams =>
   };
 };
 
-export const buildTransform = (params: unknown, context: Context = {}) => {
+export const buildTransform = (params: unknown, context: Context) => {
   const validatedParams = paramsValidator.validateSync(params);
 
   const builtParams = validatedParams.map(param => buildParams(param, context));

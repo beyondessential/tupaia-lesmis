@@ -3,6 +3,7 @@
  * Copyright (c) 2017 - 2020 Beyond Essential Systems Pty Ltd
  */
 
+import { TupaiaApiClient } from '@tupaia/api-client';
 import { ModelRegistry } from '@tupaia/database';
 import { TupaiaApiClient } from '@tupaia/api-client';
 import { ReportModel } from './models';
