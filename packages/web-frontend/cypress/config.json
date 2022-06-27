@@ -12,5 +12,6 @@
     "snapshotTypes": ["responseData"],
     "urlFiles": ["cypress/config/mapOverlayUrls/default.json"],
     "urls": []
+   
   }
 }
