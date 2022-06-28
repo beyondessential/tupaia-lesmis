@@ -13,7 +13,7 @@ import { aliases } from './aliases';
 type BuiltTransformParams = {
   title?: string;
   name: string;
-  apply: (rows: Row[]) => Row[];
+  apply: (rows: Row[]) => Row[] | Promise<Row[]>;
 };
 
 const transformParamsValidator = yup.lazy((value: unknown) => {
@@ -36,17 +36,18 @@ const transformParamsValidator = yup.lazy((value: unknown) => {
 
 const paramsValidator = yup.array().required();
 
-const transform = (rows: Row[], transformSteps: BuiltTransformParams[]): Row[] => {
+const transform = async (rows: Row[], transformSteps: BuiltTransformParams[]) => {
   let transformedRows: Row[] = rows;
-  transformSteps.forEach((transformStep: BuiltTransformParams, index: number) => {
+  for (let i = 0; i < transformSteps.length; i++) {
+    const transformStep = transformSteps[i];
     try {
-      transformedRows = transformStep.apply(transformedRows);
+      transformedRows = await transformStep.apply(transformedRows);
     } catch (e) {
       const titlePart = transformStep.title ? ` (${transformStep.title})` : '';
-      const errorMessagePrefix = `Error in transform[${index + 1}]${titlePart}: `;
+      const errorMessagePrefix = `Error in transform[${i + 1}]${titlePart}: `;
       throw new Error(`${errorMessagePrefix}${(e as Error).message}`);
     }
-  });
+  }
   return transformedRows;
 };
 

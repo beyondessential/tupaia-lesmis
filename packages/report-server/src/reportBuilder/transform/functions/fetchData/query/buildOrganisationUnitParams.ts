@@ -6,7 +6,8 @@
 import keyBy from 'lodash.keyby';
 
 import { ReqContext } from '../../../../context';
-import { FetchReportQuery, ReportConfig } from '../../../../../types';
+import { FetchReportQuery } from '../../../../../types';
+import { FetchConfig } from '../types';
 
 const REQUESTED_ORG_UNITS_PLACEHOLDER = '$requested';
 
@@ -58,11 +59,11 @@ const getCodesToFetch = (requestedCodes: string[], organisationUnitsSpec?: strin
 export const buildOrganisationUnitParams = async (
   ctx: ReqContext,
   query: FetchReportQuery,
-  config: ReportConfig,
+  config: FetchConfig,
 ) => {
   const { hierarchy, accessPolicy, permissionGroup } = ctx;
   const { organisationUnitCodes: requestedCodes } = query;
-  const { organisationUnits: organisationUnitsSpec } = config.fetch;
+  const { organisationUnits: organisationUnitsSpec } = config;
 
   const codesToFetch = getCodesToFetch(requestedCodes, organisationUnitsSpec);
 

@@ -5,7 +5,7 @@
 
 import { getUniqueEntries } from '@tupaia/utils';
 
-import { FetchResponse } from '../fetch';
+import { FetchResponse } from '../transform/functions/fetchData';
 import { detectDependencies } from './detectDependencies';
 import { Context, ContextDependency, ReqContext } from './types';
 

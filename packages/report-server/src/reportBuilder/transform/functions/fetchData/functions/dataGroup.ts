@@ -6,10 +6,10 @@
 import { yup } from '@tupaia/utils';
 
 import { ReportServerAggregator } from '../../../../../aggregator';
-import { Aggregation, FetchReportQuery, ReportConfig } from '../../../../../types';
-import { FetchResponse } from '../types';
+import { Aggregation, FetchReportQuery } from '../../../../../types';
+import { FetchConfig, FetchResponse } from '../types';
 
-type DataGroupParams = Pick<ReportConfig['fetch'], 'dataGroups' | 'dataElements' | 'aggregations'>;
+type DataGroupParams = Pick<FetchConfig, 'dataGroups' | 'dataElements' | 'aggregations'>;
 
 const dataGroupsValidator = yup.array().of(yup.string().required()).min(1).required();
 

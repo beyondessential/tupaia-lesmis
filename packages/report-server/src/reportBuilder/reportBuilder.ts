@@ -54,9 +54,9 @@ export class ReportBuilder {
 
     const context = await buildContext(this.config.transform, this.reqContext);
     const transform = buildTransform(this.config.transform, context);
-    const transformedData = transform(data);
+    const transformedData = await transform(data);
 
-    const outputContext = { ...this.config.fetch };
+    const outputContext = {}; // TODO: Fix output context
     const output = buildOutput(this.config.output, outputContext, this.reqContext.aggregator);
     const outputData = await output(transformedData);
 
