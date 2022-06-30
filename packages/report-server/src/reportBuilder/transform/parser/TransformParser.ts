@@ -65,6 +65,7 @@ export class TransformParser extends ExpressionParser {
 
     if (context) {
       this.lookups.request = context.request.query;
+      this.set('@request', this.lookups.request);
     }
 
     if (rows.length > 0) {

@@ -78,12 +78,25 @@ const dateSpecsValidator = yupTsUtils.describableLazy(
   [dateStringValidator, dateObjectValidator],
 );
 
+const organisationUnitsStringValidator = yup.string().required();
+const organisationUnitsArrayValidator = yup.array().of(yup.string().required()).required();
+const organisationUnitsValidator = yupTsUtils.describableLazy(
+  (value: unknown) => {
+    if (typeof value === 'string') {
+      return organisationUnitsStringValidator;
+    }
+
+    return organisationUnitsArrayValidator;
+  },
+  [organisationUnitsStringValidator, organisationUnitsArrayValidator],
+);
+
 export const paramsValidator = yup.object().shape(
   {
     dataElements: dataElementValidator,
     dataGroups: dataGroupValidator,
     aggregations: yup.array().of(aggregationValidator as any), // https://github.com/jquense/yup/issues/1283#issuecomment-786559444
-    organisationUnits: yup.array().of(yup.string().required()),
+    organisationUnits: organisationUnitsValidator,
     startDate: dateSpecsValidator,
     endDate: dateSpecsValidator,
   },
@@ -92,7 +105,7 @@ export const paramsValidator = yup.object().shape(
 
 const fetchData = async (rows: Row[], params: FetchParams, context: Context) => {
   const { config, fetch } = params;
-  const builtQuery = await new QueryBuilder(context.request, config, context.request.query).build();
+  const builtQuery = await new QueryBuilder(rows, context, config, context.request.query).build();
   const response = await fetch(context.request.aggregator, builtQuery);
   await updateContext(context, response);
   return rows.concat(...response.results);

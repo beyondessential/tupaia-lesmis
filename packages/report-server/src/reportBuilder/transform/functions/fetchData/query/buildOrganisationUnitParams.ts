@@ -6,10 +6,6 @@
 import keyBy from 'lodash.keyby';
 
 import { ReqContext } from '../../../../context';
-import { FetchReportQuery } from '../../../../../types';
-import { FetchConfig } from '../types';
-
-const REQUESTED_ORG_UNITS_PLACEHOLDER = '$requested';
 
 const fetchEntityObjects = async (ctx: ReqContext, hierarchy: string, codes: string[]) => {
   const entities = await ctx.services.entity.getEntities(hierarchy, codes, {
@@ -41,31 +37,12 @@ const fetchEntityObjects = async (ctx: ReqContext, hierarchy: string, codes: str
   return Object.values(keyBy(countryOrLowerEntities, 'code'));
 };
 
-const getCodesToFetch = (requestedCodes: string[], organisationUnitsSpec?: string[]) => {
-  if (!organisationUnitsSpec) return requestedCodes;
-
-  const codesToFetch: string[] = []; // must fetch codes from entityApi to ensure we have permissions
-  organisationUnitsSpec.forEach(organisationUnit => {
-    if (organisationUnit === REQUESTED_ORG_UNITS_PLACEHOLDER) {
-      codesToFetch.push(...requestedCodes);
-    } else {
-      codesToFetch.push(organisationUnit);
-    }
-  });
-
-  return codesToFetch;
-};
-
 export const buildOrganisationUnitParams = async (
   ctx: ReqContext,
-  query: FetchReportQuery,
-  config: FetchConfig,
+  config: { organisationUnits: string[] },
 ) => {
   const { hierarchy, accessPolicy, permissionGroup } = ctx;
-  const { organisationUnitCodes: requestedCodes } = query;
-  const { organisationUnits: organisationUnitsSpec } = config;
-
-  const codesToFetch = getCodesToFetch(requestedCodes, organisationUnitsSpec);
+  const { organisationUnits: codesToFetch } = config;
 
   if (codesToFetch.length === 0) {
     throw new Error(

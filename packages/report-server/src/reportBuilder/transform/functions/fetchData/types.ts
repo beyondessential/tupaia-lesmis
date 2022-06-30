@@ -11,9 +11,18 @@ export type FetchConfig = {
   dataElements?: string[];
   dataGroups?: string[];
   aggregations?: Aggregation[];
-  startDate?: DateSpecs;
-  endDate?: DateSpecs;
-  organisationUnits?: string[];
+  startDate: string | DateSpecs;
+  endDate: string | DateSpecs;
+  organisationUnits: string | string[];
+};
+
+export type ParsedFetchConfig = {
+  dataElements?: string[];
+  dataGroups?: string[];
+  aggregations?: Aggregation[];
+  startDate: DateSpecs;
+  endDate: DateSpecs;
+  organisationUnits: string[];
 };
 
 export interface FetchResponse {
