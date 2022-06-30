@@ -3,7 +3,8 @@
  * Copyright (c) 2017 - 2020 Beyond Essential Systems Pty Ltd
  */
 
-import { yup, yupUtils } from '@tupaia/utils';
+import { yup } from '@tupaia/utils';
+import { yupTsUtils } from '@tupaia/tsutils';
 import { FetchReportQuery } from '../../../../types';
 import { ReportServerAggregator } from '../../../../aggregator';
 import { FetchConfig, FetchResponse } from './types';
@@ -16,8 +17,6 @@ type FetchParams = {
   config: FetchConfig;
   fetch: (aggregator: ReportServerAggregator, query: FetchReportQuery) => Promise<FetchResponse>;
 };
-
-const { polymorphic } = yupUtils;
 
 const periodTypeValidator = yup.mixed().oneOf(['day', 'week', 'month', 'quarter', 'year']);
 
@@ -41,26 +40,43 @@ const createDataSourceValidator = (sourceType: 'dataElement' | 'dataGroup') => {
 const dataElementValidator = createDataSourceValidator('dataElement');
 const dataGroupValidator = createDataSourceValidator('dataGroup');
 
-const aggregationValidator = polymorphic({
-  string: yup.string().min(1),
-  object: yup.object().shape({
-    type: yup.string().min(1).required(),
-    config: yup.object(),
-  }),
+const aggregationStringValidator = yup.string().min(1);
+const aggregationObjectValidator = yup.object().shape({
+  type: yup.string().min(1).required(),
+  config: yup.object(),
 });
 
-const dateSpecsValidator = polymorphic({
-  object: yup
-    .object()
-    .shape({
-      unit: periodTypeValidator.required(),
-      offset: yup.number(),
-      modifier: yup.mixed().oneOf(['start_of', 'end_of']),
-      modifierUnit: periodTypeValidator,
-    })
-    .default(undefined),
-  string: yup.string().min(4),
-});
+const aggregationValidator = yupTsUtils.describableLazy(
+  (value: unknown) => {
+    if (typeof value === 'string') {
+      return aggregationStringValidator;
+    }
+
+    return aggregationObjectValidator;
+  },
+  [aggregationStringValidator, aggregationObjectValidator],
+);
+
+const dateStringValidator = yup.string().min(4);
+const dateObjectValidator = yup
+  .object()
+  .shape({
+    unit: periodTypeValidator.required(),
+    offset: yup.number(),
+    modifier: yup.mixed().oneOf(['start_of', 'end_of']),
+    modifierUnit: periodTypeValidator,
+  })
+  .default(undefined);
+const dateSpecsValidator = yupTsUtils.describableLazy(
+  (value: unknown) => {
+    if (typeof value === 'string') {
+      return dateStringValidator;
+    }
+
+    return dateObjectValidator;
+  },
+  [dateStringValidator, dateObjectValidator],
+);
 
 export const paramsValidator = yup.object().shape(
   {

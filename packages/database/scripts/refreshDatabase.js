@@ -64,7 +64,7 @@ class RefreshDatabaseScript extends Script {
     const parts = ['psql'];
     if (user) {
       parts.push('-U', user);
-    } else if (this.isOsWindows()) {
+    } else {
       // `psql` in Windows requires a user to be specified
       parts.push('-U', 'postgres');
     }
