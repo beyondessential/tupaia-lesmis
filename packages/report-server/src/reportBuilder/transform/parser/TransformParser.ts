@@ -37,6 +37,7 @@ type Lookups = {
   allPrevious: RowLookup;
   index: number; // one-based index, this.currentRow + 1
   table: Row[];
+  request?: Record<string, unknown>;
 };
 
 export class TransformParser extends ExpressionParser {
@@ -61,6 +62,10 @@ export class TransformParser extends ExpressionParser {
       index: this.currentRow + 1,
       table: this.rows,
     };
+
+    if (context) {
+      this.lookups.request = context.request.query;
+    }
 
     if (rows.length > 0) {
       this.lookups.current = this.rows[this.currentRow];
