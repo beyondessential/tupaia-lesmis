@@ -3,97 +3,133 @@
  * Copyright (c) 2017 Beyond Essential Systems Pty Ltd
  */
 
+import { findOrCreateDummyRecord, generateId } from '@tupaia/database';
 import { expect } from 'chai';
+import { createApp } from '../app';
+import { getTestModels } from './getTestModels';
 import { TestableApp } from './TestableApp';
 
-const accessPolicy = {
-  permissions: {
-    reports: {
-      _items: {
-        DL: {
-          _access: {
-            Public: true,
-          },
-          _items: {
-            DL_North: {
-              _access: {
-                Admin: true,
-                Donor: true,
-                'Royal Australasian College of Surgeons': true,
-              },
-              _items: {
-                DL_North_Slytherin: {
-                  _access: {
-                    Public: false,
-                  },
-                },
-              },
-            },
-            'DL_South West': {
-              _access: {
-                Public: false,
-              },
-            },
-            'DL_South East': {
-              _items: {
-                'DL_South East_Gryffindor': {
-                  _items: {
-                    DL_3: {
-                      _access: {
-                        Admin: true,
-                        Donor: true,
-                        'Royal Australasian College of Surgeons': true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-        TO: {
-          _access: {
-            Public: true,
-          },
-          _items: {
-            TO_Tongatapu: {
-              _access: {
-                Admin: true,
-                Donor: true,
-                'Royal Australasian College of Surgeons': true,
-              },
-            },
-          },
-        },
-      },
-    },
-  },
+const policy = {
+  testDL: ['Public', 'Admin'],
+  testTO: ['Admin'],
+};
+
+const user = {
+  id: 'testuser@test.com',
+  fullName: 'Test User',
+  email: 'testuser@test.com',
+  verified_email: 'testuser@test.com',
 };
 
 describe('UserHasAccess', function () {
-  const app = new TestableApp();
-  app.mockSessionUserJson('Test user', 'testuser@test.com', accessPolicy);
+  let app;
 
-  xit('should have access to some root level Demo Land organisation units', async () => {
-    const userResponse = await app.get('getUser');
-    expect(userResponse.body.email).to.equal('testuser@test.com');
+  before(async () => {
+    const models = getTestModels();
+    const hiearchyId = generateId();
+    const projectEntityId = generateId();
+    const testDLId = generateId();
+    const worldId = generateId();
+    const testTOId = generateId();
+    const testTOFacilityId = generateId();
+    await findOrCreateDummyRecord(models.country, {
+      code: 'test_DL',
+      name: 'Test DL',
+    });
+    await findOrCreateDummyRecord(models.country, {
+      code: 'test_TO',
+      name: 'Test TO',
+    });
+    await findOrCreateDummyRecord(models.entity, {
+      id: worldId,
+      code: 'test_World',
+      parent_id: null,
+      type: 'world',
+      country_code: null,
+    });
+    await findOrCreateDummyRecord(models.entity, {
+      id: projectEntityId,
+      code: 'test_demo',
+      parent_id: worldId,
+      type: 'project',
+      country_code: null,
+    });
+    await findOrCreateDummyRecord(models.entity, {
+      id: testDLId,
+      code: 'testDL',
+      type: 'country',
+      parent_id: worldId,
+      country_code: 'testDL',
+    });
+    await findOrCreateDummyRecord(models.entity, {
+      id: testTOId,
+      code: 'testTO',
+      type: 'country',
+      parent_id: worldId,
+      country_code: 'testTO',
+    });
+    await findOrCreateDummyRecord(models.entity, {
+      id: testTOFacilityId,
+      code: 'testTO_FACILICY',
+      type: 'district',
+      parent_id: testTOId,
+      country_code: 'testTO',
+    });
+    await findOrCreateDummyRecord(models.entityHierarchy, {
+      id: hiearchyId,
+      name: 'test_demo',
+      canonical_types: `{${['country'].join(', ')}}`,
+    });
+    await findOrCreateDummyRecord(models.entityRelation, {
+      entity_hierarchy_id: hiearchyId,
+      parent_id: projectEntityId,
+      child_id: testDLId,
+    });
+    await findOrCreateDummyRecord(models.entityRelation, {
+      entity_hierarchy_id: hiearchyId,
+      parent_id: projectEntityId,
+      child_id: testTOId,
+    });
+    // await findOrCreateDummyRecord(models.entityRelation, {
+    //   entity_hierarchy_id: hiearchyId,
+    //   parent_id: testTOId,
+    //   child_id: testTOFacilityId,
+    // });
+    await findOrCreateDummyRecord(models.project, {
+      code: 'test_demo',
+      permission_groups: `{${['Public'].join(', ')}}`,
+      entity_hierarchy_id: hiearchyId,
+      config: {
+        // frontendExcluded: [
+        //   {
+        //     types: ['facility'],
+        // exceptions: {
+        //   permissionGroups: ['Admin'],
+        // },
+        // },
+        // ],
+      },
+    });
 
-    const demolandResponse = await app.get('organisationUnit?organisationUnitCode=DL');
-    const { organisationUnitChildren } = demolandResponse.body;
-    const childCodes = organisationUnitChildren.map(child => child.organisationUnitCode);
-    expect(childCodes).to.include('DL_North');
-    expect(childCodes).to.include('DL_South East');
-    expect(childCodes).to.not.include('DL_South West');
+    const baseApp = await createApp();
+    app = new TestableApp(baseApp);
+    return app.grantAccess(user, policy);
   });
-  xit('should not have access to Demo Land organisation units specified as public access false', async () => {
-    await app.get('organisationUnit?organisationUnitCode=DL_South%20West').expect(401);
-    await app.get('organisationUnit?organisationUnitCode=DL_North_Slytherin').expect(401);
-    await app.get('organisationUnit?organisationUnitCode=DL_7').expect(401);
+
+  describe('access policy', () => {
+    it('should allow users have Admin permission group to access to Tonga', async () => {
+      const response = await app.get(
+        'organisationUnit?organisationUnitCode=test_World&projectCode=test_demo&includeCountryData=true',
+      );
+      const { countryCode, organisationUnitChildren } = response.body;
+      expect(countryCode).to.equal('testTO');
+      expect(organisationUnitChildren.length).to.greaterThan(0);
+    });
   });
 
   xit('should only retrieve public level dashboards for Tonga org units unless Access Policy otherwise specifies', async () => {
     const tongaDashboardResponse = await app
-      .get('dashboard?organisationUnitCode=TO&projectCode=explore')
+      .get('dashboard?organisationUnitCode=testTO&projectCode=explore')
       .expect(200);
     expect(tongaDashboardResponse.body).to.have.all.keys('General');
     expect(tongaDashboardResponse.body).to.not.have.any.keys('PEHS');
@@ -110,7 +146,9 @@ describe('UserHasAccess', function () {
     expect(tongatapuDashboardResponse.body).to.have.all.keys('General', 'PEHS');
   });
   xit('should not have access to donor level measure group for top-level Tonga organisation unit', async () => {
-    const tongaDashboardResponse = await app.get('measures?organisationUnitCode=TO').expect(200);
+    const tongaDashboardResponse = await app
+      .get('measures?organisationUnitCode=testTO')
+      .expect(200);
 
     expect(tongaDashboardResponse.body.measures).to.not.have.property('Facility equipment');
   });
@@ -133,7 +171,7 @@ describe('UserHasAccess', function () {
   });
   xit('should reveal public level measure data', async () => {
     const measureDataResponse = await app
-      .get('measureData?organisationUnitCode=TO&measureId=126')
+      .get('measureData?organisationUnitCode=testTO&measureId=126')
       .expect(200);
 
     expect(measureDataResponse.body.displayType).to.equal('dot');
@@ -141,7 +179,7 @@ describe('UserHasAccess', function () {
     expect(measureDataResponse.body.measureOptions).to.deep.include({ name: 'open', value: '0' });
   });
   xit('should not reveal donor level measure data for organisation units that the user does not have access to', async () => {
-    await app.get('measureData?organisationUnitCode=TO&measureId=7').expect(401);
+    await app.get('measureData?organisationUnitCode=testTO&measureId=7').expect(401);
   });
   xit('should reveal donor level measure data for organisation units that the user has access to', async () => {
     await app.get('measureData?organisationUnitCode=TO_Tongatapu&measureId=7').expect(200);

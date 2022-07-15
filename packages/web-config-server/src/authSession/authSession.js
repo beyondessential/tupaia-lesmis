@@ -22,6 +22,7 @@ const auth = () => async (req, res, next) => {
 
     // if logged in
     const userId = req.session?.userJson?.userId;
+
     if (userId) {
       req.userJson = req.session.userJson;
       req.accessPolicy = req.accessPolicy || (await getAccessPolicyForUser(authenticator, userId));
@@ -84,7 +85,7 @@ const addUserAccessHelper = (req, res, next) => {
         permissionGroup,
       );
     }
-
+    console.log(accessPolicy.allows(entity.country_code, permissionGroup));
     return accessPolicy.allows(entity.country_code, permissionGroup);
   };
 

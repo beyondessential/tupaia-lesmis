@@ -76,6 +76,7 @@ export async function clearTestData(db, testStartTime = moment().format('YYYY-MM
     dashboard_relation: [`child_id ${COMPARISON}`, `dashboard_id ${COMPARISON}`],
     map_overlay_group_relation: [`child_id ${COMPARISON}`, `map_overlay_group_id ${COMPARISON}`],
     entity: [`code LIKE 'test%'`, `code ${COMPARISON}`, `parent_id ${COMPARISON}`],
+    entity_hierarchy: [`name LIKE 'test%'`],
     entity_relation: [`child_id ${COMPARISON}`, `parent_id ${COMPARISON}`],
     meditrak_sync_queue: [`record_id ${COMPARISON}`],
   };

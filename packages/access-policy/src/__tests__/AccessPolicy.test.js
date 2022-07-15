@@ -9,6 +9,7 @@ const policy = {
   DL: ['Public'],
   KI: ['Public', 'Admin'],
   SB: ['Royal Australasian College of Surgeons'],
+  DD: ['Admin', 'Royal Australasian College of Surgeons'],
 };
 
 describe('AccessPolicy', () => {
@@ -18,7 +19,7 @@ describe('AccessPolicy', () => {
     const testData = [
       [
         'should allow access to an entity that has at least one permission group, when no permission group is specified',
-        ['DL', undefined],
+        ['DD', 'Admin'],
         true,
       ],
       [
