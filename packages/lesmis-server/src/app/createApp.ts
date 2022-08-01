@@ -19,6 +19,7 @@ import {
   UserRoute,
   VerifyEmailRoute,
   UpdateSurveyResponseRoute,
+  PDFExportRoute,
 } from '../routes';
 import { attachSession } from '../session';
 import { hasLesmisAccess } from '../utils';
@@ -31,6 +32,8 @@ import { ReportRequest } from '../routes/ReportRoute';
 import { VerifyEmailRequest } from '../routes/VerifyEmailRoute';
 import { RegisterRequest } from '../routes/RegisterRoute';
 import { UpdateSurveyResponseRequest } from '../routes/UpdateSurveyResponseRoute';
+import { PDFExportRequest } from '../routes/PDFExportRoute';
+import { authHandlerProvider } from '../auth/authHandlerProvider';
 
 const { CENTRAL_API_URL = 'http://localhost:8090/v2' } = process.env;
 
@@ -41,37 +44,36 @@ const path = require('path');
  * Set up express server with middleware,
  */
 export function createApp() {
-  const app = new OrchestratorApiBuilder(new TupaiaDatabase())
+  const app = new OrchestratorApiBuilder(new TupaiaDatabase(), 'lesmis')
     .useSessionModel(LesmisSessionModel)
     .useAttachSession(attachSession)
+    .attachApiClientToContext(authHandlerProvider) // after useAttachSession
     .verifyLogin(hasLesmisAccess)
     .useTranslation(['en', 'lo'], path.join(__dirname, '../../locales'), 'locale')
 
     /**
      * GET
      */
-    .get<DashboardRequest>('/v1/dashboard/:entityCode', handleWith(DashboardRoute))
-    .get<UserRequest>('/v1/user', handleWith(UserRoute))
-    .get<EntitiesRequest>('/v1/entities/:entityCode', handleWith(EntitiesRoute))
-    .get<MapOverlaysRequest>('/v1/map-overlays/:entityCode', handleWith(MapOverlaysRoute))
-    .get<EntityRequest>('/v1/entity/:entityCode', handleWith(EntityRoute))
-    .get<ReportRequest>('/v1/report/:entityCode/:reportCode', handleWith(ReportRoute))
-    .get<VerifyEmailRequest>('/v1/verify/:emailToken', handleWith(VerifyEmailRoute))
+    .get<DashboardRequest>('dashboard/:entityCode', handleWith(DashboardRoute))
+    .get<UserRequest>('user', handleWith(UserRoute))
+    .get<EntitiesRequest>('entities/:entityCode', handleWith(EntitiesRoute))
+    .get<MapOverlaysRequest>('map-overlays/:entityCode', handleWith(MapOverlaysRoute))
+    .get<EntityRequest>('entity/:entityCode', handleWith(EntityRoute))
+    .get<ReportRequest>('report/:entityCode/:reportCode', handleWith(ReportRoute))
+    .get<VerifyEmailRequest>('verify/:emailToken', handleWith(VerifyEmailRoute))
 
     /**
      * POST
      */
 
-    .post<RegisterRequest>('/v1/register', handleWith(RegisterRoute))
-    .post<ReportRequest>('/v1/report/:entityCode/:reportCode', handleWith(ReportRoute))
+    .post<RegisterRequest>('register', handleWith(RegisterRoute))
+    .post<ReportRequest>('report/:entityCode/:reportCode', handleWith(ReportRoute))
+    .post<PDFExportRequest>('pdf', handleWith(PDFExportRoute))
 
     /**
      * PUT
      */
-    .put<UpdateSurveyResponseRequest>(
-      '/v1/survey-response/:id',
-      handleWith(UpdateSurveyResponseRoute),
-    )
+    .put<UpdateSurveyResponseRequest>('survey-response/:id', handleWith(UpdateSurveyResponseRoute))
 
     .build();
 
