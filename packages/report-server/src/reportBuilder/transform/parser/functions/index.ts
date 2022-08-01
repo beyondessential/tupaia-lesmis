@@ -10,6 +10,7 @@ import {
   orgUnitIdToCode,
   orgUnitCodeToAncestorVillageProperty,
   orgUnitAttribute,
+  orgUnitCodeToAncestorDistrictProperty,
 } from './context';
 import {
   convertToPeriod,
@@ -47,6 +48,7 @@ export const contextFunctions = {
   dataElementCodeToName: dataElementCodeToName.func,
   orgUnitCodeToAncestorVillageProperty: orgUnitCodeToAncestorVillageProperty.func,
   orgUnitAttribute: orgUnitAttribute.func,
+  orgUnitCodeToAncestorDistrictProperty: orgUnitCodeToAncestorDistrictProperty.func,
 };
 
 export const contextFunctionDependencies = {
@@ -55,6 +57,7 @@ export const contextFunctionDependencies = {
   dataElementCodeToName: dataElementCodeToName.dependencies,
   orgUnitCodeToAncestorVillageProperty: orgUnitCodeToAncestorVillageProperty.dependencies,
   orgUnitAttribute: orgUnitAttribute.dependencies,
+  orgUnitCodeToAncestorDistrictProperty: orgUnitCodeToAncestorDistrictProperty.dependencies,
 };
 
 /**

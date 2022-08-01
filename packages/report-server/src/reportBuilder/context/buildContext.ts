@@ -88,6 +88,27 @@ const buildAncestorVillagesMap = async (reqContext: ReqContext, data: FetchRespo
   return villagesByOrgUnitCode;
 };
 
+const buildAncestorDistrictsMap = async (reqContext: ReqContext, data: FetchResponse) => {
+  const orgUnitCodes = getOrgUnitCodesFromData(data);
+  const { type } = await reqContext.services.entity.getEntity(
+    reqContext.hierarchy,
+    orgUnitCodes[0],
+    {
+      fields: ['code', 'type'],
+    },
+  );
+  const districtsByOrgUnitCode = await reqContext.services.entity.getRelationshipsOfEntities(
+    reqContext.hierarchy,
+    orgUnitCodes,
+    'descendant',
+    {},
+    { filter: { type: 'district' } },
+    { filter: { type } },
+  );
+
+  return districtsByOrgUnitCode;
+};
+
 const buildAncestorVillages = async (reqContext: ReqContext, data: FetchResponse) => {
   const orgUnitCodes = getOrgUnitCodesFromData(data);
 
@@ -97,12 +118,23 @@ const buildAncestorVillages = async (reqContext: ReqContext, data: FetchResponse
   });
 };
 
+const buildAncestorDistricts = async (reqContext: ReqContext, data: FetchResponse) => {
+  const orgUnitCodes = getOrgUnitCodesFromData(data);
+
+  return reqContext.services.entity.getRelativesOfEntities(reqContext.hierarchy, orgUnitCodes, {
+    fields: ['code', 'name'],
+    filter: { type: 'district' },
+  });
+};
+
 const contextBuilders: Record<ContextDependency, ContextBuilder<ContextDependency>> = {
   orgUnits: buildOrgUnits,
   dataElementCodeToName: buildDataElementCodeToName,
   facilityCountByOrgUnit: buildFacilityCountByOrgUnit,
   ancestorVillagesMap: buildAncestorVillagesMap,
   ancestorVillages: buildAncestorVillages,
+  ancestorDistrictsMap: buildAncestorDistrictsMap,
+  ancestorDistricts: buildAncestorDistricts,
 };
 
 function validateDependency(key: string): asserts key is keyof typeof contextBuilders {

@@ -13,13 +13,21 @@ describe('buildContext', () => {
   const HIERARCHY = 'test_hierarchy';
   const ENTITIES = {
     test_hierarchy: [
-      { id: 'ouId1', code: 'AU', name: 'Australia', type: 'country', attributes: {} },
-      { id: 'ouId2', code: 'FJ', name: 'Fiji', type: 'country', attributes: {} },
-      { id: 'ouId3', code: 'KI', name: 'Kiribati', type: 'country', attributes: {} },
-      { id: 'ouId4', code: 'TO', name: 'Tonga', type: 'country', attributes: {} },
-      { id: 'ouId5', code: 'TO_Facility1', name: 'Tonga Facility 1', type: 'facility', attributes: { x: 1 } },
-      { id: 'ouId6', code: 'TO_Facility2', name: 'Tonga Facility 2', type: 'facility', attributes: {} },
-      { id: 'ouId7', code: 'FJ_Facility', name: 'Fiji Facility', type: 'facility', attributes: {} },
+      { id: 'ouId1', code: 'AU', name: 'Australia', type: 'country' },
+      { id: 'ouId2', code: 'FJ', name: 'Fiji', type: 'country' },
+      { id: 'ouId3', code: 'KI', name: 'Kiribati', type: 'country' },
+      { id: 'ouId4', code: 'TO', name: 'Tonga', type: 'country' },
+      { id: 'ouId5', code: 'TO_Facility1', name: 'Tonga Facility 1', type: 'facility' },
+      { id: 'ouId6', code: 'TO_Facility2', name: 'Tonga Facility 2', type: 'facility' },
+      { id: 'ouId7', code: 'FJ_Facility', name: 'Fiji Facility', type: 'facility' },
+      { id: 'ouId8', code: 'FJ_Village1', name: 'Fiji Village 1', type: 'village' },
+      { id: 'ouId9', code: 'FJ_Village2', name: 'Fiji Village 2', type: 'village' },
+      { id: 'ouId10', code: 'FJ_Ind1', name: 'Fiji Individual 1', type: 'individual' },
+      { id: 'ouId11', code: 'FJ_Ind2', name: 'Fiji Individual 2', type: 'individual' },
+      { id: 'ouId12', code: 'TO_Ind1', name: 'Tonga Individual 1', type: 'individual' },
+      { id: 'ouId13', code: 'TO_Ind2', name: 'Tonga Individual 2', type: 'individual' },
+      { id: 'ouId14', code: 'TO_District1', name: 'Tonga District 1', type: 'district' },
+      { id: 'ouId15', code: 'TO_District2', name: 'Tonga District 2', type: 'district' },
     ],
   };
 
@@ -28,6 +36,12 @@ describe('buildContext', () => {
       { parent: 'TO', child: 'TO_Facility1' },
       { parent: 'TO', child: 'TO_Facility2' },
       { parent: 'FJ', child: 'FJ_Facility' },
+      { parent: 'FJ_Facility', child: 'FJ_Village1' },
+      { parent: 'FJ_Facility', child: 'FJ_Village2' },
+      { parent: 'FJ_Village1', child: 'FJ_Ind1' },
+      { parent: 'FJ_Village2', child: 'FJ_Ind2' },
+      { parent: 'TO_District1', child: 'TO_Ind1' },
+      { parent: 'TO_District2', child: 'TO_Ind2' },
     ],
   };
 
@@ -237,6 +251,106 @@ describe('buildContext', () => {
       const context = await buildContext(transform, reqContext, data);
       const expectedContext = {
         facilityCountByOrgUnit: {},
+      };
+      expect(context).toStrictEqual(expectedContext);
+    });
+  });
+
+  describe('ancestor property from org unit code', () => {
+    it('builds ancestor village code using fetched analytics', async () => {
+      const transform = [
+        {
+          insert: {
+            villageCode: "=orgUnitCodeToAncestorVillageProperty($organisationUnit,'code')",
+          },
+          transform: 'updateColumns',
+        },
+      ];
+      const analytics = [
+        { dataElement: 'BCD1', organisationUnit: 'FJ_Ind1', period: '20210101', value: 1 },
+        { dataElement: 'BCD1', organisationUnit: 'FJ_Ind2', period: '20210101', value: 2 },
+      ];
+      const data = { results: analytics };
+
+      const context = await buildContext(transform, reqContext, data);
+      const expectedContext = {
+        ancestorVillages: [
+          {
+            code: 'FJ_Village1',
+            name: 'Fiji Village 1',
+          },
+          {
+            code: 'FJ_Village2',
+            name: 'Fiji Village 2',
+          },
+        ],
+        ancestorVillagesMap: {
+          FJ_Village1: [
+            {
+              code: 'FJ',
+              id: 'ouId2',
+              name: 'Fiji',
+              type: 'country',
+            },
+          ],
+          FJ_Village2: [
+            {
+              code: 'FJ',
+              id: 'ouId2',
+              name: 'Fiji',
+              type: 'country',
+            },
+          ],
+        },
+      };
+      expect(context).toStrictEqual(expectedContext);
+    });
+
+    it('builds ancestor district name using fetched analytics', async () => {
+      const transform = [
+        {
+          insert: {
+            villageCode: "=orgUnitCodeToAncestorDistrictProperty($organisationUnit,'name')",
+          },
+          transform: 'updateColumns',
+        },
+      ];
+      const analytics = [
+        { dataElement: 'BCD1', organisationUnit: 'TO_Ind1', period: '20210101', value: 1 },
+        { dataElement: 'BCD1', organisationUnit: 'TO_Ind2', period: '20210101', value: 2 },
+      ];
+      const data = { results: analytics };
+
+      const context = await buildContext(transform, reqContext, data);
+      const expectedContext = {
+        ancestorVillages: [
+          {
+            code: 'TO_District1',
+            name: 'Tonga District 1',
+          },
+          {
+            code: 'TO_District2',
+            name: 'Tonga District 2',
+          },
+        ],
+        ancestorVillagesMap: {
+          TO_Ind1: [
+            {
+              code: 'TO_District1',
+              id: 'ouId14',
+              name: 'Tonga District 1',
+              type: 'district',
+            },
+          ],
+          TO_Ind2: [
+            {
+              code: 'TO_District2',
+              id: 'ouId15',
+              name: 'Tonga District 2',
+              type: 'district',
+            },
+          ],
+        },
       };
       expect(context).toStrictEqual(expectedContext);
     });

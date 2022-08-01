@@ -96,3 +96,25 @@ export const orgUnitAttribute: ContextFunctionConfig = {
     return attributes[attributeKey];
   },
 };
+
+export const orgUnitCodeToAncestorDistrictProperty: ContextFunctionConfig = {
+  dependencies: ['ancestorDistricts', 'ancestorDistrictsMap'],
+  func: ({ getContext }) => (orgUnitCode: string, property: 'code' | 'name') => {
+    const { ancestorDistricts, ancestorDistrictsMap } = getContext();
+    if (!ancestorDistricts) {
+      throw new Error(
+        "Missing dependency 'ancestorDistricts' required by 'orgUnitCodeToAncestorDistrictProperty'",
+      );
+    }
+    if (!ancestorDistrictsMap) {
+      throw new Error(
+        "Missing dependency 'ancestorDistrictsMap' required by 'orgUnitCodeToAncestorDistrictProperty'",
+      );
+    }
+    const ancestorDistrictCode = ancestorDistrictsMap[orgUnitCode];
+    const ancestorDistrict = ancestorDistricts.filter(
+      district => district.code === ancestorDistrictCode,
+    )[0];
+    return ancestorDistrict[property];
+  },
+};

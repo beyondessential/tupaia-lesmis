@@ -9,6 +9,8 @@ export interface Context {
   dataElementCodeToName?: Record<string, string>;
   ancestorVillagesMap?: Record<string, string>;
   ancestorVillages?: { code: string; name: string }[];
+  ancestorDistricts?: { code: string; name: string }[];
+  ancestorDistrictsMap?: Record<string, string>;
 }
 
 export type ContextDependency = keyof Context;
