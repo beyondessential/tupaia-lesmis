@@ -47,8 +47,8 @@ export const contextFunctions = {
   orgUnitCodeToName: orgUnitCodeToName.func,
   dataElementCodeToName: dataElementCodeToName.func,
   orgUnitCodeToAncestorVillageProperty: orgUnitCodeToAncestorVillageProperty.func,
-  orgUnitAttribute: orgUnitAttribute.func,
   orgUnitCodeToAncestorDistrictProperty: orgUnitCodeToAncestorDistrictProperty.func,
+  orgUnitAttribute: orgUnitAttribute.func,
 };
 
 export const contextFunctionDependencies = {
