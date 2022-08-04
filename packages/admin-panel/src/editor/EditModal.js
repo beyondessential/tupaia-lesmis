@@ -48,14 +48,14 @@ export const EditModalComponent = ({
   const fieldsBySource = keyBy(fields, 'source');
 
   const getTitle = () => {
-    if (endpoint !== null && Array.isArray(title)) {
+    if (endpoint === null) {
+      return 'Edit';
+    }
+    if (Array.isArray(title)) {
       const { titleText: selectedTitle } = title
         .filter(config => endpoint.includes(config.titleEndpoint))
         .shift();
       return selectedTitle;
-    }
-    if (endpoint === null) {
-      return 'Edit';
     }
     return title;
   };

@@ -7,11 +7,12 @@ import { BESAdminEditHandler } from '../EditHandler';
 
 export class EditEntity extends BESAdminEditHandler {
   async updateRecord() {
-    // ensure only name field can be updated
+    // for now, ensure only name field can be updated
+    // others may be supported in future but want to avoid anyone editing e.g. code
     const updatedFieldKeys = Object.keys(this.updatedFields);
-    if (updatedFieldKeys.length !== 1 && updatedFieldKeys.includes('name')) {
+    if (updatedFieldKeys.length !== 1 || updatedFieldKeys[0] !== 'name') {
       throw Error('Fields other than "name" cannot be updated');
     }
-    await this.models.entity.updateById(this.recordId, this.updatedFields);
+    await super.updateRecord();
   }
 }

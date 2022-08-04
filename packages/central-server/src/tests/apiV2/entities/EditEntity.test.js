@@ -56,5 +56,27 @@ describe("Editing an entity's name", async () => {
 
       expect(result).to.deep.equal({ error: 'Need BES Admin access' });
     });
+
+    it('Throws an exception when a field other than name is submitted.', async () => {
+      await app.grantAccess(BES_ADMIN_POLICY);
+      const { body: result } = await app.put(`entities/${ENTITY.id}`, {
+        body: { code: 'new_name' },
+      });
+
+      expect(result).to.deep.equal({
+        error: 'Internal server error: Fields other than "name" cannot be updated',
+      });
+    });
+
+    it('Throws an exception when a field other than name is submitted.', async () => {
+      await app.grantAccess(BES_ADMIN_POLICY);
+      const { body: result } = await app.put(`entities/${ENTITY.id}`, {
+        body: { name: 'test_name', code: 'new_name' },
+      });
+
+      expect(result).to.deep.equal({
+        error: 'Internal server error: Fields other than "name" cannot be updated',
+      });
+    });
   });
 });
