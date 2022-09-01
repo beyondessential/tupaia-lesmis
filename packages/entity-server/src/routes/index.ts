@@ -20,4 +20,6 @@ export {
   RelationshipsRequest,
   MultiEntityRelationshipsRoute,
   MultiEntityRelationshipsRequest,
+  RebuildEntityCacheRequest,
+  RebuildEntityCacheRoute,
 } from './hierarchy';

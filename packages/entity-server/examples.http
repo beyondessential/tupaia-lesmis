@@ -108,3 +108,8 @@ Authorization: {{authorization}}
 {
     "entities":["TO_Tongatapu_Haatafu","PG_Sau_ASP"]
 }
+
+### Rebuild entity hierarchy cache (user must have BES Admin permissions)
+POST http://{{host}}/{{version}}/hierarchy/explore/TO/rebuildCache HTTP/1.1
+content-type: {{contentType}}
+Authorization: {{authorization}}

@@ -5,3 +5,4 @@
 
 export { attachCommonContext } from './attachCommonContext';
 export { attachSingleEntityContext, attachMultiEntityContext } from './attachEntityContext';
+export { createAttachEntityHierarchyCacher } from './createAttachEntityHierarchyCacher';

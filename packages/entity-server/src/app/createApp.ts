@@ -2,9 +2,8 @@
  * Tupaia
  * Copyright (c) 2017 - 2021 Beyond Essential Systems Pty Ltd
  */
-
 import { MicroServiceApiBuilder, handleWith } from '@tupaia/server-boilerplate';
-import { TupaiaDatabase } from '@tupaia/database';
+import { EntityHierarchyCacher, ModelRegistry, TupaiaDatabase } from '@tupaia/database';
 import {
   SingleEntityRequest,
   SingleEntityRoute,
@@ -22,11 +21,14 @@ import {
   EntityRelationshipsRoute,
   MultiEntityRelationshipsRequest,
   MultiEntityRelationshipsRoute,
+  RebuildEntityCacheRequest,
+  RebuildEntityCacheRoute,
 } from '../routes';
 import {
   attachCommonContext,
   attachSingleEntityContext,
   attachMultiEntityContext,
+  createAttachEntityHierarchyCacher,
 } from '../routes/hierarchy/middleware';
 import { attachRelationshipsContext } from '../routes/hierarchy/relationships/middleware';
 
@@ -34,6 +36,9 @@ import { attachRelationshipsContext } from '../routes/hierarchy/relationships/mi
  * Set up express server with middleware,
  */
 export function createApp(db = new TupaiaDatabase()) {
+  const entityHierarchyCacher = new EntityHierarchyCacher(new ModelRegistry(db));
+  const attachEntityHierarchyCacher = createAttachEntityHierarchyCacher(entityHierarchyCacher);
+
   return (
     new MicroServiceApiBuilder(db, 'entity')
       .useBasicBearerAuth()
@@ -90,6 +95,13 @@ export function createApp(db = new TupaiaDatabase()) {
         attachSingleEntityContext,
         attachRelationshipsContext,
         handleWith(EntityRelationshipsRoute),
+      )
+
+      // Rebuild entity hierarchy cache
+      .post<RebuildEntityCacheRequest>(
+        'hierarchy/:hierarchyName/:entityCode/rebuildCache',
+        attachEntityHierarchyCacher,
+        handleWith(RebuildEntityCacheRoute),
       )
       .build()
   );

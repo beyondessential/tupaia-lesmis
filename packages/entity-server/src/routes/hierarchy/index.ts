@@ -22,3 +22,4 @@ export {
   MultiEntityRelationshipsRoute,
   MultiEntityRelationshipsRequest,
 } from './relationships';
+export { RebuildEntityCacheRequest, RebuildEntityCacheRoute } from './RebuildEntityCacheRoute';

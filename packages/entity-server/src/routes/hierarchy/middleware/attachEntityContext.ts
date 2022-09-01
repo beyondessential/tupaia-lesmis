@@ -3,15 +3,11 @@
  * Copyright (c) 2017 - 2021 Beyond Essential Systems Pty Ltd
  */
 import { Request, NextFunction, Response } from 'express';
-import { PermissionsError } from '@tupaia/utils';
 import { EntityType, EntityFilter } from '../../../models';
+import { throwNoAccessError } from '../utils';
 import { extractFilterFromQuery } from './filter';
 
 const notNull = <T>(value: T): value is Exclude<T, null> => value !== null;
-
-const throwNoAccessError = (entityCodes: string[]) => {
-  throw new PermissionsError(`No access to requested entities: ${entityCodes}`);
-};
 
 const userCanAccessEntity = (
   entity: EntityType,
@@ -51,23 +47,22 @@ const validateEntitiesAndBuildContext = async (
   }
 
   if (!entities || entities.length === 0) {
-    throwNoAccessError(entityCodes);
+    throwNoAccessError(hierarchyName, entityCodes);
   }
-  const allowedCountries = (await rootEntity.getChildren(req.ctx.hierarchyId))
-    .map(child => child.country_code)
-    .filter(notNull)
+  const allowedCountries = (await rootEntity.getChildren(req.ctx.hierarchyId, { type: 'country' }))
+    .map(child => child.code)
     .filter((countryCode, index, countryCodes) => countryCodes.indexOf(countryCode) === index) // De-duplicate countryCodes
     .filter(countryCode => req.accessPolicy.allows(countryCode));
 
   if (allowedCountries.length < 1) {
-    throwNoAccessError(entityCodes);
+    throwNoAccessError(hierarchyName, entityCodes);
   }
 
   const allowedEntities = entities.filter(entity =>
     userCanAccessEntity(entity, allowedCountries, rootEntity),
   );
   if (allowedEntities.length < 1) {
-    throwNoAccessError(entityCodes);
+    throwNoAccessError(hierarchyName, entityCodes);
   }
 
   const { filter: queryFilter } = req.query;
