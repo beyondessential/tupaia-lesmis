@@ -212,7 +212,7 @@ describe('insertRows', () => {
         transform: 'insertRows',
         where: '=eq(@index, @rowCount)',
         columns: {
-          Total: "=sum(@column('value'))",
+          Total: "=sum(@table.column('value'))",
         },
       },
     ]);
@@ -229,12 +229,12 @@ describe('insertRows', () => {
       {
         transform: 'insertRows',
         where:
-          "=@index == @rowCount ? true : $organisationUnit != @row(@index + 1).column('organisationUnit')",
+          "=@index == @rowCount ? true : $organisationUnit != @table.row(@index + 1).column('organisationUnit')",
         columns: {
           Total_BCD1:
-            "=sum(@rows(f(row) = row.column('organisationUnit') == $organisationUnit).column('BCD1'))",
+            "=sum(@table.rows(f(row) = row.column('organisationUnit') == $organisationUnit).column('BCD1'))",
           Total_BCD2:
-            "=sum(@rows(f(row) = row.column('organisationUnit') == $organisationUnit).column('BCD2'))",
+            "=sum(@table.rows(f(row) = row.column('organisationUnit') == $organisationUnit).column('BCD2'))",
         },
       },
     ]);

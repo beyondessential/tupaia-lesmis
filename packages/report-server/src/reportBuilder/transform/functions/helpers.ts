@@ -59,13 +59,12 @@ export const buildNewColumns = (
           return;
         }
 
-        parser.setColumnName(columnName);
         columnData[index] = parser.evaluate(expression);
-        parser.setColumnName(undefined);
+        parser.nextColumn();
       });
     });
 
-    parser.next();
+    parser.nextRow();
   });
 
   return newColumns;

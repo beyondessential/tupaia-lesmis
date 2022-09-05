@@ -22,7 +22,7 @@ const excludeRows = (table: Table, params: ExcludeRowsParams, context: Context) 
 
   const newRows = table.rawRows().filter(() => {
     const keepRow = !params.where(parser);
-    parser.next();
+    parser.nextRow();
     return keepRow;
   });
 

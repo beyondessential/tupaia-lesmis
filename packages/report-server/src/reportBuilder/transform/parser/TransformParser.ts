@@ -23,12 +23,11 @@ import { TransformScope } from './TransformScope';
 type Lookups = {
   index: number; // one-based index of the current row being parsed
   rowCount: number; // total rows in table
-  columnName: string | undefined; // current column being operated on
+  columnName: string; // current column being operated on
   columnNames: OrderedSet<string>; // all columns in the table
-  row: Table['row']; // selector for an individual row
-  rows: Table['rows']; // selector for an multiple rows
-  column: Table['column']; // selector for an individual column
-  columns: Table['columns']; // selector for multiple columns
+  row: TableRow | undefined; // current row
+  column: TableColumn | undefined; // current column
+  table: Table; // the table
 };
 
 export class TransformParser extends ExpressionParser {
@@ -43,17 +42,17 @@ export class TransformParser extends ExpressionParser {
     super(new TransformScope());
 
     this.table = table;
+
+    const rowCount = this.table.rowCount();
+    const columnNames = this.table.columnNames.asArray();
     this.lookups = {
       index: 1,
-      rowCount: this.table.rowCount(),
-      columnName: undefined,
+      rowCount,
+      columnName: columnNames[0],
       columnNames: this.table.columnNames,
-      row: (index: number) => this.table.row(index),
-      rows: (matcher: number[] | OrderedSet<number> | ((row: TableRow) => boolean)) =>
-        this.table.rows(matcher),
-      column: (name: string) => this.table.column(name),
-      columns: (matcher: string[] | OrderedSet<string> | ((column: TableColumn) => boolean)) =>
-        this.table.columns(matcher),
+      row: rowCount > 0 ? this.table.row(1) : undefined,
+      column: columnNames.length > 0 ? this.table.column(columnNames[0]) : undefined,
+      table: this.table,
     };
 
     if (this.table.rowCount() > 0) {
@@ -81,12 +80,17 @@ export class TransformParser extends ExpressionParser {
     return TransformParser.isExpression(input) ? super.evaluate(input) : input;
   }
 
-  public setColumnName(columnName: string | undefined) {
-    this.lookups.columnName = columnName;
+  public nextColumn() {
+    const currentColumnIndex = this.table.columnNames.asArray().indexOf(this.lookups.columnName);
+    this.lookups.columnName = this.table.columnNames.asArray()[currentColumnIndex + 1];
     this.set('@columnName', this.lookups.columnName);
+    this.set(
+      '@column',
+      this.lookups.columnName ? this.table.column(this.lookups.columnName) : undefined,
+    );
   }
 
-  public next() {
+  public nextRow() {
     this.removeRowFromScope(this.table.row(this.lookups.index).raw());
     this.lookups.index += 1;
 
@@ -95,7 +99,12 @@ export class TransformParser extends ExpressionParser {
     }
 
     this.set('@index', this.lookups.index);
+    this.set('@row', this.table.row(this.lookups.index));
     this.addRowToScope(this.table.row(this.lookups.index).raw());
+
+    [this.lookups.columnName] = this.table.columnNames.asArray();
+    this.set('@columnName', this.lookups.columnName);
+    this.set('@column', this.table.column(this.lookups.columnName));
   }
 
   public addRowToScope = (row: RawRow) => {

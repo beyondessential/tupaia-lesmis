@@ -13,17 +13,17 @@ describe('parser', () => {
         transform: 'updateColumns',
         insert: {
           variable: '=$BCD1',
-          current: "=@row(@index).column('BCD1')",
+          current: "=@row.column('BCD1')",
           index: '=@index',
-          previous: "=@index > 1 ? @row(@index - 1).column('BCD1') : undefined",
-          next: "=@index < @rowCount ? @row(@index + 1).column('BCD1') : undefined",
-          lastOfColumn: "=last(@column('BCD1'))",
-          sumAllPreviousOfColumn: "=sum(@rows(1:@index).column('BCD1'))",
-          sumSetOfColumns: "=sum(@row(@index).columns('BCD1':'BCD3'))",
+          previous: "=@index > 1 ? @table.row(@index - 1).column('BCD1') : undefined",
+          next: "=@index < @rowCount ? @table.row(@index + 1).column('BCD1') : undefined",
+          lastOfColumn: "=last(@table.column('BCD1'))",
+          sumAllPreviousOfColumn: "=sum(@table.rows(1:@index).column('BCD1'))",
+          sumSetOfColumns: "=sum(@row.columns('BCD1':'BCD3'))",
           sumExcludingSetOfColumns:
-            "=sum(@row(@index).columns(@columnNames - ['period', 'organisationUnit', 'BCD1']))",
+            "=sum(@row.columns(@columnNames - ['period', 'organisationUnit', 'BCD1']))",
           sumWhereMatchingOrgUnit:
-            "=sum(@rows(f(row) = $organisationUnit == row.column('organisationUnit')).column('BCD1'))",
+            "=sum(@table.rows(f(row) = $organisationUnit == row.column('organisationUnit')).column('BCD1'))",
           tableLength: '=@rowCount',
         },
         exclude: '*',
@@ -117,7 +117,7 @@ describe('parser', () => {
         {
           transform: 'excludeRows',
           where:
-            "=$BCD1 <= mean(@rows(f(row) = $organisationUnit == row.column('organisationUnit')).column('BCD1'))",
+            "=$BCD1 <= mean(@table.rows(f(row) = $organisationUnit == row.column('organisationUnit')).column('BCD1'))",
         },
       ]);
       expect(transform(PARSABLE_ANALYTICS)).toEqualTableOf([

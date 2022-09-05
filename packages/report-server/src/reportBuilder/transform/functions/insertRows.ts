@@ -46,7 +46,7 @@ const insertRows = (table: Table, params: InsertParams, context: Context) => {
   const rowsToInsert = rows.map(() => {
     const shouldInsertNewRow = params.where(parser);
     if (!shouldInsertNewRow) {
-      parser.next();
+      parser.nextRow();
       return undefined;
     }
     const newRow: RawRow = {};
@@ -54,13 +54,12 @@ const insertRows = (table: Table, params: InsertParams, context: Context) => {
       const evaluatedKey = parser.evaluate(key);
       const columnNames = validateEvaluatedColumnNames(evaluatedKey);
       columnNames.forEach((columnName: string) => {
-        parser.setColumnName(columnName);
         newRow[columnName] = parser.evaluate(expression);
-        parser.setColumnName(undefined);
+        parser.nextColumn();
       });
     });
 
-    parser.next();
+    parser.nextRow();
     return newRow;
   });
   let insertCount = 0;

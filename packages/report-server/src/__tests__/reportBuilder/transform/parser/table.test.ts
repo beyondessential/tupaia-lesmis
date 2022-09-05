@@ -17,7 +17,7 @@ describe('table', () => {
       {
         transform: 'insertColumns',
         columns: {
-          total_cases: "= sum(@row(@index).columns(@columnNames - 'name'))",
+          total_cases: "= sum(@row.columns(@columnNames - 'name'))",
         },
       },
     ]);
@@ -34,7 +34,7 @@ describe('table', () => {
         transform: 'insertRows',
         columns: {
           name: 'Total',
-          "= @columnNames - 'name'": '= sum(@column(@columnName))',
+          "= @columnNames - 'name'": '= sum(@column)',
         },
         where: '= @index == @rowCount',
       },
@@ -53,7 +53,7 @@ describe('table', () => {
         transform: 'insertRows',
         columns: {
           name: 'Grand Total',
-          grand_total: "= sum(@columns(@columnNames - 'name'))",
+          grand_total: "= sum(@table.columns(@columnNames - 'name'))",
         },
         where: '= @index == @rowCount',
       },
