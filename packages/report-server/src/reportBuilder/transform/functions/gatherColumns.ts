@@ -4,7 +4,8 @@
  */
 
 import { yup } from '@tupaia/utils';
-import { Row, FieldValue } from '../../types';
+import { FieldValue } from '../../types';
+import { Table } from '../parser/customTypes';
 import { getColumnMatcher } from './helpers';
 import { gatherColumnsValidator } from './transformValidators';
 
@@ -16,25 +17,28 @@ export const paramsValidator = yup.object().shape({
   keep: gatherColumnsValidator,
 });
 
-const gatherColumns = (rows: Row[], params: GatherColumnsParams): Row[] => {
+const gatherColumns = (table: Table, params: GatherColumnsParams) => {
   const { shouldKeepColumn } = params;
 
-  return rows
-    .map(row => {
-      const keptFields: Record<string, FieldValue> = {};
-      const gatherFields: string[] = [];
+  return new Table(
+    table
+      .rawRows()
+      .map(row => {
+        const keptFields: Record<string, FieldValue> = {};
+        const gatherFields: string[] = [];
 
-      Object.entries(row).forEach(([key, value]) => {
-        if (shouldKeepColumn(key)) {
-          keptFields[key] = value;
-        } else {
-          gatherFields.push(key);
-        }
-      });
+        Object.entries(row).forEach(([key, value]) => {
+          if (shouldKeepColumn(key)) {
+            keptFields[key] = value;
+          } else {
+            gatherFields.push(key);
+          }
+        });
 
-      return gatherFields.map(key => ({ ...keptFields, value: row[key], columnName: key }));
-    })
-    .flat();
+        return gatherFields.map(key => ({ ...keptFields, value: row[key], columnName: key }));
+      })
+      .flat(),
+  );
 };
 
 const buildParams = (params: unknown): GatherColumnsParams => {
@@ -53,5 +57,5 @@ const buildParams = (params: unknown): GatherColumnsParams => {
 
 export const buildGatherColumns = (params: unknown) => {
   const builtParams = buildParams(params);
-  return (rows: Row[]) => gatherColumns(rows, builtParams);
+  return (table: Table) => gatherColumns(table, builtParams);
 };

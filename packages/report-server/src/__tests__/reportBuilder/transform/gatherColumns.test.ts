@@ -13,7 +13,7 @@ describe('gatherColumns', () => {
         transform: 'gatherColumns',
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqual([
+    expect(transform(SINGLE_ANALYTIC)).toEqualTableOf([
       { value: '20200101', columnName: 'period' },
       { value: 'TO', columnName: 'organisationUnit' },
       { value: 'BCD1', columnName: 'dataElement' },
@@ -28,7 +28,7 @@ describe('gatherColumns', () => {
         keep: 'organisationUnit',
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqual([
+    expect(transform(SINGLE_ANALYTIC)).toEqualTableOf([
       { organisationUnit: 'TO', value: '20200101', columnName: 'period' },
       { organisationUnit: 'TO', value: 'BCD1', columnName: 'dataElement' },
       { organisationUnit: 'TO', value: 4, columnName: 'value' },
@@ -42,9 +42,9 @@ describe('gatherColumns', () => {
         keep: ['organisationUnit', 'period'],
       },
     ]);
-    expect(transform(SINGLE_ANALYTIC)).toEqual([
-      { organisationUnit: 'TO', period: '20200101', value: 'BCD1', columnName: 'dataElement' },
-      { organisationUnit: 'TO', period: '20200101', value: 4, columnName: 'value' },
+    expect(transform(SINGLE_ANALYTIC)).toEqualTableOf([
+      { period: '20200101', organisationUnit: 'TO', value: 'BCD1', columnName: 'dataElement' },
+      { period: '20200101', organisationUnit: 'TO', value: 4, columnName: 'value' },
     ]);
   });
 
@@ -55,7 +55,7 @@ describe('gatherColumns', () => {
         keep: ['period'],
       },
     ]);
-    expect(transform(MULTIPLE_ANALYTICS)).toEqual([
+    expect(transform(MULTIPLE_ANALYTICS)).toEqualTableOf([
       { period: '20200101', value: 'TO', columnName: 'organisationUnit' },
       { period: '20200101', value: 'BCD1', columnName: 'dataElement' },
       { period: '20200101', value: 4, columnName: 'value' },
