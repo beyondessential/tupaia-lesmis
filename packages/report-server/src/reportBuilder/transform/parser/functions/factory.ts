@@ -21,6 +21,11 @@ const sumArray = (arr: unknown[]) =>
     ? undefined
     : mathjsSum(arr.filter(item => item !== undefined).map(enforceIsNumber));
 
+const meanArray = (arr: unknown[]) =>
+  arr.every(item => item === undefined)
+    ? undefined
+    : mathjsMean(arr.filter(item => item !== undefined).map(enforceIsNumber));
+
 export const orderedSet = {
   dependencies: ['typed', 'OrderedSet'],
   func: ({
@@ -130,10 +135,11 @@ export const mean = {
   dependencies: ['typed', 'Table', 'TableColumn', 'TableRow'],
   func: ({ typed: customTyped }: { typed: any }) =>
     customTyped('mean', {
-      Table: (table: Table) => mathjsMean(table.cells().map(enforceIsNumber)),
-      TableRow: (row: TableRow) => mathjsMean(row.cells().map(enforceIsNumber)),
-      TableColumn: (row: TableRow) => mathjsMean(row.cells().map(enforceIsNumber)),
-      '...': (vals: any[]) => mathjsMean(vals),
+      Table: (table: Table) => meanArray(table.cells()),
+      TableRow: (row: TableRow) => meanArray(row.cells()),
+      TableColumn: (row: TableRow) => meanArray(row.cells()),
+      Array: meanArray,
+      '...': (vals: any[]) => meanArray(vals),
     }),
 };
 
