@@ -7,7 +7,6 @@ import { yup } from '@tupaia/utils';
 
 import { ReportServerAggregator } from '../../../../aggregator';
 import { Table } from '../../../transform/parser/customTypes';
-import { Row } from '../../../types';
 import { OutputContext } from '../../types';
 import { RawDataExportBuilder } from './rawDataExportBuilder';
 import { RawDataExport, RawDataExportContext } from './types';

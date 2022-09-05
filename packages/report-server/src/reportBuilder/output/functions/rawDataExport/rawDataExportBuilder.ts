@@ -5,11 +5,11 @@
 
 import { ReportServerAggregator } from '../../../../aggregator';
 import { Table } from '../../../transform/parser/customTypes';
-import { Row } from '../../../types';
+import { RawRow } from '../../../types';
 import { RawDataExportContext, RawDataExport } from './types';
 
 export class RawDataExportBuilder {
-  private rows: Row[];
+  private rows: RawRow[];
   private matrixData: RawDataExport;
   private params: unknown;
   private outputContext: RawDataExportContext;
