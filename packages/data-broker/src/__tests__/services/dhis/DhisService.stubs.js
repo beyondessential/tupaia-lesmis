@@ -4,7 +4,7 @@
  */
 
 import { createModelsStub as baseCreateModelsStub } from '@tupaia/database';
-import * as GetDhisApiInstance from '../../../services/dhis/getDhisApiInstance';
+import * as GetDhisApi from '../../../services/dhis/getDhisApi';
 import {
   DATA_ELEMENTS_BY_GROUP,
   DHIS_RESPONSE_DATA_ELEMENTS,
@@ -12,6 +12,7 @@ import {
   DATA_GROUPS,
   ENTITIES,
   SERVER_NAME,
+  ENTITY_HIERARCHIES,
 } from './DhisService.fixtures';
 import { createJestMockInstance } from '../../../../../utils/src/testUtilities';
 
@@ -23,15 +24,19 @@ const defaultAnalytics = {
   rows: [],
 };
 
-export const stubDhisApi = ({
+export const createMockDhisApi = ({
   getAnalyticsResponse = defaultAnalytics,
   getEventsResponse = [],
+  getEventAnalyticsStub,
   getEventAnalyticsResponse = defaultAnalytics,
+  serverName = SERVER_NAME,
 } = {}) => {
-  const dhisApi = createJestMockInstance('@tupaia/dhis-api', 'DhisApi', {
+  return createJestMockInstance('@tupaia/dhis-api', 'DhisApi', {
     getAnalytics: jest.fn().mockResolvedValue(getAnalyticsResponse),
     getEvents: jest.fn().mockResolvedValue(getEventsResponse),
-    getEventAnalytics: jest.fn().mockResolvedValue(getEventAnalyticsResponse),
+    getEventAnalytics: getEventAnalyticsStub
+      ? jest.fn(getEventAnalyticsStub)
+      : jest.fn().mockResolvedValue(getEventAnalyticsResponse),
     fetchDataElements: jest
       .fn()
       .mockImplementation(async codes =>
@@ -40,12 +45,17 @@ export const stubDhisApi = ({
           {},
         ),
       ),
-    getServerName: jest.fn().mockReturnValue(SERVER_NAME),
     getResourceTypes: jest.fn().mockReturnValue({ DATA_ELEMENT: 'dataElement' }),
+    serverName,
   });
-  jest.spyOn(GetDhisApiInstance, 'getDhisApiInstance').mockReturnValue(dhisApi);
+};
 
-  return dhisApi;
+export const stubGetDhisApi = mockDhisApi => {
+  // Mock return value of all getDhisApi functions to return this mock api
+  jest.spyOn(GetDhisApi, 'getApiForValue').mockReturnValue(mockDhisApi);
+  jest.spyOn(GetDhisApi, 'getApisForDataSources').mockReturnValue([mockDhisApi]);
+  jest.spyOn(GetDhisApi, 'getApisForLegacyDataSourceConfig').mockReturnValue([mockDhisApi]);
+  jest.spyOn(GetDhisApi, 'getApiFromServerName').mockReturnValue(mockDhisApi);
 };
 
 export const createModelsStub = () => {
@@ -65,6 +75,9 @@ export const createModelsStub = () => {
     },
     entity: {
       records: Object.values(ENTITIES),
+    },
+    entityHierarchy: {
+      records: Object.values(ENTITY_HIERARCHIES),
     },
   });
 };

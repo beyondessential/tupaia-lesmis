@@ -18,6 +18,7 @@ import { useRouteHandler } from './RouteHandler';
 import { exportRoutes } from './export';
 import { importRoutes } from './import';
 import { authenticate } from './authenticate';
+import { changesMetadata } from './changesMetadata';
 import { countChanges } from './countChanges';
 import { getChanges } from './getChanges';
 import { BESAdminCreateHandler } from './CreateHandler';
@@ -86,6 +87,7 @@ import {
   EditUserEntityPermissions,
   GETUserEntityPermissions,
 } from './userEntityPermissions';
+import { EditEntity } from './entities';
 import { EditAccessRequests, GETAccessRequests } from './accessRequests';
 import { postChanges } from './postChanges';
 import { changePassword } from './changePassword';
@@ -98,7 +100,6 @@ import { requestPasswordReset } from './requestPasswordReset';
 import { getCountryAccessList } from './getCountryAccessList';
 import { surveyResponse } from './surveyResponse';
 import { verifyEmail, requestResendEmail } from './verifyEmail';
-import { manualKoBoSync } from '../kobo';
 import { GETReports } from './reports';
 import { GETDataElementDataGroups } from './dataElementDataGroups';
 import {
@@ -106,6 +107,15 @@ import {
   EditMapOverlayVisualisation,
   GETMapOverlayVisualisations,
 } from './mapOverlayVisualisations';
+import {
+  GETSyncGroups,
+  EditSyncGroups,
+  CreateSyncGroups,
+  DeleteSyncGroups,
+  GETSyncGroupLogs,
+  GETSyncGroupLogsCount,
+  ManuallySyncSyncGroup,
+} from './syncGroups';
 
 // quick and dirty permission wrapper for open endpoints
 const allowAnyone = routeHandler => (req, res, next) => {
@@ -142,6 +152,7 @@ apiV2.use('/import', importRoutes);
  * GET routes
  */
 apiV2.get('/changes/count', catchAsyncErrors(countChanges));
+apiV2.get('/changes/metadata', catchAsyncErrors(changesMetadata));
 apiV2.get('/changes', catchAsyncErrors(getChanges));
 apiV2.get('/socialFeed', catchAsyncErrors(getSocialFeed));
 apiV2.get('/me', useRouteHandler(GETUserForMe));
@@ -209,6 +220,10 @@ apiV2.get('/clinics/:recordId?', useRouteHandler(GETClinics));
 apiV2.get('/facilities/:recordId?', useRouteHandler(GETClinics));
 apiV2.get('/geographicalAreas/:recordId?', useRouteHandler(GETGeographicalAreas));
 apiV2.get('/reports/:recordId?', useRouteHandler(GETReports));
+apiV2.get('/dhisInstances/:recordId?', useRouteHandler(BESAdminGETHandler));
+apiV2.get('/dataServiceSyncGroups/:recordId?', useRouteHandler(GETSyncGroups));
+apiV2.get('/dataServiceSyncGroups/:recordId/logs', useRouteHandler(GETSyncGroupLogs));
+apiV2.get('/dataServiceSyncGroups/:recordId/logs/count', useRouteHandler(GETSyncGroupLogsCount));
 
 /**
  * POST routes
@@ -239,7 +254,8 @@ apiV2.post('/dashboardRelations', useRouteHandler(CreateDashboardRelation));
 apiV2.post('/dashboardVisualisations', useRouteHandler(CreateDashboardVisualisation));
 apiV2.post('/mapOverlayVisualisations', useRouteHandler(CreateMapOverlayVisualisation));
 apiV2.post('/mapOverlayGroupRelations', useRouteHandler(CreateMapOverlayGroupRelation));
-apiV2.post('/syncFromService', allowAnyone(manualKoBoSync));
+apiV2.post('/dataServiceSyncGroups', useRouteHandler(CreateSyncGroups));
+apiV2.post('/dataServiceSyncGroups/:recordId/sync', useRouteHandler(ManuallySyncSyncGroup));
 
 /**
  * PUT routes
@@ -270,7 +286,9 @@ apiV2.put('/mapOverlayGroups/:recordId', useRouteHandler(EditMapOverlayGroups));
 apiV2.put('/mapOverlayGroupRelations/:recordId', useRouteHandler(EditMapOverlayGroupRelations));
 apiV2.put('/indicators/:recordId', useRouteHandler(BESAdminEditHandler));
 apiV2.put('/projects/:recordId', useRouteHandler(BESAdminEditHandler));
+apiV2.put('/entities/:recordId', useRouteHandler(EditEntity));
 apiV2.put('/me', catchAsyncErrors(editUser));
+apiV2.put('/dataServiceSyncGroups/:recordId', useRouteHandler(EditSyncGroups));
 
 /**
  * DELETE routes
@@ -299,6 +317,7 @@ apiV2.delete(
   useRouteHandler(DeleteMapOverlayGroupRelations),
 );
 apiV2.delete('/indicators/:recordId', useRouteHandler(BESAdminDeleteHandler));
+apiV2.delete('/dataServiceSyncGroups/:recordId', useRouteHandler(DeleteSyncGroups));
 
 apiV2.use(handleError); // error handler must come last
 
