@@ -4,12 +4,11 @@
  */
 
 import { yup } from '@tupaia/utils';
-import { Context } from '../../context';
 import { TransformParser } from '../parser';
 import { buildWhere } from './where';
-import { Row } from '../../types';
 import { starSingleOrMultipleColumnsValidator } from './transformValidators';
 import { getColumnMatcher } from './helpers';
+import { TransformTable } from '../table';
 
 type ExcludeColumnsParams = {
   shouldIncludeColumn: (field: string) => boolean;
@@ -21,24 +20,11 @@ export const paramsValidator = yup.object().shape({
   where: yup.string(),
 });
 
-const excludeColumns = (rows: Row[], params: ExcludeColumnsParams, context: Context): Row[] => {
-  const parser = new TransformParser(rows, context);
-  return rows.map(row => {
-    const matchesWhere = params.where(parser);
-    if (!matchesWhere) {
-      parser.next();
-      return row;
-    }
-    const newRow: Row = {};
-    Object.entries(row).forEach(([field, value]) => {
-      if (params.shouldIncludeColumn(field)) {
-        newRow[field] = value;
-      }
-    });
-
-    parser.next();
-    return newRow;
-  });
+const excludeColumns = (table: TransformTable, params: ExcludeColumnsParams) => {
+  const columnsToDelete = table
+    .getColumns()
+    .filter(columnName => !params.shouldIncludeColumn(columnName));
+  return table.dropColumns(columnsToDelete);
 };
 
 const buildParams = (params: unknown): ExcludeColumnsParams => {
@@ -53,7 +39,7 @@ const buildParams = (params: unknown): ExcludeColumnsParams => {
   return { shouldIncludeColumn, where: buildWhere(params) };
 };
 
-export const buildExcludeColumns = (params: unknown, context: Context) => {
+export const buildExcludeColumns = (params: unknown) => {
   const builtParams = buildParams(params);
-  return (rows: Row[]) => excludeColumns(rows, builtParams, context);
+  return (table: TransformTable) => excludeColumns(table, builtParams);
 };
