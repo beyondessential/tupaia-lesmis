@@ -3,12 +3,12 @@
  * Copyright (c) 2017 - 2020 Beyond Essential Systems Pty Ltd
  */
 
-import { yup, orderBy } from '@tupaia/utils';
+import { yup } from '@tupaia/utils';
 import { yupTsUtils } from '@tupaia/tsutils';
 
-import { TransformParser } from '../parser';
 import { Row } from '../../types';
 import { starSingleOrMultipleColumnsValidator } from './transformValidators';
+import { TransformTable } from '../table';
 
 type SortParams = {
   by: string | string[];
@@ -37,55 +37,47 @@ export const paramsValidator = yup.object().shape({
   ),
 });
 
-const getCustomRowSortFunction = (expression: string, direction: 'asc' | 'desc') => {
-  const sortParser = new TransformParser();
+const sortByColumn = (columnName: string, direction: 'asc' | 'desc') => {
   return (row1: Row, row2: Row) => {
-    sortParser.set('@current', row1);
-    sortParser.addRowToScope(row1);
-    const row1Value = sortParser.evaluate(expression);
-    sortParser.removeRowFromScope(row1);
-
-    sortParser.set('@current', row2);
-    sortParser.addRowToScope(row2);
-    const row2Value = sortParser.evaluate(expression);
-    sortParser.removeRowFromScope(row1);
-
-    if (row1Value === undefined || row2Value === undefined) {
-      throw new Error(`Unexpected undefined value when sorting rows: ${row1}, ${row2}`);
-    }
-
-    if (direction === 'desc') {
-      if (row1Value < row2Value) {
-        return 1;
-      }
-
-      if (row1Value === row2Value) {
-        return 0;
-      }
-      return -1;
-    }
-
-    if (row1Value > row2Value) {
-      return 1;
-    }
-
-    if (row1Value === row2Value) {
+    if (row1[columnName] === row2[columnName]) {
       return 0;
     }
-    return -1;
+
+    const row1Value = row1[columnName];
+    const row2Value = row2[columnName];
+
+    let sortResult: number;
+    if (row1Value === null || row1Value === undefined) {
+      if (row2Value === null || row2Value === undefined) {
+        sortResult = 0;
+      } else {
+        sortResult = -1;
+      }
+    } else if (row2Value === null || row2Value === undefined) {
+      sortResult = 1;
+    } else {
+      sortResult = row1Value < row2Value ? -1 : 1;
+    }
+
+    return sortResult * (direction === 'asc' ? 1 : -1);
   };
 };
 
-const sortRows = (rows: Row[], params: SortParams): Row[] => {
+const sortRows = (table: TransformTable, params: SortParams) => {
   const { by, direction } = params;
-  if (typeof by === 'string' && TransformParser.isExpression(by)) {
-    const firstDirection = Array.isArray(direction) ? direction[0] : direction;
-    return rows.sort(getCustomRowSortFunction(by, firstDirection));
-  }
 
-  const arrayBy = typeof by === 'string' ? [by] : by;
-  const arrayDirection = typeof direction === 'string' ? [direction] : direction;
-  return orderBy(rows, arrayBy, arrayDirection);
+  const bys = typeof by === 'string' ? [by] : by;
+  const directions = typeof direction === 'string' ? [direction] : direction;
+  const reversedBys = [...bys].reverse();
+  const reversedDirections = [...directions].reverse();
+  let newRowData = table.getRows();
+  reversedBys.forEach((columnName, sortIndex) => {
+    const directionForIndex =
+      reversedDirections[Math.min(sortIndex, reversedDirections.length - 1)];
+    newRowData = newRowData.sort(sortByColumn(columnName, directionForIndex));
+  });
+
+  return new TransformTable(table.getColumns(), newRowData);
 };
 
 const buildParams = (params: unknown): SortParams => {
@@ -105,5 +97,5 @@ const buildParams = (params: unknown): SortParams => {
 
 export const buildSortRows = (params: unknown) => {
   const builtSortParams = buildParams(params);
-  return (rows: Row[]) => sortRows(rows, builtSortParams);
+  return (table: TransformTable) => sortRows(table, builtSortParams);
 };
