@@ -117,8 +117,8 @@ describe('changes (GET)', () => {
   it('should return the total number of update changes with no "since"', async () => {
     const questionCreated = await upsertDummyQuestion(models);
     const questionCreateAndDeleted = await upsertDummyQuestion(models);
-    await models.database.waitForAllChangeHandlers();
     await models.question.deleteById(questionCreateAndDeleted.id);
+
     await models.database.waitForAllChangeHandlers();
 
     const response = await app.get('changes', {
@@ -140,8 +140,9 @@ describe('changes (GET)', () => {
     await oneSecondSleep();
     for (let i = 0; i < numberOfQuestionsToAdd; i++) {
       newQuestions.push(await upsertDummyQuestion(models));
-      await models.database.waitForAllChangeHandlers();
     }
+
+    await models.database.waitForAllChangeHandlers();
 
     const response = await app.get('changes', {
       headers: {
@@ -172,13 +173,9 @@ describe('changes (GET)', () => {
     const questionsInFirstUpdate = [];
     for (let i = 0; i < numberOfQuestionsToAddInFirstUpdate; i++) {
       questionsInFirstUpdate.push(await upsertDummyQuestion(models));
-      await models.database.waitForAllChangeHandlers();
     }
 
     // Add some more questions
-    await oneSecondSleep();
-
-    // Wait for the triggers to have properly added the changes to the queue
     await models.database.waitForAllChangeHandlers();
 
     const timestampBeforeSecondUpdate = Date.now();
@@ -187,11 +184,7 @@ describe('changes (GET)', () => {
     const questionsInSecondUpdate = [];
     for (let i = 0; i < numberOfQuestionsToAddInSecondUpdate; i++) {
       questionsInSecondUpdate.push(await upsertDummyQuestion(models));
-      await models.database.waitForAllChangeHandlers();
     }
-
-    // Delete some of the questions added in the first update
-    await oneSecondSleep();
 
     // Wait for the triggers to have properly added the changes to the queue
     await models.database.waitForAllChangeHandlers();
@@ -211,11 +204,7 @@ describe('changes (GET)', () => {
     );
     for (let i = 0; i < numberOfQuestionsToDeleteFromFirstUpdate; i++) {
       await models.question.deleteById(questionsInFirstUpdate[i].id);
-      await models.database.waitForAllChangeHandlers();
     }
-
-    // Delete some of the questions added in the second update
-    await oneSecondSleep();
 
     // Wait for the triggers to have properly added the changes to the queue
     await models.database.waitForAllChangeHandlers();
@@ -235,8 +224,10 @@ describe('changes (GET)', () => {
     );
     for (let i = 0; i < numberOfQuestionsToDeleteFromSecondUpdate; i++) {
       await models.question.deleteById(questionsInSecondUpdate[i].id);
-      await models.database.waitForAllChangeHandlers();
     }
+
+    // Wait for the triggers to have properly added the changes to the queue
+    await models.database.waitForAllChangeHandlers();
 
     // If syncing from before the first update, should only need to sync the number of records that
     // actually need to be added. No need to know about deletes of records we never integrated
@@ -326,8 +317,9 @@ describe('changes (GET)', () => {
     const newEntities = [];
     for (let i = 0; i < numberOfEntitiesToAdd; i++) {
       newEntities.push(await upsertDummyRecord(models.entity, {}));
-      await models.database.waitForAllChangeHandlers();
     }
+
+    await models.database.waitForAllChangeHandlers();
 
     const entitySupportedResponse = await app.get('changes', {
       headers: {
@@ -364,14 +356,14 @@ describe('changes (GET)', () => {
     const newEntities = [];
     for (let i = 0; i < numberOfEntitiesToAdd; i++) {
       newEntities.push(await upsertDummyRecord(models.entity, {}));
-      await models.database.waitForAllChangeHandlers();
     }
 
     const newQuestions = [];
     for (let i = 0; i < numberOfQuestionsToAdd; i++) {
       newQuestions.push(await upsertDummyQuestion(models));
-      await models.database.waitForAllChangeHandlers();
     }
+
+    await models.database.waitForAllChangeHandlers();
 
     const entityChangesResponse = await app.get('changes', {
       headers: {
@@ -426,8 +418,9 @@ describe('changes (GET)', () => {
     await oneSecondSleep();
     for (let i = 0; i < numberOfQuestionsToAdd; i++) {
       newQuestions.push(await upsertDummyQuestion(models));
-      await models.database.waitForAllChangeHandlers();
     }
+
+    await models.database.waitForAllChangeHandlers();
 
     const expectedResults = await Promise.all(
       newQuestions.map(questionCreated => recordToChange('question', questionCreated, 'update')),

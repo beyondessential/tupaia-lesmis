@@ -110,9 +110,6 @@ describe('changes/count', () => {
       newQuestionsInFirstUpdate[i] = await upsertDummyQuestion(models);
     }
 
-    // Add some more questions
-    await oneSecondSleep();
-
     // Wait for the triggers to have properly added the changes to the queue
     await models.database.waitForAllChangeHandlers();
 
@@ -123,9 +120,6 @@ describe('changes/count', () => {
     for (let i = 0; i < numberOfQuestionsToAddInSecondUpdate; i++) {
       newQuestionsInSecondUpdate[i] = await upsertDummyQuestion(models);
     }
-
-    // Delete some of the questions added in the first update
-    await oneSecondSleep();
 
     // Wait for the triggers to have properly added the changes to the queue
     await models.database.waitForAllChangeHandlers();
@@ -139,9 +133,6 @@ describe('changes/count', () => {
     for (let i = 0; i < numberOfQuestionsToDeleteFromFirstUpdate; i++) {
       await models.question.deleteById(newQuestionsInFirstUpdate[i].id);
     }
-
-    // Delete some of the questions added in the second update
-    await oneSecondSleep();
 
     // Wait for the triggers to have properly added the changes to the queue
     await models.database.waitForAllChangeHandlers();

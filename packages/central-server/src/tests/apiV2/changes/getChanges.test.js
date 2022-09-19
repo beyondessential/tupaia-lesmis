@@ -48,8 +48,7 @@ describe('GET /changes/count', async () => {
     for (let i = 0; i < numberOfQuestionsToAdd; i++) {
       newQuestions[i] = await upsertQuestion();
     }
-    // Wait one second for the triggers to have properly added the changes to the queue
-    await oneSecondSleep();
+
     // Wait for the triggers to have properly added the changes to the queue
     await models.database.waitForAllChangeHandlers();
     const response = await app.get(`changes/count?since=${since}`);
@@ -73,9 +72,6 @@ describe('GET /changes/count', async () => {
       newQuestionsInFirstUpdate[i] = await upsertQuestion();
     }
 
-    // Add some more questions
-    await oneSecondSleep();
-
     // Wait for the triggers to have properly added the changes to the queue
     await models.database.waitForAllChangeHandlers();
 
@@ -86,9 +82,6 @@ describe('GET /changes/count', async () => {
     for (let i = 0; i < numberOfQuestionsToAddInSecondUpdate; i++) {
       newQuestionsInSecondUpdate[i] = await upsertQuestion();
     }
-
-    // Delete some of the questions added in the first update
-    await oneSecondSleep();
 
     // Wait for the triggers to have properly added the changes to the queue
     await models.database.waitForAllChangeHandlers();
@@ -102,9 +95,6 @@ describe('GET /changes/count', async () => {
     for (let i = 0; i < numberOfQuestionsToDeleteFromFirstUpdate; i++) {
       await models.question.deleteById(newQuestionsInFirstUpdate[i].id);
     }
-
-    // Delete some of the questions added in the second update
-    await oneSecondSleep();
 
     // Wait for the triggers to have properly added the changes to the queue
     await models.database.waitForAllChangeHandlers();
@@ -120,7 +110,6 @@ describe('GET /changes/count', async () => {
     }
 
     // Wait for the triggers to have properly added the changes to the queue
-    await oneSecondSleep();
     await models.database.waitForAllChangeHandlers();
 
     // If syncing from before the first update, should only need to sync the number of records that
@@ -163,7 +152,6 @@ describe('GET /changes/count', async () => {
     await upsertSurveyGroup(); // version 1.6.69
     await upsertEntity(); // version 1.7.102
 
-    await oneSecondSleep();
     // Wait for the triggers to have properly added the changes to the queue
     await models.database.waitForAllChangeHandlers();
     let response = await app.get(`changes/count?since=${since}&appVersion=0.0.1`);

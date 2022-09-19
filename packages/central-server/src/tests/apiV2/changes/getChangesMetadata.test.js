@@ -5,7 +5,6 @@
 
 import { expect } from 'chai';
 
-import { oneSecondSleep } from '@tupaia/utils';
 import { MeditrakSyncQueue, createPermissionsBasedMeditrakSyncQueue } from '../../../database';
 import { TestableApp } from '../../testUtilities';
 import { PERMISSIONS_BASED_SYNC_MIN_APP_VERSION } from '../../../apiV2/utilities/meditrakSync';
@@ -176,7 +175,6 @@ describe('GET /changes/metadata', async () => {
         survey4.permission_group_id = publicPermissionGroupId;
         await survey4.save();
 
-        await oneSecondSleep();
         await models.database.waitForAllChangeHandlers();
 
         app.revokeAccess();
@@ -206,7 +204,6 @@ describe('GET /changes/metadata', async () => {
         survey3.country_ids = [...survey3.country_ids, country1Id];
         await survey3.save();
 
-        await oneSecondSleep();
         await models.database.waitForAllChangeHandlers();
 
         app.revokeAccess();
