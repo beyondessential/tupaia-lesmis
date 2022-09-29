@@ -63,14 +63,6 @@ describe('AnalyticsDataTableService', () => {
         'organisationUnitCodes is a required field',
       ],
       [
-        'missing hierarchy',
-        {
-          organisationUnitCodes: ['TO'],
-          dataElementCodes: ['PSSS_AFR_Cases'],
-        },
-        'hierarchy is a required field',
-      ],
-      [
         'missing dataElementCodes',
         {
           organisationUnitCodes: ['TO'],
@@ -86,7 +78,7 @@ describe('AnalyticsDataTableService', () => {
           dataElementCodes: ['PSSS_AFR_Cases'],
           startDate: 'cat',
         },
-        'startDate should be in ISO 8601 format',
+        'startDate must be a `date` type',
       ],
       [
         'endDate wrong format',
@@ -96,7 +88,7 @@ describe('AnalyticsDataTableService', () => {
           dataElementCodes: ['PSSS_AFR_Cases'],
           endDate: 'dog',
         },
-        'endDate should be in ISO 8601 format',
+        'endDate must be a `date` type',
       ],
       [
         'aggregations wrong format',

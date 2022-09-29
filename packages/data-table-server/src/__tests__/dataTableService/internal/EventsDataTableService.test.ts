@@ -118,14 +118,6 @@ describe('EventsDataTableService', () => {
         'organisationUnitCodes is a required field',
       ],
       [
-        'missing hierarchy',
-        {
-          organisationUnitCodes: ['TO'],
-          dataGroupCode: 'PSSS_WNR',
-        },
-        'hierarchy is a required field',
-      ],
-      [
         'startDate wrong format',
         {
           organisationUnitCodes: ['TO'],
@@ -133,7 +125,7 @@ describe('EventsDataTableService', () => {
           dataGroupCode: 'PSSS_WNR',
           startDate: 'cat',
         },
-        'startDate should be in ISO 8601 format',
+        'startDate must be a `date` type',
       ],
       [
         'endDate wrong format',
@@ -143,7 +135,7 @@ describe('EventsDataTableService', () => {
           dataGroupCode: 'PSSS_WNR',
           endDate: 'dog',
         },
-        'endDate should be in ISO 8601 format',
+        'endDate must be a `date` type',
       ],
       [
         'aggregations wrong format',
