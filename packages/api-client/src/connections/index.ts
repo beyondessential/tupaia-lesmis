@@ -9,3 +9,4 @@ export { AuthApi } from './AuthApi';
 export { EntityApi } from './EntityApi';
 export { CentralApi } from './CentralApi';
 export { ReportApi } from './ReportApi';
+export { DataTableApi } from './DataTableApi';

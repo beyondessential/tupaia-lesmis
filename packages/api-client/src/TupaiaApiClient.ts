@@ -5,7 +5,14 @@
  */
 
 import { AuthHandler } from './types';
-import { ApiConnection, AuthApi, EntityApi, CentralApi, ReportApi } from './connections';
+import {
+  ApiConnection,
+  AuthApi,
+  EntityApi,
+  CentralApi,
+  ReportApi,
+  DataTableApi,
+} from './connections';
 import { PRODUCTION_BASE_URLS, ServiceBaseUrlSet } from './constants';
 
 export class TupaiaApiClient {
@@ -13,11 +20,13 @@ export class TupaiaApiClient {
   public readonly central: CentralApi;
   public readonly auth: AuthApi;
   public readonly report: ReportApi;
+  public readonly dataTable: DataTableApi;
 
   public constructor(authHandler: AuthHandler, baseUrls: ServiceBaseUrlSet = PRODUCTION_BASE_URLS) {
     this.auth = new AuthApi(new ApiConnection(authHandler, baseUrls.auth));
     this.entity = new EntityApi(new ApiConnection(authHandler, baseUrls.entity));
     this.central = new CentralApi(new ApiConnection(authHandler, baseUrls.central));
     this.report = new ReportApi(new ApiConnection(authHandler, baseUrls.report));
+    this.dataTable = new DataTableApi(new ApiConnection(authHandler, baseUrls.dataTable));
   }
 }
