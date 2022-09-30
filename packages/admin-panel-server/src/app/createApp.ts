@@ -13,6 +13,10 @@ import { AdminPanelSessionModel } from '../models';
 import { hasTupaiaAdminPanelAccess } from '../utils';
 import { upload, verifyBESAdminAccess } from '../middleware';
 import {
+  DataTableParametersRequest,
+  DataTableParametersRoute,
+  DataTablePreviewRequest,
+  DataTablePreviewRoute,
   ExportDashboardVisualisationRequest,
   ExportDashboardVisualisationRoute,
   ExportMapOverlayVisualisationRequest,
@@ -88,6 +92,14 @@ export function createApp() {
       'dashboardVisualisation/:dashboardVisualisationId',
       verifyBESAdminAccess,
       handleWith(FetchDashboardVisualisationRoute),
+    )
+    .get<DataTableParametersRequest>(
+      'dataTables/:dataTableCode/parameters',
+      handleWith(DataTableParametersRoute),
+    )
+    .post<DataTablePreviewRequest>(
+      'dataTables/:dataTableCode/preview',
+      handleWith(DataTablePreviewRoute),
     )
     .get(
       'export/dashboardVisualisation/:dashboardVisualisationId',
