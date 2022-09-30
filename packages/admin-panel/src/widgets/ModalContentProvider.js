@@ -12,6 +12,7 @@ import PropTypes from 'prop-types';
 const Content = styled(DialogContent)`
   text-align: left;
   min-height: 220px;
+  flex-grow: 1;
 `;
 
 const Heading = styled(Typography)`

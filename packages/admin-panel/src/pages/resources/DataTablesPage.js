@@ -39,7 +39,14 @@ const FIELDS = [
   },
 ];
 
-const COLUMNS = [...FIELDS];
+const COLUMNS = [
+  ...FIELDS,
+  {
+    Header: 'Preview',
+    source: 'id',
+    type: 'dataTablePreview',
+  },
+];
 
 export const DataTablesPage = ({ getHeaderEl }) => (
   <ResourcePage
