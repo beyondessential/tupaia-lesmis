@@ -3,10 +3,10 @@
  * Copyright (c) 2017 - 2022 Beyond Essential Systems Pty Ltd
  */
 
-import { TupaiaApiClient } from '@tupaia/api-client';
 import { DataTableType as DataTableTypeClass } from '@tupaia/database';
 import { createDataTableService } from '../../../dataTableService';
 import { DataTableType } from '../../../models';
+import { getStubApiClient, getStubModels } from '../../utils';
 
 type Event = { eventDate: string; orgUnit: string; dataValues: Record<string, unknown> };
 
@@ -150,14 +150,22 @@ describe('EventsDataTableService', () => {
     ];
 
     it.each(testData)('%s', (_, parameters: unknown, expectedError: string) => {
-      const eventsDataTableService = createDataTableService(eventsDataTable, {} as TupaiaApiClient);
+      const eventsDataTableService = createDataTableService(
+        eventsDataTable,
+        getStubModels(),
+        getStubApiClient(),
+      );
 
       expect(() => eventsDataTableService.fetchData(parameters)).toThrow(expectedError);
     });
   });
 
   it('can fetch data from Aggregator.fetchEvents()', async () => {
-    const eventsDataTableService = createDataTableService(eventsDataTable, {} as TupaiaApiClient);
+    const eventsDataTableService = createDataTableService(
+      eventsDataTable,
+      getStubModels(),
+      getStubApiClient(),
+    );
 
     const dataGroupCode = 'PSSS_WNR';
     const dataElementCodes = ['PSSS_AFR_Cases'];
@@ -179,7 +187,11 @@ describe('EventsDataTableService', () => {
   });
 
   it('passes all parameters to Aggregator.fetchEvents()', async () => {
-    const eventsDataTableService = createDataTableService(eventsDataTable, {} as TupaiaApiClient);
+    const eventsDataTableService = createDataTableService(
+      eventsDataTable,
+      getStubModels(),
+      getStubApiClient(),
+    );
 
     const dataGroupCode = 'PSSS_Confirmed_WNR';
     const dataElementCodes = ['PSSS_AFR_Cases', 'PSSS_ILI_Cases'];

@@ -25,12 +25,17 @@ export const attachDataTableToContext = async (
 
     const permissionGroups = dataTable.permission_groups;
 
-    if (!(permissionGroups.includes('*') || permissionGroups.some(accessPolicy.allowsAnywhere))) {
+    if (
+      !(
+        permissionGroups.includes('*') ||
+        permissionGroups.some(permissionGroup => accessPolicy.allowsAnywhere(permissionGroup))
+      )
+    ) {
       throw new Error(`User does not have permission to access data table ${dataTable.code}`);
     }
 
     req.ctx.dataTable = dataTable;
-    req.ctx.dataTableService = createDataTableService(dataTable, ctx.services);
+    req.ctx.dataTableService = createDataTableService(dataTable, models, ctx.services);
 
     next();
   } catch (error) {

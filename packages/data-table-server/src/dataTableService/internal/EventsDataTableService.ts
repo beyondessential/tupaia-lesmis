@@ -7,6 +7,7 @@ import { Aggregator } from '@tupaia/aggregator';
 import { TupaiaApiClient } from '@tupaia/api-client';
 import { DataBroker } from '@tupaia/data-broker';
 import { EARLIEST_DATA_DATE_STRING, yup } from '@tupaia/utils';
+import { DataTableServerModelRegistry } from '../../types';
 import { DataTableService } from '../DataTableService';
 import { yupSchemaToDataTableParams } from '../utils';
 
@@ -47,8 +48,12 @@ export class EventsDataTableService extends DataTableService<
   typeof configSchema,
   Event
 > {
-  public constructor(apiClient: TupaiaApiClient, config: unknown) {
-    super(paramsSchema, configSchema, apiClient, config);
+  public constructor(
+    models: DataTableServerModelRegistry,
+    apiClient: TupaiaApiClient,
+    config: unknown,
+  ) {
+    super(models, apiClient, paramsSchema, configSchema, config);
   }
 
   protected async pullData(params: {
@@ -92,7 +97,7 @@ export class EventsDataTableService extends DataTableService<
     });
   }
 
-  public async getParameters() {
+  public getParameters() {
     // Not including aggregations, as they are a hidden parameter
     const {
       hierarchy,

@@ -5,6 +5,7 @@
 
 import { TupaiaApiClient } from '@tupaia/api-client';
 import { yup } from '@tupaia/utils';
+import { DataTableServerModelRegistry } from '../types';
 import { DataTableParameter } from './types';
 
 export abstract class DataTableService<
@@ -12,20 +13,23 @@ export abstract class DataTableService<
   ConfigSchema extends yup.AnyObjectSchema = yup.AnyObjectSchema,
   RecordSchema = unknown
 > {
+  protected readonly models: DataTableServerModelRegistry;
+  protected readonly apiClient: TupaiaApiClient;
   protected readonly paramsSchema: ParamsSchema;
   protected readonly configSchema: ConfigSchema;
-  protected readonly apiClient: TupaiaApiClient;
   protected readonly config: yup.InferType<ConfigSchema>;
 
   protected constructor(
+    models: DataTableServerModelRegistry,
+    apiClient: TupaiaApiClient,
     paramsSchema: ParamsSchema,
     configSchema: ConfigSchema,
-    apiClient: TupaiaApiClient,
     config: unknown,
   ) {
+    this.models = models;
+    this.apiClient = apiClient;
     this.paramsSchema = paramsSchema;
     this.configSchema = configSchema;
-    this.apiClient = apiClient;
     this.config = this.configSchema.validateSync(config);
   }
 
@@ -43,5 +47,5 @@ export abstract class DataTableService<
     return this.pullData(validatedParams);
   }
 
-  public abstract getParameters(): Promise<DataTableParameter[]>;
+  public abstract getParameters(): DataTableParameter[];
 }

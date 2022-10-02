@@ -3,11 +3,11 @@
  * Copyright (c) 2017 - 2022 Beyond Essential Systems Pty Ltd
  */
 
-import { TupaiaApiClient } from '@tupaia/api-client';
 import { DataTableType as DataTableTypeClass } from '@tupaia/database';
 import { createDataTableService } from '../../dataTableService';
 import { AnalyticsDataTableService } from '../../dataTableService/internal/AnalyticsDataTableService';
 import { DataTableType } from '../../models';
+import { getStubApiClient, getStubModels } from '../utils';
 
 describe('createDataTableService', () => {
   describe('error cases', () => {
@@ -18,7 +18,7 @@ describe('createDataTableService', () => {
       ) as DataTableType;
 
       const createUnknownTypeDataTableService = () =>
-        createDataTableService(dataTableWithUnknownType, {} as TupaiaApiClient);
+        createDataTableService(dataTableWithUnknownType, getStubModels(), getStubApiClient());
 
       expect(createUnknownTypeDataTableService).toThrow(
         'Cannot build data table for type: unknown',
@@ -32,7 +32,7 @@ describe('createDataTableService', () => {
       ) as DataTableType;
 
       const createUnknownInternalDataTableService = () =>
-        createDataTableService(unknownInternalDataTable, {} as TupaiaApiClient);
+        createDataTableService(unknownInternalDataTable, getStubModels(), getStubApiClient());
 
       expect(createUnknownInternalDataTableService).toThrow(
         'No internal data-table defined for unknown',
@@ -48,7 +48,8 @@ describe('createDataTableService', () => {
 
     const analyticsDataTableService = createDataTableService(
       analyticsDataTable,
-      {} as TupaiaApiClient,
+      getStubModels(),
+      getStubApiClient(),
     );
 
     expect(analyticsDataTableService instanceof AnalyticsDataTableService).toBe(true);

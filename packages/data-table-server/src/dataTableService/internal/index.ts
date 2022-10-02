@@ -4,13 +4,18 @@
  */
 
 import { TupaiaApiClient } from '@tupaia/api-client';
+import { DataTableServerModelRegistry } from '../../types';
 import { DataTableService } from '../DataTableService';
 import { AnalyticsDataTableService } from './AnalyticsDataTableService';
 import { EventsDataTableService } from './EventsDataTableService';
 
 export const internalDataTableServices: Record<
   string,
-  new (apiClient: TupaiaApiClient, config: unknown) => DataTableService
+  new (
+    models: DataTableServerModelRegistry,
+    apiClient: TupaiaApiClient,
+    config: unknown,
+  ) => DataTableService
 > = {
   analytics: AnalyticsDataTableService,
   events: EventsDataTableService,

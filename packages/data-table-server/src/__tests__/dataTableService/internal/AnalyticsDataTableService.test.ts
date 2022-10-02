@@ -3,10 +3,10 @@
  * Copyright (c) 2017 - 2022 Beyond Essential Systems Pty Ltd
  */
 
-import { TupaiaApiClient } from '@tupaia/api-client';
 import { DataTableType as DataTableTypeClass } from '@tupaia/database';
 import { createDataTableService } from '../../../dataTableService';
 import { DataTableType } from '../../../models';
+import { getStubModels, getStubApiClient } from '../../utils';
 
 const TEST_ANALYTICS = [
   { period: '2020-01-01', organisationUnit: 'TO', dataElement: 'PSSS_AFR_Cases', value: 7 },
@@ -105,7 +105,8 @@ describe('AnalyticsDataTableService', () => {
     it.each(testData)('%s', (_, parameters: unknown, expectedError: string) => {
       const analyticsDataTableService = createDataTableService(
         analyticsDataTable,
-        {} as TupaiaApiClient,
+        getStubModels(),
+        getStubApiClient(),
       );
 
       expect(() => analyticsDataTableService.fetchData(parameters)).toThrow(expectedError);
@@ -115,7 +116,8 @@ describe('AnalyticsDataTableService', () => {
   it('can fetch data from Aggregator.fetchAnalytics()', async () => {
     const analyticsDataTableService = createDataTableService(
       analyticsDataTable,
-      {} as TupaiaApiClient,
+      getStubModels(),
+      getStubApiClient(),
     );
 
     const dataElementCodes = ['PSSS_AFR_Cases'];
@@ -137,7 +139,8 @@ describe('AnalyticsDataTableService', () => {
   it('passes all parameters to Aggregator.fetchAnalytics()', async () => {
     const analyticsDataTableService = createDataTableService(
       analyticsDataTable,
-      {} as TupaiaApiClient,
+      getStubModels(),
+      getStubApiClient(),
     );
 
     const dataElementCodes = ['PSSS_AFR_Cases', 'PSSS_ILI_Cases'];

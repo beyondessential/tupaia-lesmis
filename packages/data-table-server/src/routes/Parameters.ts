@@ -17,6 +17,6 @@ export type ParametersRequest = Request<
 
 export class ParametersRoute extends Route<ParametersRequest> {
   public async buildResponse() {
-    return { parameters: await this.req.ctx.dataTableService.getParameters() };
+    return { parameters: this.req.ctx.dataTableService.getParameters() };
   }
 }
