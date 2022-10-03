@@ -7,7 +7,14 @@ import { TupaiaDatabase } from '@tupaia/database';
 import { handleWith, MicroServiceApiBuilder } from '@tupaia/server-boilerplate';
 import { attachDataTableToContext } from '../middleware';
 
-import { FetchDataRequest, FetchDataRoute, ParametersRequest, ParametersRoute } from '../routes';
+import {
+  FetchDataRequest,
+  FetchDataRoute,
+  ParametersRequest,
+  ParametersRoute,
+  TestRequest,
+  TestRoute,
+} from '../routes';
 
 /**
  * Set up express server with middleware,
@@ -27,6 +34,7 @@ export function createApp(database = new TupaiaDatabase()) {
       attachDataTableToContext,
       handleWith(ParametersRoute),
     )
+    .post<TestRequest>('dataTable/test', handleWith(TestRoute))
     .build();
 
   return app;

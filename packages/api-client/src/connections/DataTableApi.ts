@@ -18,4 +18,11 @@ export class DataTableApi extends BaseApi {
   ): Promise<{ parameters: { name: string; config: Record<string, unknown> }[] }> {
     return this.connection.get(`dataTable/${dataTableCode}/parameters`);
   }
+
+  public async testDataTable(
+    dataTable: Record<string, unknown>,
+    parameters: Record<string, unknown>,
+  ): Promise<{ data: Record<string, unknown>[] }> {
+    return this.connection.post(`dataTable/test`, null, { dataTable, parameters });
+  }
 }

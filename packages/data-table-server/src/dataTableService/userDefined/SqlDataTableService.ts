@@ -9,7 +9,7 @@ import { DataTableServerModelRegistry } from '../../types';
 import { UserDefinedDataTableService } from './UserDefinedDataTableService';
 
 const configSchema = yup.object().shape({
-  externalDatabaseConnectionCode: yup.string().required(),
+  externalDatabaseConnectionId: yup.string().required(),
   sql: yup.string().required(),
 });
 
@@ -27,14 +27,14 @@ export class SqlDataTableService extends UserDefinedDataTableService<
   }
 
   protected async pullData(params: Record<string, unknown>) {
-    const { externalDatabaseConnectionCode, sql } = this.config;
-    const databaseConnection = await this.models.externalDatabaseConnection.findOne({
-      code: externalDatabaseConnectionCode,
-    });
+    const { externalDatabaseConnectionId, sql } = this.config;
+    const databaseConnection = await this.models.externalDatabaseConnection.findById(
+      externalDatabaseConnectionId,
+    );
 
     if (!databaseConnection) {
       throw new Error(
-        `Cannot find external database connection with code: ${externalDatabaseConnectionCode}`,
+        `Cannot find external database connection with id: ${externalDatabaseConnectionId}`,
       );
     }
 

@@ -17,6 +17,8 @@ import {
   DataTableParametersRoute,
   DataTablePreviewRequest,
   DataTablePreviewRoute,
+  DataTableTestRequest,
+  DataTableTestRoute,
   ExportDashboardVisualisationRequest,
   ExportDashboardVisualisationRoute,
   ExportMapOverlayVisualisationRequest,
@@ -101,6 +103,7 @@ export function createApp() {
       'dataTables/:dataTableCode/preview',
       handleWith(DataTablePreviewRoute),
     )
+    .post<DataTableTestRequest>('dataTables/test', handleWith(DataTableTestRoute))
     .get(
       'export/dashboardVisualisation/:dashboardVisualisationId',
       verifyBESAdminAccess,

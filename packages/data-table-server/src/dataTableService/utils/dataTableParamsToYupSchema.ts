@@ -6,16 +6,27 @@
 import { yup } from '@tupaia/utils';
 import { DataTableParameter, DataTableParameterConfig } from '../types';
 
+const castDefaultValueToType = (defaultValue: unknown, type: string) => {
+  switch (type) {
+    case 'date': {
+      return new Date(defaultValue as string);
+    }
+    default: {
+      return defaultValue;
+    }
+  }
+};
+
 const attachQualifiersToSchema = (
   schema: yup.AnySchema,
-  { defaultValue, oneOf, required }: DataTableParameterConfig,
+  { type, defaultValue, oneOf, required }: DataTableParameterConfig,
 ) => {
   let qualifiedSchema = schema;
   if (oneOf) {
     qualifiedSchema = qualifiedSchema.oneOf(oneOf);
   }
   if (defaultValue) {
-    qualifiedSchema = qualifiedSchema.default(defaultValue);
+    qualifiedSchema = qualifiedSchema.default(castDefaultValueToType(defaultValue, type));
   } else if (required) {
     qualifiedSchema = qualifiedSchema.required();
   }
