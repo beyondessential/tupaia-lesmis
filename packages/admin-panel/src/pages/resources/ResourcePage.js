@@ -11,7 +11,6 @@ import { EditModal } from '../../editor';
 import { Header, PageBody } from '../../widgets';
 import { usePortalWithCallback } from '../../utilities';
 import { LogsModal } from '../../logsTable';
-import { DataTablePreviewModal } from '../../dataTablePreview';
 
 const Container = styled(PageBody)`
   overflow: auto;
@@ -33,6 +32,8 @@ export const ResourcePage = ({
   defaultFilters,
   defaultSorting,
   displayUsedBy,
+  children,
+  refreshDataTrigger,
 }) => {
   const HeaderPortal = usePortalWithCallback(
     <Header
@@ -56,11 +57,12 @@ export const ResourcePage = ({
           baseFilter={baseFilter}
           defaultFilters={defaultFilters}
           defaultSorting={defaultSorting}
+          refreshDataTrigger={refreshDataTrigger}
         />
       </Container>
+      {children}
       <EditModal onProcessDataForSave={onProcessDataForSave} displayUsedBy={displayUsedBy} />
       <LogsModal />
-      <DataTablePreviewModal />
     </>
   );
 };
@@ -88,6 +90,8 @@ ResourcePage.propTypes = {
   defaultSorting: PropTypes.array,
   defaultFilters: PropTypes.array,
   displayUsedBy: PropTypes.bool,
+  children: PropTypes.elementType,
+  refreshDataTrigger: PropTypes.object,
 };
 
 ResourcePage.defaultProps = {
@@ -102,4 +106,6 @@ ResourcePage.defaultProps = {
   defaultFilters: [],
   reduxId: null,
   displayUsedBy: false,
+  children: null,
+  refreshDataTrigger: {},
 };

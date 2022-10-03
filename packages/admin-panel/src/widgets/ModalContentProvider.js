@@ -13,6 +13,7 @@ const Content = styled(DialogContent)`
   text-align: left;
   min-height: 220px;
   flex-grow: 1;
+  overflow: auto;
 `;
 
 const Heading = styled(Typography)`

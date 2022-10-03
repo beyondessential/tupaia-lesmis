@@ -11,7 +11,6 @@ import { BooleanSelectFilter } from './columnFilters';
 import { Tooltip, JSONTooltip } from './Tooltip';
 import { LogsButton } from '../../logsTable';
 import { SyncStatus } from '../../sync';
-import { DataTablePreviewButton } from '../../dataTablePreview';
 
 const generateCustomCell = (CustomCell, actionConfig, reduxId) => props => (
   <CustomCell actionConfig={actionConfig} reduxId={reduxId} {...props} />
@@ -34,10 +33,9 @@ const CUSTOM_CELL_COMPONENTS = {
   jsonTooltip: JSONTooltip,
   logs: LogsButton,
   sync: SyncStatus,
-  dataTablePreview: DataTablePreviewButton,
 };
 
-const BUTTON_COLUMN_TYPES = ['edit', 'export', 'delete', 'logs', 'dataTablePreview'];
+const BUTTON_COLUMN_TYPES = ['edit', 'export', 'delete', 'logs'];
 
 export const generateConfigForColumnType = (type, actionConfig, reduxId) => {
   const CustomCellComponent = CUSTOM_CELL_COMPONENTS[type];

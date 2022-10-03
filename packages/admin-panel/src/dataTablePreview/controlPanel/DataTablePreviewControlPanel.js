@@ -8,11 +8,12 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import MuiIconButton from '@material-ui/core/IconButton';
 import PlayIcon from '@material-ui/icons/PlayCircleFilled';
-import { makeSubstitutionsInString } from '../utilities';
-import { useApi } from '../utilities/ApiProvider';
+import { makeSubstitutionsInString } from '../../utilities';
+import { useApi } from '../../utilities/ApiProvider';
 import { DataTablePreviewControls } from './DataTablePreviewControls';
 
 const dataTablePreviewEndpoint = 'dataTables/{code}/preview';
+const dataTableTestEndpoint = 'dataTables/test';
 
 const PlayIconButton = styled(MuiIconButton)`
   border: 1px solid ${({ theme }) => theme.palette.grey['400']};
@@ -29,7 +30,6 @@ const PlayIconButton = styled(MuiIconButton)`
 
 const ControlPanelContainer = styled.div`
   display: flex;
-  height: 100%;
 `;
 
 export const DataTablePreviewControlPanel = ({
@@ -40,6 +40,7 @@ export const DataTablePreviewControlPanel = ({
   setPreviewData,
   dataTable,
   dataTableParameters,
+  isEditing,
 }) => {
   const [controlValues, setControlValues] = useState({});
 
@@ -48,8 +49,11 @@ export const DataTablePreviewControlPanel = ({
   const fetchDataTablePreviewData = async () => {
     try {
       setIsLoading(true);
-      const previewEndpoint = makeSubstitutionsInString(dataTablePreviewEndpoint, dataTable);
-      const previewResponse = await api.post(previewEndpoint, null, controlValues);
+      const url = isEditing
+        ? dataTableTestEndpoint
+        : makeSubstitutionsInString(dataTablePreviewEndpoint, dataTable);
+      const body = isEditing ? { dataTable, parameters: controlValues } : controlValues;
+      const previewResponse = await api.post(url, null, body);
       setPreviewData(previewResponse.body.data);
       setIsError(false);
       setError(null);
@@ -68,14 +72,14 @@ export const DataTablePreviewControlPanel = ({
 
   return (
     <ControlPanelContainer>
+      <PlayIconButton onClick={onClickPlay}>
+        <PlayIcon />
+      </PlayIconButton>
       <DataTablePreviewControls
         dataTableParameters={dataTableParameters}
         controlValues={controlValues}
         setControlValues={setControlValues}
       />
-      <PlayIconButton onClick={onClickPlay}>
-        <PlayIcon />
-      </PlayIconButton>
     </ControlPanelContainer>
   );
 };
@@ -88,4 +92,5 @@ DataTablePreviewControlPanel.propTypes = {
   setPreviewData: PropTypes.func.isRequired,
   dataTable: PropTypes.object.isRequired,
   dataTableParameters: PropTypes.array.isRequired,
+  isEditing: PropTypes.bool.isRequired,
 };

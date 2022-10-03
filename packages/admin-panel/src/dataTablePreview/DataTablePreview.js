@@ -22,10 +22,9 @@ const StyledTable = styled(DataTable)`
 
 const TableContainer = styled.div`
   display: flex;
-  height: 100%;
 
   .MuiTableContainer-root {
-    overflow-y: hidden;
+    overflow: hidden;
   }
 `;
 

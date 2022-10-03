@@ -38,22 +38,34 @@ const dataTableParamConfigConfigToYupSchema = (paramConfig: DataTableParameterCo
   const { type, innerType } = paramConfig;
   let schema: yup.AnySchema;
   switch (type) {
-    case 'string':
+    case 'string': {
       schema = yup.string();
-      return attachQualifiersToSchema(schema, paramConfig);
-    case 'date':
+      break;
+    }
+    case 'date': {
       schema = yup.date();
-      return attachQualifiersToSchema(schema, paramConfig);
-    case 'array':
-      schema = yup.array();
-      if (innerType) {
-        const innerValidator = dataTableParamConfigConfigToYupSchema(innerType);
-        schema = (schema as yup.ArraySchema<yup.AnySchema>).of(innerValidator);
+      break;
+    }
+    case 'boolean': {
+      schema = yup.boolean();
+      break;
+    }
+    case 'object': {
+      schema = yup.object();
+      break;
+    }
+    case 'array': {
+      if (!innerType) {
+        throw new Error('Array parameters require an innerType');
       }
-      return attachQualifiersToSchema(schema, paramConfig);
+      schema = yup.array().of(dataTableParamConfigConfigToYupSchema(innerType));
+      break;
+    }
     default:
       throw new Error(`Missing logic to serialize to yup validator for parameter of type: ${type}`);
   }
+
+  return attachQualifiersToSchema(schema, paramConfig);
 };
 
 export const dataTableParamsToYupSchema = (params: DataTableParameter[]): yup.AnyObjectSchema => {

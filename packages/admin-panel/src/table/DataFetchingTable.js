@@ -259,10 +259,13 @@ const mergeProps = (stateProps, { dispatch, ...dispatchProps }, ownProps) => {
     endpoint,
     columns,
     reduxId,
+    refreshDataTrigger = {},
     ...restOfOwnProps
   } = ownProps;
-  const onRefreshData = () =>
+  const dispatchRefreshData = () =>
     dispatch(refreshData(reduxId, endpoint, columns, baseFilter, stateProps));
+
+  refreshDataTrigger.current = dispatchRefreshData;
   const initialiseTable = (filters = defaultFilters) => {
     dispatch(changeSorting(reduxId, defaultSorting));
     dispatch(changeFilters(reduxId, filters)); // will trigger a data fetch afterwards
@@ -272,7 +275,7 @@ const mergeProps = (stateProps, { dispatch, ...dispatchProps }, ownProps) => {
     ...restOfOwnProps,
     ...stateProps,
     ...dispatchProps,
-    onRefreshData,
+    onRefreshData: dispatchRefreshData,
     initialiseTable,
   };
 };
