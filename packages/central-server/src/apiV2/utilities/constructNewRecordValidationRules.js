@@ -94,6 +94,12 @@ export const constructForSingle = (models, recordType) => {
         service_type: [constructIsOneOf(DATA_SOURCE_SERVICE_TYPES)],
         config: [hasContent],
       };
+    case TYPES.DATA_TABLE:
+      return {
+        code: [hasContent],
+        type: [hasContent],
+        permission_groups: [hasContent],
+      };
     case TYPES.EXTERNAL_DATABASE_CONNECTION:
       return {
         code: [hasContent],
