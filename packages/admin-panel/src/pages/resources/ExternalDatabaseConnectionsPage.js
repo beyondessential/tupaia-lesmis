@@ -80,6 +80,7 @@ const COLUMNS = [
     filterable: false,
     sortable: false,
     Cell: TestDatabaseConnectionCell,
+    width: 70,
   },
 ];
 

@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import DatabaseIcon from '@material-ui/icons/Storage';
+import NetworkCheck from '@material-ui/icons/NetworkCheck';
 import ErrorIcon from '@material-ui/icons/Error';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import { Tooltip } from '@material-ui/core';
@@ -40,13 +40,6 @@ const FailedIcon = styled(ErrorIcon)`
 
 const TestConnectionIconButton = styled(IconButton)`
   display: flex;
-
-  background-color: ${props => props.theme.palette.blue[100]};
-
-  &.Mui-disabled {
-    background-color: ${props => props.theme.palette.primary.main};
-    color: white;
-  }
 `;
 
 export const TestDatabaseConnectionCell = ({ row }) => {
@@ -74,7 +67,7 @@ export const TestDatabaseConnectionCell = ({ row }) => {
   const TestConnectionButton = ({ disabled = false }) => (
     <Tooltip title="Click to test database connection">
       <TestConnectionIconButton disabled={disabled} onClick={testConnection}>
-        <DatabaseIcon />
+        <NetworkCheck />
       </TestConnectionIconButton>
     </Tooltip>
   );

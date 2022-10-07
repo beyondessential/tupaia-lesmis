@@ -34,6 +34,22 @@ export class ExternalDatabaseConnectionModel extends DatabaseModel {
     return ExternalDatabaseConnectionType;
   }
 
+  async update(whereCondition, fieldsToUpdate) {
+    // Clear connections before updating the records
+    const connectionsToUpdate = await this.find(whereCondition);
+    await Promise.all(connectionsToUpdate.map(connection => this.closeConnection(connection)));
+
+    await super.update(whereCondition, fieldsToUpdate);
+  }
+
+  async delete(whereConditions) {
+    // Clear connections before deleting the records
+    const connectionsToDelete = await this.find(whereConditions);
+    await Promise.all(connectionsToDelete.map(connection => this.closeConnection(connection)));
+
+    await super.delete(whereConditions);
+  }
+
   acquireConnection(externalDatabaseConnectionType) {
     const {
       id: connectionId,
@@ -60,5 +76,14 @@ export class ExternalDatabaseConnectionModel extends DatabaseModel {
     });
     this.activeConnections[connectionId] = connection;
     return connection;
+  }
+
+  async closeConnection(externalDatabaseConnectionType) {
+    const { id: connectionId } = externalDatabaseConnectionType;
+    const existingConnection = this.activeConnections[connectionId];
+    if (existingConnection) {
+      await existingConnection.destroy();
+      delete this.activeConnections[connectionId];
+    }
   }
 }
