@@ -5,6 +5,7 @@
  */
 
 import pick from 'lodash.pick';
+import { isDefined } from '@tupaia/tsutils';
 import { EntityApiInterface } from '../../connections';
 
 export class MockEntityApi implements EntityApiInterface {
@@ -27,7 +28,6 @@ export class MockEntityApi implements EntityApiInterface {
         continue;
       }
 
-      const isDefined = <T>(val: T): val is Exclude<T, undefined> => val !== undefined;
       const children = relationsInHierarchy
         .filter(({ parent: parentCode }) => parent.code === parentCode)
         .map(({ child }) => entitiesInHierarchy.find(entity => entity.code === child))
