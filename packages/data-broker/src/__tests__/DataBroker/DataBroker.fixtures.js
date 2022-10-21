@@ -43,6 +43,13 @@ export const DATA_ELEMENTS = {
     permission_groups: ['*'],
     databaseType: TYPES.DATA_ELEMENT,
   },
+  RESTRICTED_01: {
+    code: 'RESTRICTED_01',
+    service_type: 'test',
+    config: {},
+    permission_groups: ['Admin'],
+    databaseType: TYPES.DATA_ELEMENT,
+  },
 };
 export const DATA_GROUPS = {
   TEST_01: { code: 'TEST_01', service_type: 'test', config: {}, databaseType: TYPES.DATA_GROUP },
