@@ -4,7 +4,7 @@
  */
 
 export * from './actions';
-export { LOGOUT } from './constants';
+export { LOGOUT, VIZ_BUILDER_USER_PERMISSION_GROUP } from './constants';
 export * from './selectors';
 export { reducer } from './reducer';
 export { ProfileButton } from './ProfileButton';

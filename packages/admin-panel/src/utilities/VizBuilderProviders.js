@@ -4,15 +4,21 @@
  */
 
 import React from 'react';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { ThemeProvider } from 'styled-components';
 import { ReactQueryDevtools } from 'react-query/devtools';
-
-const queryClient = new QueryClient();
+import { MuiThemeProvider, StylesProvider } from '@material-ui/core/styles';
+import CssBaseline from '@material-ui/core/CssBaseline';
+import { theme } from '../theme';
 
 // eslint-disable-next-line react/prop-types
 export const VizBuilderProviders = ({ children }) => (
-  <QueryClientProvider client={queryClient}>
-    <ReactQueryDevtools />
-    {children}
-  </QueryClientProvider>
+  <StylesProvider injectFirst>
+    <MuiThemeProvider theme={theme}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <ReactQueryDevtools />
+        {children}
+      </ThemeProvider>
+    </MuiThemeProvider>
+  </StylesProvider>
 );

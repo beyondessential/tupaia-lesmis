@@ -10,6 +10,7 @@ import AddCircleIcon from '@material-ui/icons/AddCircle';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { ResourcePage } from './ResourcePage';
+import { useUser } from '../../VizBuilderApp/api';
 
 const StyledLink = styled(Link)`
   text-decoration: none;
@@ -49,7 +50,8 @@ const FIELDS = [
   },
 ];
 
-export const DashboardItemsPage = ({ getHeaderEl, isBESAdmin, vizBuilderBaseUrl, ...props }) => {
+export const DashboardItemsPage = ({ getHeaderEl, vizBuilderBaseUrl, ...props }) => {
+  const { isVizBuilderUser } = useUser();
   const extraEditFields = [
     // ID field for constructing viz-builder path only, not for showing or editing
     {
@@ -60,7 +62,7 @@ export const DashboardItemsPage = ({ getHeaderEl, isBESAdmin, vizBuilderBaseUrl,
     {
       Header: 'Edit using Visualisation Builder',
       type: 'link',
-      show: isBESAdmin,
+      show: isVizBuilderUser,
       editConfig: {
         type: 'link',
         linkOptions: {
@@ -105,6 +107,14 @@ export const DashboardItemsPage = ({ getHeaderEl, isBESAdmin, vizBuilderBaseUrl,
     },
   ];
 
+  const renderNewDashboardVizButton = () => (
+    <StyledLink to={isVizBuilderUser ? `${vizBuilderBaseUrl}/viz-builder/dashboard-item/new` : '#'}>
+      <LightOutlinedButton disabled={!isVizBuilderUser} startIcon={<AddCircleIcon />}>
+        New
+      </LightOutlinedButton>
+    </StyledLink>
+  );
+
   const importConfig = {
     title: 'Import Dashboard Visualisation',
     subtitle: 'Please upload one or more .json files with visualisations to be imported:',
@@ -127,12 +137,6 @@ export const DashboardItemsPage = ({ getHeaderEl, isBESAdmin, vizBuilderBaseUrl,
     ),
   };
 
-  const renderNewDashboardVizButton = () => (
-    <StyledLink to={`${vizBuilderBaseUrl}/viz-builder/dashboard-item/new`}>
-      <LightOutlinedButton startIcon={<AddCircleIcon />}>New</LightOutlinedButton>
-    </StyledLink>
-  );
-
   return (
     <ResourcePage
       title="Dashboard Items"
@@ -148,11 +152,9 @@ export const DashboardItemsPage = ({ getHeaderEl, isBESAdmin, vizBuilderBaseUrl,
 
 DashboardItemsPage.propTypes = {
   getHeaderEl: PropTypes.func.isRequired,
-  isBESAdmin: PropTypes.bool,
   vizBuilderBaseUrl: PropTypes.string,
 };
 
 DashboardItemsPage.defaultProps = {
-  isBESAdmin: false,
   vizBuilderBaseUrl: '',
 };

@@ -9,6 +9,7 @@ import styled from 'styled-components';
 import { LightOutlinedButton } from '@tupaia/ui-components';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
 import { Link } from 'react-router-dom';
+import { useUser } from '../../VizBuilderApp/api';
 import { prettyArray } from '../../utilities';
 import { ResourcePage } from './ResourcePage';
 import { ArrayFilter } from '../../table/columnTypes/columnFilters';
@@ -112,7 +113,8 @@ const FIELDS = [
   },
 ];
 
-export const MapOverlaysPage = ({ getHeaderEl, isBESAdmin, vizBuilderBaseUrl, ...props }) => {
+export const MapOverlaysPage = ({ getHeaderEl, vizBuilderBaseUrl, ...props }) => {
+  const { isVizBuilderUser } = useUser();
   const extraEditFields = [
     // ID field for constructing viz-builder path only, not for showing or editing
     {
@@ -123,7 +125,7 @@ export const MapOverlaysPage = ({ getHeaderEl, isBESAdmin, vizBuilderBaseUrl, ..
     {
       Header: 'Edit using Visualisation Builder',
       type: 'link',
-      show: isBESAdmin,
+      show: isVizBuilderUser,
       editConfig: {
         type: 'link',
         linkOptions: {
@@ -211,11 +213,9 @@ export const MapOverlaysPage = ({ getHeaderEl, isBESAdmin, vizBuilderBaseUrl, ..
 
 MapOverlaysPage.propTypes = {
   getHeaderEl: PropTypes.func.isRequired,
-  isBESAdmin: PropTypes.bool,
   vizBuilderBaseUrl: PropTypes.string,
 };
 
 MapOverlaysPage.defaultProps = {
-  isBESAdmin: false,
   vizBuilderBaseUrl: '',
 };

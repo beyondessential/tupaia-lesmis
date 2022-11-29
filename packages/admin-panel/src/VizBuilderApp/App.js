@@ -21,7 +21,7 @@ const Container = styled.main`
 `;
 
 export const App = ({ Navbar, Footer }) => {
-  const { data, isLoading: isUserLoading, isBESAdmin } = useUser();
+  const { data, isLoading: isUserLoading, isVizBuilderUser } = useUser();
 
   const basePath = useVizBuilderBasePath();
 
@@ -29,7 +29,7 @@ export const App = ({ Navbar, Footer }) => {
     return <FullPageLoader />;
   }
 
-  if (!isBESAdmin) {
+  if (!isVizBuilderUser) {
     return <Redirect to={basePath} />;
   }
 
@@ -38,7 +38,7 @@ export const App = ({ Navbar, Footer }) => {
   return (
     <StateProvider>
       <Container>
-        {Navbar && <Navbar user={user} isBESAdmin={isBESAdmin} />}
+        {Navbar && <Navbar user={user} />}
         <Switch>
           <Route path={`${basePath}/viz-builder/:vizType/new`} exact>
             <CreateNew />
