@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 import { Switch, Redirect, Route, useRouteMatch } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { Assignment, InsertChart, PeopleAlt } from '@material-ui/icons';
+import { AccessPolicy } from '@tupaia/access-policy';
 import { TabsToolbar } from '@tupaia/ui-components';
 import {
   DashboardsPage,
@@ -36,6 +37,7 @@ import {
 import { AdminPanelNavbar } from '../views/AdminPanel/AdminPanelNavBar';
 import { AdminPanelLoginPage } from '../views/AdminPanel/AdminPanelLoginPage';
 import { useAdminPanelUrl } from '../utils';
+import { COUNTRY_CODE, LESMIS_PERMISSION_GROUPS } from '../constants';
 
 // Only show users who signed up through lesmis
 const UsersView = props => <UsersPage {...props} baseFilter={{ primary_platform: 'lesmis' }} />;
@@ -151,10 +153,13 @@ const getRoutes = adminUrl => [
   },
 ];
 
-const AdminPanelApp = ({ user, isBESAdmin }) => {
+const AdminPanelApp = ({ user }) => {
   const headerEl = React.useRef(null);
   const { path } = useRouteMatch();
   const adminUrl = useAdminPanelUrl();
+  const isLesmisAdmin =
+    user &&
+    new AccessPolicy(user.accessPolicy).allows(COUNTRY_CODE, LESMIS_PERMISSION_GROUPS.ADMIN);
 
   const getHeaderEl = () => {
     return headerEl;
@@ -170,7 +175,7 @@ const AdminPanelApp = ({ user, isBESAdmin }) => {
       <Route path={`${path}/logout`} exact>
         <LogoutPage redirectTo={`${adminUrl}/login`} />
       </Route>
-      <LesmisAdminRoute path={`${path}/viz-builder`} isBESAdmin>
+      <LesmisAdminRoute path={`${path}/viz-builder`} isLesmisAdmin={isLesmisAdmin}>
         <VizBuilderProviders>
           <VizBuilderApp
             basePath={adminUrl}
@@ -183,7 +188,7 @@ const AdminPanelApp = ({ user, isBESAdmin }) => {
         <div ref={headerEl} />
         <Switch>
           {[...routes].map(route => (
-            <LesmisAdminRoute key={route.to} path={`${route.to}`} isBESAdmin={isBESAdmin}>
+            <LesmisAdminRoute key={route.to} path={`${route.to}`} isLesmisAdmin={isLesmisAdmin}>
               <TabsToolbar links={route.tabs} maxWidth="xl" />
               <Switch>
                 {route.tabs.map(tab => (
@@ -209,18 +214,13 @@ AdminPanelApp.propTypes = {
     email: PropTypes.string.isRequired,
     firstName: PropTypes.string,
     profileImage: PropTypes.string,
+    accessPolicy: PropTypes.object,
   }).isRequired,
-  isBESAdmin: PropTypes.bool,
-};
-
-AdminPanelApp.defaultProps = {
-  isBESAdmin: false,
 };
 
 export default connect(
   state => ({
     user: state?.authentication?.user || {},
-    isBESAdmin: state?.authentication?.isBESAdmin || false,
   }),
   null,
 )(AdminPanelApp);
